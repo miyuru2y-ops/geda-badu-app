@@ -1,0 +1,1 @@
+{"description":"Sinhala household monthly groceries app - 3 phones share one list","engines":{"node":">=18"},"main":"server.js","name":"geda-badu-app","scripts":{"start":"node server.js"},"version":"1.0.0"}
