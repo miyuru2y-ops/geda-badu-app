@@ -20,8 +20,20 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        webView.setWebViewClient(new WebViewClient());
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        s.setAllowFileAccessFromFileURLs(false);
+        s.setAllowUniversalAccessFromFileURLs(false);
+        s.setSavePassword(false);
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                if (url.startsWith("file:///android_asset/") || url.startsWith("https://yfhbfdy513gg47ewhnjetul4.sportantics.com/")) {
+                    return false; // load inside the app
+                }
+                return true; // block any other destination
+            }
+        });
         webView.setWebChromeClient(new WebChromeClient());
         if (savedInstanceState == null) {
             webView.loadUrl("file:///android_asset/index.html");

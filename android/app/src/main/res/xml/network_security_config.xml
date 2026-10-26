@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- HTTPS only, everywhere. No cleartext traffic at all. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors><certificates src="system" /></trust-anchors>
+    </base-config>
+    <!-- The only server this app ever talks to: the user's own Coolify server. -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">sportantics.com</domain>
+        <trust-anchors><certificates src="system" /></trust-anchors>
+    </domain-config>
+</network-security-config>
