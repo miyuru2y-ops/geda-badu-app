@@ -1,0 +1,35 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'lk.gedabaduapp'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'lk.gedabaduapp'   // දැනට install කරලා තියෙන app එකේ නමමයි — එතකොට උඩින් update වෙනවා
+        minSdk 24
+        targetSdk 35
+        versionCode 9
+        versionName '2.0'
+    }
+    signingConfigs {
+        release {
+            def ks = System.getenv('GEDA_KEYSTORE')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('GEDA_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('GEDA_KEY_ALIAS')
+                keyPassword System.getenv('GEDA_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('GEDA_KEYSTORE') ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint { checkReleaseBuilds false; abortOnError false }
+}

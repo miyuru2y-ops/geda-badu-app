@@ -1,0 +1,48 @@
+# GitHub එකේම APK එක build කරනවා. Actions → "Build APK" → Run workflow, නැත්නම් android/ හෝ public/ වෙනස් කරලා push කළාම.
+# APK එක: Actions run එකේ "Artifacts" → geda-badu-apk
+#
+# පරණ app එකට උඩින් update වෙන්න නම් ඒකම sign කරපු keystore එක secrets වලට දාන්න:
+#   GEDA_KEYSTORE_BASE64  (base64 කරපු .jks/.keystore file එක)
+#   GEDA_KEYSTORE_PASSWORD, GEDA_KEY_ALIAS, GEDA_KEY_PASSWORD
+# Secrets නැත්නම් debug key එකකින් sign වෙනවා (පරණ app එක uninstall කරලා install කරන්න වෙනවා).
+name: Build APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['android/**', 'public/**', '.github/workflows/android-apk.yml']
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.9' }
+      - name: Android SDK packages
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
+      - name: Bundle the web app into the APK (offline copy)
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp public/index.html public/core.js public/catalog.js public/icon.png public/manifest.json android/app/src/main/assets/
+      - name: Keystore
+        env: { KS: '${{ secrets.GEDA_KEYSTORE_BASE64 }}' }
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/geda.keystore"
+            echo "GEDA_KEYSTORE=$RUNNER_TEMP/geda.keystore" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No GEDA_KEYSTORE_BASE64 secret — signing with a debug key"
+          fi
+      - name: Build
+        working-directory: android
+        env:
+          GEDA_KEYSTORE_PASSWORD: ${{ secrets.GEDA_KEYSTORE_PASSWORD }}
+          GEDA_KEY_ALIAS: ${{ secrets.GEDA_KEY_ALIAS }}
+          GEDA_KEY_PASSWORD: ${{ secrets.GEDA_KEY_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
+      - name: Rename
+        run: cp android/app/build/outputs/apk/release/app-release.apk "Geda-Badu-App-v2.0-$(date +%Y%m%d).apk"
+      - uses: actions/upload-artifact@v4
+        with: { name: geda-badu-apk, path: 'Geda-Badu-App-*.apk' }

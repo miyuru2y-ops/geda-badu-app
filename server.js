@@ -1,150 +1,191 @@
-// ගෙදර බඩු ඇප් - එකම සර්වර් එකේ දත්ත, ෆෝන් 3ම එකම ලිස්ට් එක දකියි.
-// Node පමණයි, වෙන කිසිම package එකක් ඕන නැහැ. Git -> Coolify deploy එකට හදලා තියෙන්නේ.
+// ගෙදර බඩු — server v2
+// Node පමණයි, වෙන package එකක් ඕන නැහැ. Coolify (Dockerfile) එකට හදලා තියෙන්නේ.
+//
+// Environment variables:
+//   PORT            (default 3000)
+//   DATA_DIR        දත්ත තියෙන folder එක (default ./data) — Coolify එකේ persistent volume එකක් මෙතනට mount කරන්න: /app/data
+//   HOUSEHOLD_KEY   ගෙදර කෝඩ් එක (password). දැම්මොත් කෝඩ් එක නැති කෙනෙක්ට ලිස්ට් එක බලන්න/වෙනස් කරන්න බැහැ.
+//   TZ_NAME         default Asia/Colombo
+'use strict';
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const core = require('./public/core.js');
 
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data.json');
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const STATE_FILE = path.join(DATA_DIR, 'state.json');
+const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const PUBLIC = path.join(__dirname, 'public');
+const KEY = (process.env.HOUSEHOLD_KEY || '').trim();
+const TZ = process.env.TZ_NAME || core.TZ;
+const MAX_BODY = 2 * 1024 * 1024;
 
-const INITIAL_ITEMS = [
-  {"id": "baby-soap", "name": "බේබි සබන්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1},
-  {"id": "adult-soap", "name": "වැඩිහිටි සබන්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1},
-  {"id": "comfort", "name": "Comfort", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "vim-soap", "name": "Vim සබන්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1},
-  {"id": "vim-liquid", "name": "Vim Liquid", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "dash", "name": "Dash Tile Cleaner", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "toilet", "name": "Toilet Cleaner", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "air", "name": "Air Freshener", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "shampoo", "name": "Shampoo", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "conditioner", "name": "Conditioner", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "rice", "name": "හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 15, "monthly": 15, "daily": 0.5, "low": 3},
-  {"id": "dal", "name": "පරිප්පු", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 3, "monthly": 3, "daily": 0.1, "low": 0.5},
-  {"id": "atta", "name": "ආටා පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.1, "low": 0.5},
-  {"id": "butter", "name": "බටර්", "cat": "වෙනත්", "unit": "g", "qty": 200, "monthly": 200, "daily": 10, "low": 50},
-  {"id": "astra", "name": "Astra", "cat": "වෙනත්", "unit": "g", "qty": 500, "monthly": 500, "daily": 15, "low": 100},
-  {"id": "coco-eat", "name": "පොල් තෙල් - කෑමට", "cat": "වෙනත්", "unit": "L", "qty": 2, "monthly": 2, "daily": 0.07, "low": 0.5},
-  {"id": "coco-lamp", "name": "පොල් තෙල් - පහනට", "cat": "වෙනත්", "unit": "L", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25},
-  {"id": "sugar", "name": "සීනි", "cat": "වෙනත්", "unit": "kg", "qty": 5, "monthly": 5, "daily": 0.15, "low": 1},
-  {"id": "tea", "name": "බෝගවන්තලාව තේ 400g x 2", "cat": "වෙනත්", "unit": "g", "qty": 800, "monthly": 800, "daily": 25, "low": 200},
-  {"id": "potato", "name": "අල", "cat": "එළවළු", "unit": "kg", "qty": 3, "monthly": 3, "daily": 0.1, "low": 0.5},
-  {"id": "big-onion", "name": "ලොකු ළූණු", "cat": "එළවළු", "unit": "kg", "qty": 5, "monthly": 5, "daily": 0.15, "low": 1},
-  {"id": "red-onion", "name": "රතු ළූණු", "cat": "එළවළු", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.05, "low": 0.5},
-  {"id": "veg", "name": "එළවළු", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "highland", "name": "Highland කිරි පැකට්", "cat": "වෙනත්", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1},
-  {"id": "salt", "name": "ලුණු", "cat": "කුළුබඩු", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0.02, "low": 0.25},
-  {"id": "chili-powder", "name": "මිරිස් කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 250, "monthly": 250, "daily": 10, "low": 50},
-  {"id": "curry-powder", "name": "තුනපහ කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 250, "monthly": 250, "daily": 15, "low": 50},
-  {"id": "turmeric", "name": "කහ කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 5, "low": 20},
-  {"id": "pepper", "name": "ගම්මිරිස් කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 3, "low": 20},
-  {"id": "cinnamon", "name": "කුරුඳු", "cat": "කුළුබඩු", "unit": "g", "qty": 50, "monthly": 50, "daily": 0, "low": 10},
-  {"id": "cloves", "name": "කරාබු නැටි", "cat": "කුළුබඩු", "unit": "g", "qty": 25, "monthly": 25, "daily": 0, "low": 5},
-  {"id": "cardamom", "name": "එනසාල්", "cat": "කුළුබඩු", "unit": "g", "qty": 25, "monthly": 25, "daily": 0, "low": 5},
-  {"id": "mustard", "name": "අබ", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20},
-  {"id": "fenugreek", "name": "උළුහාල්", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20},
-  {"id": "cumin", "name": "සූදුරු", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20},
-  {"id": "coriander", "name": "කොත්තමල්ලි ඇට", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 5, "low": 20},
-  {"id": "garlic", "name": "සුදු ළූණු", "cat": "කුළුබඩු", "unit": "g", "qty": 250, "monthly": 250, "daily": 20, "low": 50},
-  {"id": "ginger", "name": "ඉඟුරු", "cat": "කුළුබඩු", "unit": "g", "qty": 200, "monthly": 200, "daily": 10, "low": 50},
-  {"id": "wheat-flour", "name": "පාන් පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.05, "low": 0.5},
-  {"id": "noodles", "name": "නූඩ්ල්ස්", "cat": "ධාන්‍ය වර්ග", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1},
-  {"id": "pasta", "name": "පැස්ටා", "cat": "ධාන්‍ය වර්ග", "unit": "g", "qty": 500, "monthly": 500, "daily": 0, "low": 100},
-  {"id": "soya", "name": "සෝයා මීට්", "cat": "වෙනත්", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1},
-  {"id": "chickpea", "name": "කඩල", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25},
-  {"id": "mung", "name": "මුං ඇට", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25},
-  {"id": "cowpea", "name": "කව්පි", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25},
-  {"id": "milk-powder", "name": "කිරි පිටි", "cat": "වෙනත්", "unit": "g", "qty": 400, "monthly": 400, "daily": 15, "low": 100},
-  {"id": "eggs", "name": "බිත්තර", "cat": "මස් මාලු බිත්තර", "unit": "", "qty": 30, "monthly": 30, "daily": 2, "low": 6},
-  {"id": "canned-fish", "name": "ටින් මාළු", "cat": "මස් මාලු බිත්තර", "unit": "ටින්", "qty": 4, "monthly": 4, "daily": 0, "low": 1},
-  {"id": "vinegar", "name": "විනාකිරි", "cat": "වෙනත්", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "soy-sauce", "name": "සෝයා සෝස්", "cat": "වෙනත්", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "tomato-sauce", "name": "තක්කාලි සෝස්", "cat": "වෙනත්", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "sunflower-oil", "name": "සූරියකාන්ත තෙල්", "cat": "වෙනත්", "unit": "L", "qty": 1, "monthly": 1, "daily": 0.03, "low": 0.25},
-  {"id": "coffee", "name": "කෝපි", "cat": "වෙනත්", "unit": "g", "qty": 200, "monthly": 200, "daily": 7, "low": 50},
-  {"id": "biscuits", "name": "බිස්කට්", "cat": "වෙනත්", "unit": "පැකට්", "qty": 4, "monthly": 4, "daily": 0, "low": 1},
-  {"id": "peanuts", "name": "රටකජු", "cat": "වෙනත්", "unit": "g", "qty": 500, "monthly": 500, "daily": 0, "low": 100},
-  {"id": "jaggery", "name": "හකුරු", "cat": "වෙනත්", "unit": "g", "qty": 500, "monthly": 500, "daily": 10, "low": 100},
-  {"id": "tomato", "name": "තක්කාලි", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "carrot", "name": "කැරට්", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "beetroot", "name": "බීට්", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "cabbage", "name": "ගෝවා", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "beans", "name": "බෝංචි", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "brinjal", "name": "වම්බටු", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "bitter-gourd", "name": "කරවිල", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "leeks", "name": "ලීක්ස්", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "cucumber", "name": "පිපිඤ්ඤා", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "greens", "name": "කොළ වර්ග", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "banana", "name": "කෙසෙල්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "lime", "name": "දෙහි", "cat": "පළතුරු", "unit": "", "qty": 10, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "apple", "name": "ඇපල්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "orange", "name": "දොඩම්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "mango", "name": "අඹ", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "papaya", "name": "පැපොල්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "chicken", "name": "කුකුල් මස්", "cat": "මස් මාලු බිත්තර", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "fish", "name": "මාළු", "cat": "මස් මාලු බිත්තර", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0},
-  {"id": "paracetamol", "name": "පැරසිටමෝල්", "cat": "බෙහෙත්", "unit": "පැකට්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "plaster", "name": "ප්ලාස්ටර්", "cat": "බෙහෙත්", "unit": "පැකට්", "qty": 1, "monthly": 1, "daily": 0, "low": 0},
-  {"id": "antiseptic", "name": "ඇන්ටිසෙප්ටික් ක්‍රීම්", "cat": "බෙහෙත්", "unit": "ටියුබ්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}
-];
+const today = () => core.localDate(new Date(), TZ);
 
-function initialState() {
-  const now = new Date();
-  const monthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  const monthStart = {};
-  INITIAL_ITEMS.forEach(i => { monthStart[i.id] = i.qty; });
-  return { version: 1, monthKey, monthStart, lastCookDate: '', items: INITIAL_ITEMS, log: [] };
+fs.mkdirSync(BACKUP_DIR, { recursive: true });
+
+// ---------- load ----------
+function loadInitial() {
+  const candidates = [STATE_FILE, path.join(__dirname, 'data.json')]; // data.json = පරණ v1 file එක
+  for (const f of candidates) {
+    try {
+      const s = JSON.parse(fs.readFileSync(f, 'utf8'));
+      console.log('Loaded state from', f);
+      return core.normalize(s, today());
+    } catch (e) { /* next */ }
+  }
+  // අන්තිම backup එකෙන් ගන්න උත්සාහ කරනවා
+  try {
+    const b = fs.readdirSync(BACKUP_DIR).filter(n => n.endsWith('.json')).sort().pop();
+    if (b) { console.log('Restored from backup', b); return core.normalize(JSON.parse(fs.readFileSync(path.join(BACKUP_DIR, b), 'utf8')), today()); }
+  } catch (e) { /* ignore */ }
+  console.log('Starting with seed list');
+  return core.normalize(require('./seed.json'), today());
 }
 
-let state;
-try { state = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
-catch { state = initialState(); fs.writeFileSync(DATA_FILE, JSON.stringify(state, null, 2)); }
+let state = loadInitial();
+core.rollover(state, today());
+writeState();
 
-function save() {
+// ---------- save (atomic) + daily backup ----------
+function writeState() {
+  const tmp = STATE_FILE + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(state));
+  fs.renameSync(tmp, STATE_FILE);
+  const bf = path.join(BACKUP_DIR, 'state-' + today() + '.json');
+  if (!fs.existsSync(bf)) {
+    try {
+      fs.copyFileSync(STATE_FILE, bf);
+      const all = fs.readdirSync(BACKUP_DIR).filter(n => /^state-.*\.json$/.test(n)).sort();
+      all.slice(0, Math.max(0, all.length - 30)).forEach(n => fs.unlinkSync(path.join(BACKUP_DIR, n)));
+    } catch (e) { console.error('backup failed', e.message); }
+  }
+}
+function commit() {
   state.version = (state.version || 0) + 1;
-  fs.writeFileSync(DATA_FILE, JSON.stringify(state, null, 2));
+  core.pruneLog(state, today());
+  writeState();
 }
 
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+// ---------- helpers ----------
+function send(res, code, obj, extra) {
+  const body = obj === undefined ? '' : JSON.stringify(obj);
+  res.writeHead(code, Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }, extra || {}));
+  res.end(body);
+}
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let size = 0; const chunks = [];
+    req.on('data', c => { size += c.length; if (size > MAX_BODY) { reject(Object.assign(new Error('too big'), { code: 413 })); req.resume(); return; } chunks.push(c); });
+    req.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')); } catch (e) { reject(Object.assign(new Error('bad json'), { code: 400 })); } });
+    req.on('error', reject);
+  });
+}
+function safeEq(a, b) {
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+// වැරදි කෝඩ් දාලා guess කරන එක හෙමින් කරනවා
+const fails = new Map();
+function authorized(req, url) {
+  if (!KEY) return true;
+  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  const f = fails.get(ip);
+  if (f && f.n >= 20 && Date.now() - f.t < 10 * 60000) return false;
+  const given = String(req.headers['x-household-key'] || url.searchParams.get('key') || '').trim();
+  if (!given) return false; // කෝඩ් එකක් නැති request (උදා: පරණ app) — lock කරන්නේ නැහැ
+  if (safeEq(given, KEY)) { fails.delete(ip); return true; }
+  fails.set(ip, { n: (f && Date.now() - f.t < 10 * 60000 ? f.n : 0) + 1, t: Date.now() });
+  return false;
+}
 
-const server = http.createServer((req, res) => {
-  // CORS: APK loads from file:// (origin null) — without these headers Android WebView blocks the API reply.
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
-  if (req.url === '/api/state' && req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify(state));
-  }
-  if (req.url === '/api/state' && req.method === 'POST') {
-    let body = '';
-    req.on('data', c => { body += c; if (body.length > 500000) req.destroy(); });
-    req.on('end', () => {
-      try {
-        const incoming = JSON.parse(body);
-        if (!incoming || !Array.isArray(incoming.items)) throw new Error('bad state');
-        // සරල නීතිය: අන්තිමට Save කළ ෆෝන් එකේ දත්ත තමයි හැමෝටම පේන්නේ.
-        // Polling නිසා එක ෆෝන් එකක් edit කරන වෙලාවේ අනිත් ෆෝන් එකේ පරණ දත්ත overwrite වෙන්නේ නැහැ
-        // (client එක version එක වෙනස් වෙලා නම් pehle අලුත් දත්ත ගන්නවා).
-        state = incoming; save();
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify(state));
-      } catch (e) {
-        res.writeHead(400); return res.end('bad request');
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+
+// ---------- server ----------
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://x');
+  const p = url.pathname;
+
+  if (p.startsWith('/api/')) {
+    // APK එකේ පරණ fallback (file://) එකටත් වැඩ කරන්න CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Household-Key');
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+    if (p === '/api/health') return send(res, 200, { ok: true, version: state.version, keyRequired: !!KEY });
+    // පරණ app (v1–v8): error එකක body එක හිස්ව යවනවා — එතකොට පරණ app එක "offline" කියලා හිතනවා, ලිස්ට් එක හිස් කරන්නේ නැහැ
+    const legacy = p === '/api/state' && (req.method === 'POST' || !url.searchParams.has('v'));
+    if (!authorized(req, url)) { if (legacy) { res.writeHead(401); return res.end(); } return send(res, 401, { error: 'key' }); }
+
+    if (rolloverIfNeeded()) commit();
+
+    try {
+      if (p === '/api/state' && req.method === 'GET') {
+        const v = url.searchParams.get('v');
+        if (v === null) {
+          // පරණ app (v1–v8) එකට — කියවන්න විතරයි
+          const legacy = Object.assign({}, core.publicView(state), { log: state.log.filter(l => l.d.slice(0, 7) === state.monthKey).map(l => ({ date: l.d, id: l.id, name: l.n, delta: l.delta, why: l.why })) });
+          return send(res, 200, legacy);
+        }
+        if (Number(v) === state.version) { res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end(); }
+        return send(res, 200, core.publicView(state));
       }
-    });
-    return;
+      if (p === '/api/state' && req.method === 'POST') {
+        // පරණ app එක මුළු ලිස්ට් එකම යවලා අනිත් අයගේ වෙනස්කම් මකන එක නවත්තනවා
+        res.writeHead(410); return res.end();
+      }
+      if (p === '/api/ops' && req.method === 'POST') {
+        const body = await readBody(req);
+        const ops = Array.isArray(body.ops) ? body.ops.slice(0, 500) : [];
+        const results = [];
+        let changed = false;
+        for (const op of ops) {
+          const r = core.applyOnce(state, op);
+          results.push({ uid: op.uid, ok: r.ok, dup: !!r.dup, err: r.err, changes: r.changes || [] });
+          if (r.ok && !r.dup) changed = true;
+        }
+        if (changed) commit();
+        return send(res, 200, { results, state: core.publicView(state) });
+      }
+      if (p === '/api/export' && req.method === 'GET') {
+        const out = Object.assign({}, state); delete out.seenOps;
+        return send(res, 200, out, { 'Content-Disposition': 'attachment; filename="geda-badu-' + today() + '.json"' });
+      }
+      if (p === '/api/import' && req.method === 'POST') {
+        const body = await readBody(req);
+        const s = body && body.state ? body.state : body;
+        if (!s || !Array.isArray(s.items) || !s.items.length) return send(res, 400, { error: 'bad state' });
+        // import කරන්න කලින් දැනට තියෙන එකේ backup එකක්
+        fs.writeFileSync(path.join(BACKUP_DIR, 'before-import-' + Date.now() + '.json'), JSON.stringify(state));
+        const ver = state.version;
+        state = core.normalize(s, today());
+        state.version = ver;
+        rolloverIfNeeded();
+        commit();
+        return send(res, 200, { ok: true, items: state.items.length, state: core.publicView(state) });
+      }
+      return send(res, 404, { error: 'not found' });
+    } catch (e) {
+      return send(res, e.code === 413 ? 413 : e.code === 400 ? 400 : 500, { error: e.message });
+    }
   }
-  let filePath = path.join(PUBLIC, req.url === '/' ? 'index.html' : req.url);
-  if (!filePath.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
+
+  // ---------- static files ----------
+  let rel = p === '/' ? '/index.html' : decodeURIComponent(p);
+  const filePath = path.join(PUBLIC, rel);
+  if (!filePath.startsWith(PUBLIC + path.sep)) { res.writeHead(403); return res.end(); }
   fs.readFile(filePath, (err, data) => {
-    if (err) { res.writeHead(404); return res.end('not found'); }
-    const headers = { 'Content-Type': MIME[path.extname(filePath)] || 'text/plain' };
-    if (filePath.endsWith('index.html')) headers['Cache-Control'] = 'no-cache';
+    if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('not found'); }
+    const headers = { 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' };
+    headers['Cache-Control'] = /\.(html|js|json|webmanifest)$/.test(filePath) ? 'no-cache' : 'public, max-age=86400';
+    if (filePath.endsWith('sw.js')) headers['Service-Worker-Allowed'] = '/';
     res.writeHead(200, headers);
     res.end(data);
   });
 });
 
-server.listen(PORT, () => console.log('Geda Badu app on port ' + PORT));
+function rolloverIfNeeded() { return core.rollover(state, today()); }
+
+server.listen(PORT, () => console.log('Geda Badu v2 on port ' + PORT + ' | data: ' + DATA_DIR + ' | key: ' + (KEY ? 'ON' : 'OFF')));
