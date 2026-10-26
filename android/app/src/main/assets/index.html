@@ -1,39 +1,75 @@
 <!DOCTYPE html>
 <html lang="si"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- APP_VERSION:8 -->
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
 <title>ගෙදර බඩු</title>
 <style>
-*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,'Noto Sans Sinhala',sans-serif;background:#f2f5f2;color:#1c2b22}
-header{background:#0e7a4b;color:#fff;padding:16px;position:sticky;top:0;z-index:5}
+:root{--main:#0e7a4b} *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,'Noto Sans Sinhala',sans-serif;background:#f2f5f2;color:#1c2b22}
+header{background:var(--main);color:#fff;padding:calc(30px + env(safe-area-inset-top, 0px)) 16px 16px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header .hbtn{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:12px;padding:10px 14px;font-size:16px;font-weight:700;flex-shrink:0}
 header h1{margin:0;font-size:22px} header p{margin:4px 0 0;opacity:.9;font-size:14px}
 #banner{background:#fff3c4;border:1px solid #e6c200;padding:12px;margin:12px;border-radius:12px;font-weight:700}
 main{padding:0 12px 90px;max-width:760px;margin:auto}
 .tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
 .tabs button{flex:1;min-width:110px;padding:12px;border:0;border-radius:12px;background:#fff;font-size:15px;font-weight:700}
-.tabs button.on{background:#0e7a4b;color:#fff}
+.tabs button.on{background:var(--main);color:#fff}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .chips button{padding:8px 14px;border-radius:20px;border:1px solid #cfe0d5;background:#fff}
 .chips button.on{background:#d9efe2}
 .card{background:#fff;border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
 .card h3{margin:0 0 4px;font-size:18px} .muted{color:#66796f;font-size:13px}
 .qty{font-size:22px;font-weight:800;margin:6px 0}
-.bar{height:8px;background:#e4ece6;border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:#0e7a4b}
+.bar{height:8px;background:#e4ece6;border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--main)}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 button.btn{padding:11px 14px;border-radius:11px;border:1px solid #cfe0d5;background:#f7faf8;font-size:15px;font-weight:700}
-button.primary{background:#0e7a4b;color:#fff;border-color:#0e7a4b}
+button.primary{background:var(--main);color:#fff;border-color:var(--main)}
 button.danger{color:#b42318} .low{color:#b42318;font-weight:800}
 input,select{width:100%;padding:12px;margin:6px 0;border:1px solid #cbd8cf;border-radius:11px;font-size:16px}
 label{font-size:14px;font-weight:700}
 #toast{position:fixed;left:12px;right:12px;bottom:16px;background:#1c2b22;color:#fff;padding:14px;border-radius:12px;display:none;z-index:9}
 table{width:100%;border-collapse:collapse;font-size:14px} td,th{padding:8px 4px;border-bottom:1px solid #e6ebe7;text-align:left}
 footer{color:#66796f;font-size:12px;text-align:center;padding:12px}
+
+button.btn{transition:transform .12s ease, background .15s ease}
+button.btn:active{transform:scale(.96)}
+.card{transition:box-shadow .2s ease}
+.bar i{transition:width .3s ease}
+html{scroll-behavior:smooth}
+body{-webkit-tap-highlight-color:transparent}
+
+.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.catgrid button{padding:14px 10px;border-radius:14px;border:1px solid #cfe0d5;background:#fff;font-size:16px;font-weight:700;text-align:left}
+.catgrid button.on{background:var(--main);color:#fff;border-color:var(--main)}
+.catgrid button small{display:block;font-weight:400;font-size:13px;opacity:.75;margin-top:2px}
+#searchBox{margin-bottom:10px}
+
+.itemrow{display:flex;align-items:center;gap:10px;background:#fff;padding:13px 12px;border-bottom:1px solid #e6ebe7}
+.itemrow:first-child{border-radius:14px 14px 0 0}
+.itemrow:last-child{border-radius:0 0 14px 14px;border-bottom:0;margin-bottom:10px}
+.ri-info{flex:1;min-width:0;cursor:pointer}
+.ri-name{font-size:18px;font-weight:700;line-height:1.3}
+.ri-sub{font-size:13px;color:#66796f;margin-top:3px}
+.ri-sub .bar{margin-top:6px}
+.ri-actions{display:grid;grid-template-columns:repeat(4,38px);gap:6px;flex-shrink:0}
+button.mini{width:38px;height:38px;padding:0;border-radius:10px;border:1px solid #cfe0d5;background:#f7faf8;font-size:16px;font-weight:700}
+button.mini.danger{color:#b42318}
+.ri-side{flex-shrink:0;text-align:right;font-weight:800;font-size:17px;min-width:64px}
+#editSheet{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.25);padding:18px 16px calc(18px + env(safe-area-inset-bottom, 0px));max-width:760px;margin:auto;display:none}
+#editSheet h3{margin:0 0 10px;font-size:19px}
+#sheetBack{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:19;display:none}
+
+.cathead{background:#eef4ef;border-radius:12px;padding:10px 12px;margin:12px 0 6px;font-weight:800}
+.itemrow.done{opacity:.55} .itemrow.done .ri-name{text-decoration:line-through}
+body.compact .itemrow{padding:6px 12px} body.compact .ri-name{font-size:15px} body.compact .catgrid button{padding:10px}
+button.mini.check{font-size:20px}
 </style></head>
 <body>
 <header>
-<h1>🏠 ගෙදර බඩු</h1>
-<p id="sub">මාසේ බඩු ලිස්ට් එක — ෆෝන් 3ම එකම ලිස්ට් එක</p>
+<div><h1>🏠 ගෙදර බඩු</h1>
+<p id="sub">මාසේ බඩු ලිස්ට් එක — ෆෝන් 3ම එකම ලිස්ට් එක</p></div>
+<button class="hbtn" id="headerSyncBtn">🔄 Sync</button><span id="syncStatus" style="display:none"></span>
 </header>
 <div id="banner" style="display:none"></div>
 <main>
@@ -42,31 +78,23 @@ footer{color:#66796f;font-size:12px;text-align:center;padding:12px}
 <button data-tab="low">⚠️ අඩු බඩු</button>
 <button data-tab="shop">🛒 සාප්පු ලිස්ට්</button>
 <button data-tab="month">📅 මාස අවසානය</button>
+<button data-tab="catalog">📚 කැටලොග්</button>
 </div>
 
 <div id="view-list">
-<div class="card">
-<button class="btn primary" id="cookBtn" style="width:100%;font-size:17px">🍳 අද උයන්න — අද පාවිච්චි වුණ බඩු අඩු කරන්න</button>
-<p class="muted" style="margin:8px 0 0">මේක ඔබපුවාම හාල්, පරිප්පු, සීනි, පොල් තෙල් වගේ දිනපතා උයන්න යන ප්‍රමාණයෙන් අඩු වෙනවා. දවසට එක වතාවයි — දෙවෙනි වතාවට ඔබනකොට අහනවා.</p>
-<div class="row"><button class="btn" id="syncBtn">🔄 Sync කරන්න</button><span class="muted" id="syncStatus">සර්වර් එකට සම්බන්ධයි</span></div>
-<div style="margin-top:12px">
-<label>සර්වර් ලින්ක් එක — Coolify එකෙන් deploy කළාට පස්සේ විතරක් දාන්න</label>
-<input id="serverUrl" placeholder="උදා: https://geda-badu-xxxx.sportantics.com">
-<button class="btn primary" id="saveServerBtn">ලින්ක් එක තියාගන්න</button>
-<p class="muted" style="margin:6px 0 0">ලින්ක් එක නැත්නම් ඇප් එක මේ ෆෝන් එකේ විතරක් වැඩ කරනවා. ලින්ක් එක දැම්මොත් ෆෝන් 3ම ඔටෝ සින්ක් වෙනවා.</p>
+<div class="card" style="padding:12px 14px">
+<button class="btn primary" id="cookBtn" style="width:100%;font-size:17px">🍳 අද උයන්න</button>
+<p class="muted" style="margin:8px 0 0">දිනපතා උයන්න යන ප්‍රමාණයෙන් (හාල්, පරිප්පු, සීනි, පොල් තෙල් වගේ) එකවර අඩු වෙනවා. දවසට එක වතාවයි.</p>
 </div>
-<div style="margin-top:12px">
-<label>WhatsApp එකෙන් සින්ක් කරන්න (සර්වර් එක නැති වෙලාවට)</label>
-<div class="row"><button class="btn" id="exportBtn">📤 මගේ ලිස්ට් එක කොපි කරන්න</button><button class="btn" id="importBtn">📥 අනිත් ෆෝන් එකේ ලිස්ට් එක දාන්න</button></div>
-<textarea id="syncBox" rows="3" placeholder="Export කළාම මෙතන ලිස්ට් එකේ කෝඩ් එක එනවා — ඒක කොපි කරලා WhatsApp එකෙන් අනිත් ෆෝන් එකට යවන්න. අනිත් ෆෝන් එකෙන් ආපු කෝඩ් එක මෙතන පේස්ට් කරලා 📥 ඔබන්න."></textarea>
-</div>
-</div>
-<div class="chips" id="cats"></div>
+<button class="btn primary" id="shopJumpBtn" style="width:100%;margin-bottom:10px;font-size:17px">🛒 සාප්පු ලිස්ට් එක වෙනම බලන්න</button>
+<input id="searchBox" placeholder="🔍 බඩුවක් හොයන්න... (උදා: හාල්, සබන්)"><div class="catgrid" id="cats"></div>
 <div id="items"></div>
+<div class="row" style="margin-bottom:10px"><button class="btn" id="sortBtn">🔀 අඩු ඒවා මුලින්: OFF</button><button class="btn" id="densityBtn">📏 පොඩි අකුරු: OFF</button></div>
 <div class="card">
-<h3>➕ අලුත් බඩුවක් එකතු කරන්න</h3>
+<button class="btn primary" id="addToggleBtn" style="width:100%">➕ අලුත් බඩුවක් එකතු කරන්න</button>
+<div id="addForm" style="display:none;margin-top:10px">
 <input id="n-name" placeholder="බඩුවේ නම (සිංහලෙන්)">
-<select id="n-cat"><option>පිරිසිදු</option><option>කෑම</option><option>එළවළු / කිරි</option><option>වෙනත්</option></select>
+<select id="n-cat"><option>එළවළු</option><option>පළතුරු</option><option>පිරිසිදු කරන ද්‍රව්‍ය</option><option>කුළුබඩු</option><option>බෙහෙත්</option><option>ධාන්‍ය වර්ග</option><option>මස් මාලු බිත්තර</option><option>වෙනත්</option></select>
 <input id="n-unit" placeholder="ඒකකය — උදා: kg, L, g, පැකට් (හිස්ව තියන්නත් පුළුවන්)">
 <input id="n-qty" type="number" step="any" placeholder="දැන් තියෙන ප්‍රමාණය">
 <input id="n-monthly" type="number" step="any" placeholder="මාසෙට ඕන ප්‍රමාණය (නොදන්නවා නම් හිස්)">
@@ -74,27 +102,56 @@ footer{color:#66796f;font-size:12px;text-align:center;padding:12px}
 <button class="btn primary" id="addBtn">එකතු කරන්න</button>
 </div>
 </div>
+</div>
 
 <div id="view-low" style="display:none"><div id="lowList"></div></div>
 <div id="view-shop" style="display:none"><div id="shopList"></div></div>
 <div id="view-month" style="display:none"><div id="monthList"></div></div>
-<footer>ඔයාගේ ෆෝන් එකේ වෙනසක් කළාම තත්පර කීපයකින් අනිත් ෆෝන් දෙකේම ඒක පේනවා.<br>Highland = කිරි පැකට් ලෙස දැම්මා. වැරදි නම් බඩුවේ ✏️ එකෙන් හදන්න.</footer>
+<div id="view-catalog" style="display:none"><div class="card"><h3>📚 ලංකාවේ ගෙවල්වල පාවිච්චි කරන බඩු — කැටලොග්</h3><p class="muted">මෙතනින් ඕන බඩුවක් “+ එකතු” ඔබලා ඔයාගේ ලිස්ට් එකට දාගන්න — ඒක ෆෝන් 3ටම සින්ක් වෙනවා. ලිස්ට් එකේ දැනටමත් තියෙන ඒවා “✓ තියෙනවා” කියලා පේනවා.</p></div><input id="catSearchBox" placeholder="🔍 කැටලොග් එකේ හොයන්න... (උදා: ගොටුකොළ)"><div id="catalogList"></div></div>
+<footer>බඩුවේ නම හදන්න නම් ඒ බඩුවේ <b>නම tap කරන්න</b>, නැත්නම් ✏️ ඔබන්න — නම, කාණ්ඩය, ඒකකය, ප්‍රමාණය ඔක්කොම හදන්න පුළුවන්.<br>Highland = කිරි පැකට් ලෙස දැම්මා.<br><span class="muted">🎨 පාට: </span><button class="btn" data-theme="#0e7a4b">🟢</button><button class="btn" data-theme="#1565c0">🔵</button><button class="btn" data-theme="#6a1b9a">🟣</button><button class="btn" data-theme="#b45309">🟠</button></footer>
 </main>
+<div id="sheetBack" onclick="closeEdit()"></div>
+<div id="editSheet">
+<h3>✏️ බඩුව හදන්න</h3>
+<label>නම</label><input id="e-name" placeholder="බඩුවේ නම">
+<label>කාණ්ඩය</label><select id="e-cat"><option>එළවළු</option><option>පළතුරු</option><option>පිරිසිදු කරන ද්‍රව්‍ය</option><option>කුළුබඩු</option><option>බෙහෙත්</option><option>ධාන්‍ය වර්ග</option><option>මස් මාලු බිත්තර</option><option>වෙනත්</option></select>
+<label>ඒකකය</label><input id="e-unit" placeholder="උදා: kg, L, g, පැකට්">
+<label>දැන් තියෙන ප්‍රමාණය</label><input id="e-qty" type="number" step="any">
+<label>මාසෙට ඕන ප්‍රමාණය</label><input id="e-monthly" type="number" step="any">
+<label>දවසට උයන්න යන ප්‍රමාණය</label><input id="e-daily" type="number" step="any">
+<div class="row"><button class="btn primary" id="e-save" style="flex:1">💾 තියාගන්න</button><button class="btn danger" id="e-del">🗑️ අයින් කරන්න</button><button class="btn" id="e-close">✖️ වහන්න</button></div>
+</div>
 <div id="toast"></div>
 <script>
-let S=null, tab='list', cat='සියල්ල', editing=false;
+let S=null, tab='list', cat='සියල්ල', searchText='', catSearchText='', editing=false, sortLowFirst=false, boughtSet=new Set();
+let density=false; try{ density=localStorage.getItem('geda_density')==='1'; document.body.classList.toggle('compact', density); const th=localStorage.getItem('geda_theme'); if(th) document.documentElement.style.setProperty('--main', th); }catch(e){}
+const CATALOG=[{"id": "c000", "name": "ගොටුකොළ", "cat": "එළවළු", "unit": "kg"}, {"id": "c001", "name": "මුකුණුවැන්න", "cat": "එළවළු", "unit": "kg"}, {"id": "c002", "name": "කංකුං", "cat": "එළවළු", "unit": "kg"}, {"id": "c003", "name": "මඤ්ඤොක්කා", "cat": "එළවළු", "unit": "kg"}, {"id": "c004", "name": "බතල", "cat": "එළවළු", "unit": "kg"}, {"id": "c005", "name": "කිරි අල", "cat": "එළවළු", "unit": "kg"}, {"id": "c006", "name": "රාබු", "cat": "එළවළු", "unit": "kg"}, {"id": "c007", "name": "පතෝල", "cat": "එළවළු", "unit": "kg"}, {"id": "c008", "name": "වැටකොළු", "cat": "එළවළු", "unit": "kg"}, {"id": "c009", "name": "කොස්", "cat": "එළවළු", "unit": "kg"}, {"id": "c010", "name": "පොලොස්", "cat": "එළවළු", "unit": "kg"}, {"id": "c011", "name": "අලුකෙසෙල්", "cat": "එළවළු", "unit": "kg"}, {"id": "c012", "name": "තිබ්බටු", "cat": "එළවළු", "unit": "kg"}, {"id": "c013", "name": "කතුරුමුරුංගා", "cat": "එළවළු", "unit": "kg"}, {"id": "c014", "name": "කොහිල", "cat": "එළවළු", "unit": "kg"}, {"id": "c015", "name": "රඹුටන්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c016", "name": "මැංගුස්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c017", "name": "කොමඩු", "cat": "පළතුරු", "unit": "kg"}, {"id": "c018", "name": "නාරං", "cat": "පළතුරු", "unit": "kg"}, {"id": "c019", "name": "දෙලුම්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c020", "name": "දිවුල්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c021", "name": "තැඹිලි", "cat": "පළතුරු", "unit": "ගෙඩි"}, {"id": "c022", "name": "රතු කෙසෙල්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c023", "name": "ඇඹුල් කෙසෙල්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c024", "name": "උගුරැස්ස", "cat": "පළතුරු", "unit": "kg"}, {"id": "c025", "name": "ගොරක", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c026", "name": "කරපිංචා", "cat": "කුළුබඩු", "unit": "මිටි"}, {"id": "c027", "name": "රම්පෙ", "cat": "කුළුබඩු", "unit": "මිටි"}, {"id": "c028", "name": "සේර", "cat": "කුළුබඩු", "unit": "මිටි"}, {"id": "c029", "name": "උම්බලකඩ", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c030", "name": "වියලි මිරිස්", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c031", "name": "සියඹලා", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c032", "name": "රතු හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c033", "name": "සම්බා හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c034", "name": "නාඩු හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c035", "name": "කීරි සම්බා", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c036", "name": "ඉඳි ආප්ප පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c037", "name": "ආප්ප පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c038", "name": "කුරක්කන් පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c039", "name": "රෙදි සෝදන කුඩු", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "kg"}, {"id": "c040", "name": "රෙදි සෝදන දියර", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්"}, {"id": "c041", "name": "ටිෂු", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "පැකට්"}, {"id": "c042", "name": "ටොයිලට් පේපර්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "රෝල්"}, {"id": "c043", "name": "කුණු බෑග්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "පැකට්"}, {"id": "c044", "name": "ස්පොන්ජ්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": ""}, {"id": "c045", "name": "බුරුසු", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": ""}, {"id": "c046", "name": "හරක් මස්", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c047", "name": "ඌරු මස්", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c048", "name": "ඉස්සෝ", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c049", "name": "දැල්ලෝ", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c050", "name": "කරවල", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c051", "name": "හාල්මැස්සෝ", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c052", "name": "බෑන්ඩේජ්", "cat": "බෙහෙත්", "unit": "පැකට්"}, {"id": "c053", "name": "කපු පුළුන්", "cat": "බෙහෙත්", "unit": "පැකට්"}, {"id": "c054", "name": "මෙන්තෝල් බාම්", "cat": "බෙහෙත්", "unit": "ටියුබ්"}, {"id": "c055", "name": "ගිනි පෙට්ටි", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c056", "name": "ඉටිපන්දම්", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c057", "name": "මදුරු දඟර", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c058", "name": "නැවුම් කිරි", "cat": "වෙනත්", "unit": "L"}, {"id": "c059", "name": "යෝගට්", "cat": "වෙනත්", "unit": "කප්"}, {"id": "c060", "name": "චීස්", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c061", "name": "පාන්", "cat": "වෙනත්", "unit": ""}, {"id": "c062", "name": "පොල්", "cat": "වෙනත්", "unit": "ගෙඩි"}, {"id": "c063", "name": "පොල් කිරි පැකට්", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c064", "name": "පැණි", "cat": "වෙනත්", "unit": "බෝතල්"}, {"id": "c065", "name": "ජෑම්", "cat": "වෙනත්", "unit": "බෝතල්"}, {"id": "c066", "name": "ඕට්ස්", "cat": "වෙනත්", "unit": "g"}];
 const $=id=>document.getElementById(id);
 const fmt=n=>{ if(n==null) return ''; let s=Number(n).toFixed(2).replace(/\.?0+$/,''); return s===''?'0':s; };
 const today=()=>new Date().toISOString().slice(0,10);
 const monthKey=()=>{const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+
+const CAT_ORDER=['සියල්ල','එළවළු','පළතුරු','පිරිසිදු කරන ද්‍රව්‍ය','කුළුබඩු','බෙහෙත්','ධාන්‍ය වර්ග','මස් මාලු බිත්තර','වෙනත්'];
+const CAT_EMOJI={'සියල්ල':'🏠','එළවළු':'🥦','පළතුරු':'🍎','පිරිසිදු කරන ද්‍රව්‍ය':'🧹','කුළුබඩු':'🌶️','බෙහෙත්':'💊','ධාන්‍ය වර්ග':'🌾','මස් මාලු බිත්තර':'🥚','වෙනත්':'📦'};
+const CAT_MAP={"baby-soap": "පිරිසිදු කරන ද්‍රව්‍ය", "adult-soap": "පිරිසිදු කරන ද්‍රව්‍ය", "comfort": "පිරිසිදු කරන ද්‍රව්‍ය", "vim-soap": "පිරිසිදු කරන ද්‍රව්‍ය", "vim-liquid": "පිරිසිදු කරන ද්‍රව්‍ය", "dash": "පිරිසිදු කරන ද්‍රව්‍ය", "toilet": "පිරිසිදු කරන ද්‍රව්‍ය", "air": "පිරිසිදු කරන ද්‍රව්‍ය", "shampoo": "පිරිසිදු කරන ද්‍රව්‍ය", "conditioner": "පිරිසිදු කරන ද්‍රව්‍ය", "potato": "එළවළු", "big-onion": "එළවළු", "red-onion": "එළවළු", "veg": "එළවළු", "tomato": "එළවළු", "carrot": "එළවළු", "beetroot": "එළවළු", "cabbage": "එළවළු", "beans": "එළවළු", "brinjal": "එළවළු", "bitter-gourd": "එළවළු", "leeks": "එළවළු", "cucumber": "එළවළු", "greens": "එළවළු", "banana": "පළතුරු", "lime": "පළතුරු", "salt": "කුළුබඩු", "chili-powder": "කුළුබඩු", "curry-powder": "කුළුබඩු", "turmeric": "කුළුබඩු", "pepper": "කුළුබඩු", "cinnamon": "කුළුබඩු", "cloves": "කුළුබඩු", "cardamom": "කුළුබඩු", "mustard": "කුළුබඩු", "fenugreek": "කුළුබඩු", "cumin": "කුළුබඩු", "coriander": "කුළුබඩු", "garlic": "කුළුබඩු", "ginger": "කුළුබඩු", "rice": "ධාන්‍ය වර්ග", "dal": "ධාන්‍ය වර්ග", "atta": "ධාන්‍ය වර්ග", "wheat-flour": "ධාන්‍ය වර්ග", "chickpea": "ධාන්‍ය වර්ග", "mung": "ධාන්‍ය වර්ග", "cowpea": "ධාන්‍ය වර්ග", "noodles": "ධාන්‍ය වර්ග", "pasta": "ධාන්‍ය වර්ග", "eggs": "මස් මාලු බිත්තර", "canned-fish": "මස් මාලු බිත්තර"};
+function dispCat(it){ if(CAT_ORDER.includes(it.cat)) return it.cat; return CAT_MAP[it.id] || 'වෙනත්'; }
 function isLow(it){ return it.qty <= it.low || (it.monthly>0 && it.qty <= it.monthly*0.25); }
 function toast(m){ const t=$('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',3500); }
-const FALLBACK = {"version": 1, "monthKey": "2026-10", "monthStart": {"baby-soap": 3, "adult-soap": 3, "comfort": 1, "vim-soap": 3, "vim-liquid": 1, "dash": 1, "toilet": 1, "air": 1, "shampoo": 1, "conditioner": 1, "rice": 15, "dal": 3, "atta": 2, "butter": 200, "astra": 500, "coco-eat": 2, "coco-lamp": 1, "sugar": 5, "tea": 800, "potato": 3, "big-onion": 5, "red-onion": 2, "veg": 1, "highland": 5, "salt": 1, "chili-powder": 250, "curry-powder": 250, "turmeric": 100, "pepper": 100, "cinnamon": 50, "cloves": 25, "cardamom": 25, "mustard": 100, "fenugreek": 100, "cumin": 100, "coriander": 100, "garlic": 250, "ginger": 200, "wheat-flour": 2, "noodles": 5, "pasta": 500, "soya": 5, "chickpea": 1, "mung": 1, "cowpea": 1, "milk-powder": 400, "eggs": 30, "canned-fish": 4, "vinegar": 1, "soy-sauce": 1, "tomato-sauce": 1, "sunflower-oil": 1, "coffee": 200, "biscuits": 4, "peanuts": 500, "jaggery": 500, "tomato": 1, "carrot": 1, "beetroot": 1, "cabbage": 1, "beans": 1, "brinjal": 1, "bitter-gourd": 1, "leeks": 1, "cucumber": 1, "greens": 1, "banana": 1, "lime": 10}, "lastCookDate": "", "items": [{"id": "baby-soap", "name": "බේබි සබන්", "cat": "පිරිසිදු", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1}, {"id": "adult-soap", "name": "වැඩිහිටි සබන්", "cat": "පිරිසිදු", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1}, {"id": "comfort", "name": "Comfort", "cat": "පිරිසිදු", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "vim-soap", "name": "Vim සබන්", "cat": "පිරිසිදු", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1}, {"id": "vim-liquid", "name": "Vim Liquid", "cat": "පිරිසිදු", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "dash", "name": "Dash Tile Cleaner", "cat": "පිරිසිදු", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "toilet", "name": "Toilet Cleaner", "cat": "පිරිසිදු", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "air", "name": "Air Freshener", "cat": "පිරිසිදු", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "shampoo", "name": "Shampoo", "cat": "පිරිසිදු", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "conditioner", "name": "Conditioner", "cat": "පිරිසිදු", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "rice", "name": "හාල්", "cat": "කෑම", "unit": "kg", "qty": 15, "monthly": 15, "daily": 0.5, "low": 3}, {"id": "dal", "name": "පරිප්පු", "cat": "කෑම", "unit": "kg", "qty": 3, "monthly": 3, "daily": 0.1, "low": 0.5}, {"id": "atta", "name": "ආටා පිටි", "cat": "කෑම", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.1, "low": 0.5}, {"id": "butter", "name": "බටර්", "cat": "කෑම", "unit": "g", "qty": 200, "monthly": 200, "daily": 10, "low": 50}, {"id": "astra", "name": "Astra", "cat": "කෑම", "unit": "g", "qty": 500, "monthly": 500, "daily": 15, "low": 100}, {"id": "coco-eat", "name": "පොල් තෙල් - කෑමට", "cat": "කෑම", "unit": "L", "qty": 2, "monthly": 2, "daily": 0.07, "low": 0.5}, {"id": "coco-lamp", "name": "පොල් තෙල් - පහනට", "cat": "කෑම", "unit": "L", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "sugar", "name": "සීනි", "cat": "කෑම", "unit": "kg", "qty": 5, "monthly": 5, "daily": 0.15, "low": 1}, {"id": "tea", "name": "බෝගවන්තලාව තේ 400g x 2", "cat": "කෑම", "unit": "g", "qty": 800, "monthly": 800, "daily": 25, "low": 200}, {"id": "potato", "name": "අල", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 3, "monthly": 3, "daily": 0.1, "low": 0.5}, {"id": "big-onion", "name": "ලොකු ළූණු", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 5, "monthly": 5, "daily": 0.15, "low": 1}, {"id": "red-onion", "name": "රතු ළූණු", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.05, "low": 0.5}, {"id": "veg", "name": "එළවළු", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "highland", "name": "Highland කිරි පැකට්", "cat": "එළවළු / කිරි", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1}, {"id": "salt", "name": "ලුණු", "cat": "කෑම", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0.02, "low": 0.25}, {"id": "chili-powder", "name": "මිරිස් කුඩු", "cat": "කෑම", "unit": "g", "qty": 250, "monthly": 250, "daily": 10, "low": 50}, {"id": "curry-powder", "name": "තුනපහ කුඩු", "cat": "කෑම", "unit": "g", "qty": 250, "monthly": 250, "daily": 15, "low": 50}, {"id": "turmeric", "name": "කහ කුඩු", "cat": "කෑම", "unit": "g", "qty": 100, "monthly": 100, "daily": 5, "low": 20}, {"id": "pepper", "name": "ගම්මිරිස් කුඩු", "cat": "කෑම", "unit": "g", "qty": 100, "monthly": 100, "daily": 3, "low": 20}, {"id": "cinnamon", "name": "කුරුඳු", "cat": "කෑම", "unit": "g", "qty": 50, "monthly": 50, "daily": 0, "low": 10}, {"id": "cloves", "name": "කරාබු නැටි", "cat": "කෑම", "unit": "g", "qty": 25, "monthly": 25, "daily": 0, "low": 5}, {"id": "cardamom", "name": "එනසාල්", "cat": "කෑම", "unit": "g", "qty": 25, "monthly": 25, "daily": 0, "low": 5}, {"id": "mustard", "name": "අබ", "cat": "කෑම", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20}, {"id": "fenugreek", "name": "උළුහාල්", "cat": "කෑම", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20}, {"id": "cumin", "name": "සූදුරු", "cat": "කෑම", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20}, {"id": "coriander", "name": "කොත්තමල්ලි ඇට", "cat": "කෑම", "unit": "g", "qty": 100, "monthly": 100, "daily": 5, "low": 20}, {"id": "garlic", "name": "සුදු ළූණු", "cat": "කෑම", "unit": "g", "qty": 250, "monthly": 250, "daily": 20, "low": 50}, {"id": "ginger", "name": "ඉඟුරු", "cat": "කෑම", "unit": "g", "qty": 200, "monthly": 200, "daily": 10, "low": 50}, {"id": "wheat-flour", "name": "පාන් පිටි", "cat": "කෑම", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.05, "low": 0.5}, {"id": "noodles", "name": "නූඩ්ල්ස්", "cat": "කෑම", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1}, {"id": "pasta", "name": "පැස්ටා", "cat": "කෑම", "unit": "g", "qty": 500, "monthly": 500, "daily": 0, "low": 100}, {"id": "soya", "name": "සෝයා මීට්", "cat": "කෑම", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1}, {"id": "chickpea", "name": "කඩල", "cat": "කෑම", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "mung", "name": "මුං ඇට", "cat": "කෑම", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "cowpea", "name": "කව්පි", "cat": "කෑම", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "milk-powder", "name": "කිරි පිටි", "cat": "එළවළු / කිරි", "unit": "g", "qty": 400, "monthly": 400, "daily": 15, "low": 100}, {"id": "eggs", "name": "බිත්තර", "cat": "එළවළු / කිරි", "unit": "", "qty": 30, "monthly": 30, "daily": 2, "low": 6}, {"id": "canned-fish", "name": "ටින් මාළු", "cat": "කෑම", "unit": "ටින්", "qty": 4, "monthly": 4, "daily": 0, "low": 1}, {"id": "vinegar", "name": "විනාකිරි", "cat": "කෑම", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "soy-sauce", "name": "සෝයා සෝස්", "cat": "කෑම", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "tomato-sauce", "name": "තක්කාලි සෝස්", "cat": "කෑම", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "sunflower-oil", "name": "සූරියකාන්ත තෙල්", "cat": "කෑම", "unit": "L", "qty": 1, "monthly": 1, "daily": 0.03, "low": 0.25}, {"id": "coffee", "name": "කෝපි", "cat": "කෑම", "unit": "g", "qty": 200, "monthly": 200, "daily": 7, "low": 50}, {"id": "biscuits", "name": "බිස්කට්", "cat": "කෑම", "unit": "පැකට්", "qty": 4, "monthly": 4, "daily": 0, "low": 1}, {"id": "peanuts", "name": "රටකජු", "cat": "කෑම", "unit": "g", "qty": 500, "monthly": 500, "daily": 0, "low": 100}, {"id": "jaggery", "name": "හකුරු", "cat": "කෑම", "unit": "g", "qty": 500, "monthly": 500, "daily": 10, "low": 100}, {"id": "tomato", "name": "තක්කාලි", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "carrot", "name": "කැරට්", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "beetroot", "name": "බීට්", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "cabbage", "name": "ගෝවා", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "beans", "name": "බෝංචි", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "brinjal", "name": "වම්බටු", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "bitter-gourd", "name": "කරවිල", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "leeks", "name": "ලීක්ස්", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "cucumber", "name": "පිපිඤ්ඤා", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "greens", "name": "කොළ වර්ග", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "banana", "name": "කෙසෙල්", "cat": "එළවළු / කිරි", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "lime", "name": "දෙහි", "cat": "එළවළු / කිරි", "unit": "", "qty": 10, "monthly": 0, "daily": 0, "low": 0}], "log": []};
+const FALLBACK = {"version": 1, "monthKey": "2026-10", "monthStart": {"baby-soap": 3, "adult-soap": 3, "comfort": 1, "vim-soap": 3, "vim-liquid": 1, "dash": 1, "toilet": 1, "air": 1, "shampoo": 1, "conditioner": 1, "rice": 15, "dal": 3, "atta": 2, "butter": 200, "astra": 500, "coco-eat": 2, "coco-lamp": 1, "sugar": 5, "tea": 800, "potato": 3, "big-onion": 5, "red-onion": 2, "veg": 1, "highland": 5, "salt": 1, "chili-powder": 250, "curry-powder": 250, "turmeric": 100, "pepper": 100, "cinnamon": 50, "cloves": 25, "cardamom": 25, "mustard": 100, "fenugreek": 100, "cumin": 100, "coriander": 100, "garlic": 250, "ginger": 200, "wheat-flour": 2, "noodles": 5, "pasta": 500, "soya": 5, "chickpea": 1, "mung": 1, "cowpea": 1, "milk-powder": 400, "eggs": 30, "canned-fish": 4, "vinegar": 1, "soy-sauce": 1, "tomato-sauce": 1, "sunflower-oil": 1, "coffee": 200, "biscuits": 4, "peanuts": 500, "jaggery": 500, "tomato": 1, "carrot": 1, "beetroot": 1, "cabbage": 1, "beans": 1, "brinjal": 1, "bitter-gourd": 1, "leeks": 1, "cucumber": 1, "greens": 1, "banana": 1, "lime": 10, "apple": 1, "orange": 1, "mango": 1, "papaya": 1, "chicken": 1, "fish": 1, "paracetamol": 1, "plaster": 1, "antiseptic": 1}, "lastCookDate": "", "items": [{"id": "baby-soap", "name": "බේබි සබන්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1}, {"id": "adult-soap", "name": "වැඩිහිටි සබන්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1}, {"id": "comfort", "name": "Comfort", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "vim-soap", "name": "Vim සබන්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "", "qty": 3, "monthly": 3, "daily": 0, "low": 1}, {"id": "vim-liquid", "name": "Vim Liquid", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "dash", "name": "Dash Tile Cleaner", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "toilet", "name": "Toilet Cleaner", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "air", "name": "Air Freshener", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "shampoo", "name": "Shampoo", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "conditioner", "name": "Conditioner", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "rice", "name": "හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 15, "monthly": 15, "daily": 0.5, "low": 3}, {"id": "dal", "name": "පරිප්පු", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 3, "monthly": 3, "daily": 0.1, "low": 0.5}, {"id": "atta", "name": "ආටා පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.1, "low": 0.5}, {"id": "butter", "name": "බටර්", "cat": "වෙනත්", "unit": "g", "qty": 200, "monthly": 200, "daily": 10, "low": 50}, {"id": "astra", "name": "Astra", "cat": "වෙනත්", "unit": "g", "qty": 500, "monthly": 500, "daily": 15, "low": 100}, {"id": "coco-eat", "name": "පොල් තෙල් - කෑමට", "cat": "වෙනත්", "unit": "L", "qty": 2, "monthly": 2, "daily": 0.07, "low": 0.5}, {"id": "coco-lamp", "name": "පොල් තෙල් - පහනට", "cat": "වෙනත්", "unit": "L", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "sugar", "name": "සීනි", "cat": "වෙනත්", "unit": "kg", "qty": 5, "monthly": 5, "daily": 0.15, "low": 1}, {"id": "tea", "name": "බෝගවන්තලාව තේ 400g x 2", "cat": "වෙනත්", "unit": "g", "qty": 800, "monthly": 800, "daily": 25, "low": 200}, {"id": "potato", "name": "අල", "cat": "එළවළු", "unit": "kg", "qty": 3, "monthly": 3, "daily": 0.1, "low": 0.5}, {"id": "big-onion", "name": "ලොකු ළූණු", "cat": "එළවළු", "unit": "kg", "qty": 5, "monthly": 5, "daily": 0.15, "low": 1}, {"id": "red-onion", "name": "රතු ළූණු", "cat": "එළවළු", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.05, "low": 0.5}, {"id": "veg", "name": "එළවළු", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "highland", "name": "Highland කිරි පැකට්", "cat": "වෙනත්", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1}, {"id": "salt", "name": "ලුණු", "cat": "කුළුබඩු", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0.02, "low": 0.25}, {"id": "chili-powder", "name": "මිරිස් කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 250, "monthly": 250, "daily": 10, "low": 50}, {"id": "curry-powder", "name": "තුනපහ කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 250, "monthly": 250, "daily": 15, "low": 50}, {"id": "turmeric", "name": "කහ කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 5, "low": 20}, {"id": "pepper", "name": "ගම්මිරිස් කුඩු", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 3, "low": 20}, {"id": "cinnamon", "name": "කුරුඳු", "cat": "කුළුබඩු", "unit": "g", "qty": 50, "monthly": 50, "daily": 0, "low": 10}, {"id": "cloves", "name": "කරාබු නැටි", "cat": "කුළුබඩු", "unit": "g", "qty": 25, "monthly": 25, "daily": 0, "low": 5}, {"id": "cardamom", "name": "එනසාල්", "cat": "කුළුබඩු", "unit": "g", "qty": 25, "monthly": 25, "daily": 0, "low": 5}, {"id": "mustard", "name": "අබ", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20}, {"id": "fenugreek", "name": "උළුහාල්", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20}, {"id": "cumin", "name": "සූදුරු", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 2, "low": 20}, {"id": "coriander", "name": "කොත්තමල්ලි ඇට", "cat": "කුළුබඩු", "unit": "g", "qty": 100, "monthly": 100, "daily": 5, "low": 20}, {"id": "garlic", "name": "සුදු ළූණු", "cat": "කුළුබඩු", "unit": "g", "qty": 250, "monthly": 250, "daily": 20, "low": 50}, {"id": "ginger", "name": "ඉඟුරු", "cat": "කුළුබඩු", "unit": "g", "qty": 200, "monthly": 200, "daily": 10, "low": 50}, {"id": "wheat-flour", "name": "පාන් පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 2, "monthly": 2, "daily": 0.05, "low": 0.5}, {"id": "noodles", "name": "නූඩ්ල්ස්", "cat": "ධාන්‍ය වර්ග", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1}, {"id": "pasta", "name": "පැස්ටා", "cat": "ධාන්‍ය වර්ග", "unit": "g", "qty": 500, "monthly": 500, "daily": 0, "low": 100}, {"id": "soya", "name": "සෝයා මීට්", "cat": "වෙනත්", "unit": "පැකට්", "qty": 5, "monthly": 5, "daily": 0, "low": 1}, {"id": "chickpea", "name": "කඩල", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "mung", "name": "මුං ඇට", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "cowpea", "name": "කව්පි", "cat": "ධාන්‍ය වර්ග", "unit": "kg", "qty": 1, "monthly": 1, "daily": 0, "low": 0.25}, {"id": "milk-powder", "name": "කිරි පිටි", "cat": "වෙනත්", "unit": "g", "qty": 400, "monthly": 400, "daily": 15, "low": 100}, {"id": "eggs", "name": "බිත්තර", "cat": "මස් මාලු බිත්තර", "unit": "", "qty": 30, "monthly": 30, "daily": 2, "low": 6}, {"id": "canned-fish", "name": "ටින් මාළු", "cat": "මස් මාලු බිත්තර", "unit": "ටින්", "qty": 4, "monthly": 4, "daily": 0, "low": 1}, {"id": "vinegar", "name": "විනාකිරි", "cat": "වෙනත්", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "soy-sauce", "name": "සෝයා සෝස්", "cat": "වෙනත්", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "tomato-sauce", "name": "තක්කාලි සෝස්", "cat": "වෙනත්", "unit": "බෝතල්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "sunflower-oil", "name": "සූරියකාන්ත තෙල්", "cat": "වෙනත්", "unit": "L", "qty": 1, "monthly": 1, "daily": 0.03, "low": 0.25}, {"id": "coffee", "name": "කෝපි", "cat": "වෙනත්", "unit": "g", "qty": 200, "monthly": 200, "daily": 7, "low": 50}, {"id": "biscuits", "name": "බිස්කට්", "cat": "වෙනත්", "unit": "පැකට්", "qty": 4, "monthly": 4, "daily": 0, "low": 1}, {"id": "peanuts", "name": "රටකජු", "cat": "වෙනත්", "unit": "g", "qty": 500, "monthly": 500, "daily": 0, "low": 100}, {"id": "jaggery", "name": "හකුරු", "cat": "වෙනත්", "unit": "g", "qty": 500, "monthly": 500, "daily": 10, "low": 100}, {"id": "tomato", "name": "තක්කාලි", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "carrot", "name": "කැරට්", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "beetroot", "name": "බීට්", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "cabbage", "name": "ගෝවා", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "beans", "name": "බෝංචි", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "brinjal", "name": "වම්බටු", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "bitter-gourd", "name": "කරවිල", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "leeks", "name": "ලීක්ස්", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "cucumber", "name": "පිපිඤ්ඤා", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "greens", "name": "කොළ වර්ග", "cat": "එළවළු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "banana", "name": "කෙසෙල්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "lime", "name": "දෙහි", "cat": "පළතුරු", "unit": "", "qty": 10, "monthly": 0, "daily": 0, "low": 0}, {"id": "apple", "name": "ඇපල්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "orange", "name": "දොඩම්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "mango", "name": "අඹ", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "papaya", "name": "පැපොල්", "cat": "පළතුරු", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "chicken", "name": "කුකුල් මස්", "cat": "මස් මාලු බිත්තර", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "fish", "name": "මාළු", "cat": "මස් මාලු බිත්තර", "unit": "kg", "qty": 1, "monthly": 0, "daily": 0, "low": 0}, {"id": "paracetamol", "name": "පැරසිටමෝල්", "cat": "බෙහෙත්", "unit": "පැකට්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "plaster", "name": "ප්ලාස්ටර්", "cat": "බෙහෙත්", "unit": "පැකට්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}, {"id": "antiseptic", "name": "ඇන්ටිසෙප්ටික් ක්‍රීම්", "cat": "බෙහෙත්", "unit": "ටියුබ්", "qty": 1, "monthly": 1, "daily": 0, "low": 0}], "log": []};
 const HARDCODED_SERVER = 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com'; // Coolify link එක ආපුවාම මෙතනට දාලා APK එක ආයෙත් build කරනවා
 function apiBase(){ const h = HARDCODED_SERVER || localStorage.getItem('geda_server') || ''; return h.replace(/\/$/,''); }
 function apiUrl(path){ const b=apiBase(); return b ? b+path : path; }
+async function apiGet(){
+  if(window.AndroidBridge){ try{ const txt=AndroidBridge.getState(); if(txt) return JSON.parse(txt); }catch(e){} }
+  const r=await fetch(apiUrl('/api/state')); if(!r.ok) throw 0; return r.json();
+}
+async function apiPost(body){
+  if(window.AndroidBridge){ try{ const txt=AndroidBridge.postState(JSON.stringify(body)); if(txt) return JSON.parse(txt); }catch(e){} }
+  const r=await fetch(apiUrl('/api/state'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return r.json();
+}
+
 async function load(){
-  try{ const r=await fetch(apiUrl('/api/state')); if(!r.ok) throw 0; const incoming=await r.json(); if(S && incoming.version===S.version){ $('syncStatus').textContent='✅ සින්ක් වෙලා තියෙන්නේ — අන්තිම check: '+new Date().toLocaleTimeString('si-LK'); return; } S=incoming; S.items=(S.items||[]).filter(Boolean); $('syncStatus').textContent='✅ සින්ක් වෙලා තියෙන්නේ — අන්තිම update: '+new Date().toLocaleTimeString('si-LK'); localStorage.setItem('geda', JSON.stringify(S)); }
+  try{ const incoming=await apiGet(); if(S && incoming.version===S.version){ $('syncStatus').textContent='✅ සින්ක් වෙලා තියෙන්නේ — අන්තිම check: '+new Date().toLocaleTimeString('si-LK'); return; } S=incoming; S.items=(S.items||[]).filter(Boolean); $('syncStatus').textContent='✅ සින්ක් වෙලා තියෙන්නේ — අන්තිම update: '+new Date().toLocaleTimeString('si-LK'); localStorage.setItem('geda', JSON.stringify(S)); }
   catch(e){ if(!S){ try{S=JSON.parse(localStorage.getItem('geda'));}catch{} } if(!S){ S=JSON.parse(JSON.stringify(FALLBACK)); localStorage.setItem('geda', JSON.stringify(S)); } $('syncStatus').textContent='⚠️ ඕෆ්ලයින් — නෙට් ආපුවාම Sync ඔබන්න'; }
   if(S) ensureMonth(); render();
 }
@@ -103,7 +160,7 @@ function ensureMonth(){
   if(S.monthKey!==mk){ S.monthStart={}; S.items.forEach(i=>S.monthStart[i.id]=i.qty); S.monthKey=mk; S.lastCookDate=''; save(true); }
 }
 async function save(silent){
-  try{ const r=await fetch(apiUrl('/api/state'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...S, items:S.items.filter(Boolean)})}); S=await r.json(); localStorage.setItem('geda',JSON.stringify(S)); if(!silent) toast('✅ අනිත් ෆෝන් දෙකටත් ගියා'); }
+  try{ S=await apiPost({...S, items:S.items.filter(Boolean)}); localStorage.setItem('geda',JSON.stringify(S)); if(!silent) toast('✅ අනිත් ෆෝන් දෙකටත් ගියා'); }
   catch(e){ localStorage.setItem('geda',JSON.stringify(S)); toast('⚠️ නෙට් නැහැ — මේ ෆෝන් එකේ ඉතිරි වුණා, පස්සේ Sync කරන්න'); }
   render();
 }
@@ -120,18 +177,29 @@ function cook(){
   S.lastCookDate=today(); save(); toast('🍳 අඩු කළා: '+done.join(', '));
 }
 function del(id){ if(!confirm('මේ බඩුව ලිස්ට් එකෙන් අයින් කරන්නද?')) return; S.items=S.items.filter(i=>i.id!==id); save(); }
-function edit(it){
-  const q=prompt(it.name+' — දැන් තියෙන ප්‍රමාණය ('+ (it.unit||'') +')', it.qty);
-  if(q===null) return; const v=parseFloat(q); if(isNaN(v)) return alert('අංකයක් දාන්න');
-  const m=prompt('මාසෙට ඕන ප්‍රමාණය (දැන්: '+(it.monthly||'—')+')', it.monthly||'');
-  if(m!==null && m!=='' && !isNaN(parseFloat(m))) it.monthly=parseFloat(m);
-  it.qty=v; save();
+let editingId=null;
+function openEdit(id){
+  const it=S.items.find(i=>i.id===id); if(!it) return;
+  editingId=id; editing=true;
+  $('e-name').value=it.name; $('e-cat').value=CAT_ORDER.includes(it.cat)?it.cat:'වෙනත්'; $('e-unit').value=it.unit||''; $('e-qty').value=it.qty; $('e-monthly').value=it.monthly||''; $('e-daily').value=it.daily||'';
+  $('sheetBack').style.display='block'; $('editSheet').style.display='block';
 }
+function closeEdit(){ editingId=null; editing=false; $('sheetBack').style.display='none'; $('editSheet').style.display='none'; }
+function saveEdit(){
+  const it=S.items.find(i=>i.id===editingId); if(!it) return closeEdit();
+  const nm=$('e-name').value.trim(); if(!nm) return alert('නම දාන්න');
+  it.name=nm; it.cat=$('e-cat').value; it.unit=$('e-unit').value.trim();
+  const q=parseFloat($('e-qty').value); if(!isNaN(q)) it.qty=q;
+  const m=parseFloat($('e-monthly').value); it.monthly=isNaN(m)?0:m;
+  const d=parseFloat($('e-daily').value); it.daily=isNaN(d)?0:d;
+  closeEdit(); save(); toast('✅ '+it.name+' හදලා තියාගත්තා');
+}
+function delFromEdit(){ if(!editingId) return; const id=editingId; closeEdit(); del(id); }
 function shopNeeded(it){
   if(it.monthly>0) return Math.max(0, Math.round((it.monthly-it.qty)*100)/100);
   return isLow(it) ? 1 : 0;
 }
-function render(){
+function renderInner(){
   if(!S) return;
   const su=$('serverUrl'); if(su && document.activeElement!==su) su.value=(typeof HARDCODED_SERVER!=='undefined'&&HARDCODED_SERVER)?HARDCODED_SERVER:(localStorage.getItem('geda_server')||'');
   const d=new Date();
@@ -139,33 +207,50 @@ function render(){
   if(d.getDate()===25){ banner.style.display='block'; banner.textContent='🛒 අද 25 වෙනිදා — සාප්පු යන දවස! අඩු බඩු ටික “සාප්පු ලිස්ට්” එකේ බලන්න.'; }
   else { banner.style.display='none'; banner.textContent=''; }
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
-  ['list','low','shop','month'].forEach(v=>$('view-'+v).style.display = v===tab ? 'block':'none');
-  // categories
-  const cats=['සියල්ල',...new Set(S.items.map(i=>i.cat))];
-  $('cats').innerHTML=cats.map(c=>`<button class="${c===cat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');
+  ['list','low','shop','month','catalog'].forEach(v=>$('view-'+v).style.display = v===tab ? 'block':'none');
+  // categories — chart/grid: tap a tile, see only that list (no long scrolling)
+  const cats=CAT_ORDER.filter(c=>c==='සියල්ල' || S.items.some(i=>dispCat(i)===c));
+  $('cats').innerHTML=cats.map(c=>{ const n=c==='සියල්ල'?S.items.length:S.items.filter(i=>dispCat(i)===c).length; const lowN=c==='සියල්ල'?S.items.filter(isLow).length:S.items.filter(i=>dispCat(i)===c && isLow(i)).length; return `<button class="${c===cat?'on':''}" onclick="setCat('${c}')">${CAT_EMOJI[c]||'📦'} ${c}<small>${n} බඩු${lowN?' • ⚠️ '+lowN+' අඩුයි':''}</small></button>`; }).join('');
   // list
-  $('items').innerHTML = S.items.filter(i=>cat==='සියල්ල'||i.cat===cat).map(it=>{
+  let shown = searchText ? S.items.filter(i=>i.name.toLowerCase().includes(searchText.toLowerCase())) : (cat ? S.items.filter(i=>cat==='සියල්ල'||dispCat(i)===cat) : []);
+  if(sortLowFirst) shown=[...shown].sort((a,b)=>(isLow(a)?0:1)-(isLow(b)?0:1) || a.name.localeCompare(b.name));
+  const _sortBtn=$('sortBtn'); if(_sortBtn) _sortBtn.textContent='🔀 අඩු ඒවා මුලින්: '+(sortLowFirst?'ON':'OFF');
+  const _densBtn=$('densityBtn'); if(_densBtn) _densBtn.textContent='📏 පොඩි අකුරු: '+(density?'ON':'OFF');
+  if(!searchText && !cat){ $('items').innerHTML = '<div class="card"><h3>👆 උඩින් කාණ්ඩයක් තෝරන්න</h3><p class="muted">ඒ කාණ්ඩයේ බඩු විතරක් පෙන්නනවා — පහළට ගොඩක් scroll කරන්න ඕන නැහැ. හොයන්න ඕන බඩුවක් නම් උඩ search එකේ නම type කරන්න.</p></div>'; }
+  else if(shown.length===0){ $('items').innerHTML = '<div class="card">මේ කාණ්ඩයේ / හොයපු නමින් බඩු නැහැ.</div>'; }
+  else $('items').innerHTML = shown.map(it=>{
     const pct = it.monthly>0 ? Math.min(100, it.qty/it.monthly*100) : 100;
-    return `<div class="card"><h3>${it.name} ${isLow(it)?'<span class="low">• අඩුයි</span>':''}</h3>
-    <div class="muted">${it.cat}</div>
-    <div class="qty">${fmt(it.qty)} ${it.unit||''} <span class="muted" style="font-size:14px">${it.monthly>0?'/ මාසෙට '+fmt(it.monthly)+' '+(it.unit||''):''}</span></div>
-    ${it.monthly>0?`<div class="bar"><i style="width:${pct}%"></i></div>`:''}
-    <div class="row">
-      <button class="btn" onclick="doChange('${it.id}',-1)">− අඩු</button>
-      <button class="btn" onclick="doChange('${it.id}',1)">+ වැඩි</button>
-      <button class="btn" onclick="doTick('${it.id}')">✓ පාවිච්චි කළා</button>
-      <button class="btn" onclick="doEdit('${it.id}')">✏️ සංස්කරණය</button>
-      <button class="btn danger" onclick="doDel('${it.id}')">🗑️ අයින්</button>
-    </div></div>`;
-  }).join('') || '<p class="muted">මේ කාණ්ඩයේ බඩු නැහැ.</p>';
+    return `<div class="itemrow"><div class="ri-info" onclick="doEdit('${it.id}')"><div class="ri-name">${it.name} ${isLow(it)?'<span class="low">• අඩුයි</span>':''}</div><div class="ri-sub">${dispCat(it)}${it.monthly>0?' • මාසෙට '+fmt(it.monthly)+' '+(it.unit||''):''}</div>${it.monthly>0?`<div class="bar"><i style="width:${pct}%"></i></div>`:''}</div><div class="ri-side">${fmt(it.qty)} ${it.unit||''}</div><div class="ri-actions"><button class="mini" onclick="doChange('${it.id}',-1)" title="අඩු">−</button><button class="mini" onclick="doChange('${it.id}',1)" title="වැඩි">+</button><button class="mini" onclick="doTick('${it.id}')" title="පාවිච්චි කළා">✓</button><button class="mini" onclick="doEdit('${it.id}')" title="හදන්න">✏️</button></div></div>`;
+  }).join('');
   // low
   const lows=S.items.filter(isLow);
   $('lowList').innerHTML = `<div class="card"><h3>⚠️ අඩු බඩු (${lows.length})</h3><p class="muted">තොගය අඩු වෙලා තියෙන, නැත්නම් ඉවර වෙන්න ළඟ ඒවා.</p></div>` +
-    (lows.map(it=>`<div class="card"><h3>${it.name}</h3><div class="qty low">${fmt(it.qty)} ${it.unit||''} ඉතිරි</div><div class="muted">මාසෙට ඕන: ${it.monthly>0?fmt(it.monthly)+' '+(it.unit||''): '—'}</div></div>`).join('') || '<div class="card">👍 අඩු බඩු නැහැ!</div>');
-  // shop
+    (lows.map(it=>`<div class="itemrow"><div class="ri-info"><div class="ri-name">${it.name}</div><div class="ri-sub">මාසෙට ඕන: ${it.monthly>0?fmt(it.monthly)+' '+(it.unit||''): '—'}</div></div><div class="ri-side low">${fmt(it.qty)} ${it.unit||''}</div></div>`).join('') || '<div class="card">👍 අඩු බඩු නැහැ!</div>');
+  // shop — separate clean checklist, grouped by category (aisle order)
   const shops=S.items.map(it=>({it, need:shopNeeded(it)})).filter(x=>x.need>0);
-  $('shopList').innerHTML = `<div class="card"><h3>🛒 සාප්පු ලිස්ට් — ${d.getDate()===25?'අද 25, සාප්පු යන දවස!':'ඊළඟ සාප්පු දවස: මාසේ 25'}</h3><p class="muted">“ගත්තා ✓” ඔබපුවාම ඒ ප්‍රමාණය තොගයට එකතු වෙනවා, ලිස්ට් එකෙන් අයින් වෙනවා.</p></div>` +
-    (shops.map(x=>`<div class="card"><h3>${x.it.name}</h3><div>ගන්න ඕන: <b>${fmt(x.need)} ${x.it.unit||''}</b> <span class="muted">(දැන් තියෙන්නේ ${fmt(x.it.qty)})</span></div><div class="row"><button class="btn primary" onclick="doBuy('${x.it.id}',${x.need})">✓ ගත්තා</button></div></div>`).join('') || '<div class="card">👍 ගන්න දෙයක් නැහැ — හැමදේම තියෙනවා!</div>');
+  boughtSet=new Set([...boughtSet].filter(id=>shops.some(x=>x.it.id===id)));
+  const doneN=boughtSet.size, pctShop=shops.length?Math.round(doneN/shops.length*100):100;
+  let shopHtml=`<div class="card"><h3>🛒 සාප්පු ලිස්ට් — වෙනම ලිස්ට් එක</h3><p class="muted">කඩේදී බඩුවක් ගත්තාම ඒකේ ☐ එක tap කරන්න — ඒක ☑ වෙලා යටට යනවා. ඔක්කොම ගත්තාම “සාප්පු ඉවරයි” ඔබන්න, එතකොට ඒ ටික තොගයට එකතු වෙනවා.</p><div class="bar"><i style="width:${pctShop}%"></i></div><p style="margin:8px 0 0"><b>${doneN} / ${shops.length} ගත්තා (${pctShop}%)</b></p><div class="row"><button class="btn primary" onclick="finishShopping()">✅ සාප්පු ඉවරයි — තොගයට දාන්න</button><button class="btn" onclick="copyShop()">📋 ලිස්ට් එක කොපි කරන්න</button></div></div>`;
+  if(shops.length===0){ shopHtml+='<div class="card">👍 ගන්න දෙයක් නැහැ — හැමදේම තියෙනවා!</div>'; }
+  else {
+    const order=CAT_ORDER;
+    shops.sort((a,b)=>(order.indexOf(dispCat(a.it))-order.indexOf(dispCat(b.it))) || a.it.name.localeCompare(b.it.name));
+    let cur='';
+    shops.forEach(x=>{ const c=dispCat(x.it); if(c!==cur){ cur=c; shopHtml+=`<div class="cathead">${CAT_EMOJI[c]||'📦'} ${c}</div>`; }
+      const done=boughtSet.has(x.it.id);
+      shopHtml+=`<div class="itemrow${done?' done':''}"><div class="ri-info"><div class="ri-name">${x.it.name}</div><div class="ri-sub">ගන්න ඕන: <b style="color:#1c2b22">${fmt(x.need)} ${x.it.unit||''}</b> (දැන් ${fmt(x.it.qty)})</div></div><button class="mini check" onclick="toggleBought('${x.it.id}')">${done?'☑':'☐'}</button></div>`; });
+  }
+  $('shopList').innerHTML=shopHtml;
+  // catalog — Sri Lankan household items, one tap to add
+  const inList=id=>S.items.some(i=>i.id===id);
+  const catShown=CATALOG.filter(c=>!catSearchText || c.name.toLowerCase().includes(catSearchText.toLowerCase()));
+  let catHtml='';
+  CAT_ORDER.filter(c=>c!=='සියල්ල').forEach(c=>{
+    const group=catShown.filter(x=>x.cat===c); if(!group.length) return;
+    catHtml+=`<div class="cathead">${CAT_EMOJI[c]||'📦'} ${c} (${group.length})</div>`;
+    group.forEach(x=>{ const has=inList(x.id); catHtml+=`<div class="itemrow"><div class="ri-info"><div class="ri-name">${x.name}</div><div class="ri-sub">${x.unit||'—'}</div></div><button class="btn ${has?'':'primary'}" ${has?'disabled':''} onclick="addCatalog('${x.id}')">${has?'✓ තියෙනවා':'+ එකතු'}</button></div>`; });
+  });
+  $('catalogList').innerHTML=catHtml || '<div class="card">හොයපු නමින් කැටලොග් බඩු නැහැ.</div>';
   // month summary
   const mk=monthKey();
   const used={}; S.log.filter(l=>l.date.startsWith(mk)).forEach(l=>{ used[l.id]=(used[l.id]||0)+l.delta; });
@@ -173,22 +258,40 @@ function render(){
   <div class="card"><table><tr><th>බඩුව</th><th>මුල</th><th>පාවිච්චි</th><th>ඉතිරි</th></tr>` +
   S.items.map(it=>{ const u=-(used[it.id]||0); const start=S.monthStart[it.id] ?? it.qty; return `<tr><td>${it.name}</td><td>${fmt(start)}</td><td>${u>0?fmt(u):'—'}</td><td><b>${fmt(it.qty)} ${it.unit||''}</b></td></tr>`; }).join('') + `</table></div>`;
 }
+function render(){ const _sy=window.scrollY; renderInner(); requestAnimationFrame(()=>window.scrollTo(0,_sy)); }
 window.setCat=c=>{cat=c; render();};
+const _sb=$('searchBox'); if(_sb) _sb.oninput=()=>{searchText=_sb.value.trim(); render();};
 window.doChange=(id,dir)=>{ const it=S.items.find(i=>i.id===id); change(it, dir*stepFor(it), dir<0?'use':'add'); };
 window.doTick=id=>{ const it=S.items.find(i=>i.id===id); change(it, -stepFor(it), 'use'); };
-window.doEdit=id=>edit(S.items.find(i=>i.id===id));
+window.doEdit=id=>openEdit(id);
 window.doDel=del;
 window.doBuy=(id,need)=>{ const it=S.items.find(i=>i.id===id); it.qty=Math.round((it.qty+need)*100)/100; S.log.push({date:today(), id, name:it.name, delta:need, why:'buy'}); save(); toast('✅ '+it.name+' ගත්තා'); };
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab; render();});
-$('cookBtn').onclick=cook; $('syncBtn').onclick=()=>load();
-$('saveServerBtn').onclick=()=>{ const v=$('serverUrl').value.trim().replace(/\/$/,''); if(v) localStorage.setItem('geda_server', v); else localStorage.removeItem('geda_server'); toast(v?'✅ සර්වර් ලින්ක් එක තියාගත්තා — දැන් ෆෝන් 3ම සින්ක් වෙනවා':'සර්වර් ලින්ක් එක අයින් කළා'); load(); };
-$('exportBtn').onclick=()=>{ $('syncBox').value=JSON.stringify(S); $('syncBox').select(); toast('📤 ලිස්ට් එක කොපි කරන්න ලෑස්තියි — WhatsApp එකෙන් යවන්න'); };
-$('importBtn').onclick=()=>{ try{ const d=JSON.parse($('syncBox').value.trim()); if(!d||!Array.isArray(d.items)) throw 0; S=d; save(); toast('✅ අනිත් ෆෝන් එකේ ලිස්ට් එක දැම්මා'); }catch(e){ alert('කෝඩ් එක හරි නැහැ — සම්පූර්ණ කෝඩ් එකම පේස්ට් කරන්න'); } };
-$('addBtn').onclick=()=>{
-  const name=$('n-name').value.trim(); if(!name) return alert('නම දාන්න');
+
+window.toggleBought=id=>{ boughtSet.has(id)?boughtSet.delete(id):boughtSet.add(id); render(); };
+window.finishShopping=()=>{ if(!boughtSet.size) return toast('මුලින් ගත්තු බඩු ටික ☑ කරන්න'); const shops2=S.items.map(it=>({it, need:shopNeeded(it)})).filter(x=>boughtSet.has(x.it.id)); shops2.forEach(x=>{ x.it.qty=Math.round((x.it.qty+x.need)*100)/100; S.log.push({date:today(), id:x.it.id, name:x.it.name, delta:x.need, why:'buy'}); }); boughtSet.clear(); save(); toast('✅ සාප්පු ඉවරයි — තොගයට දැම්මා'); };
+window.copyShop=()=>{ const shops3=S.items.map(it=>({it, need:shopNeeded(it)})).filter(x=>x.need>0); if(!shops3.length) return toast('ගන්න දෙයක් නැහැ'); let txt='🛒 සාප්පු ලිස්ට්\n'; CAT_ORDER.filter(c=>c!=='සියල්ල').forEach(c=>{ const g=shops3.filter(x=>dispCat(x.it)===c); if(g.length){ txt+='\n'+c+':\n'; g.forEach(x=>{ txt+='- '+x.it.name+': '+fmt(x.need)+' '+(x.it.unit||'')+'\n'; }); } }); const done=()=>toast('📋 සාප්පු ලිස්ට් එක කොපි කළා'); if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }); } else { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } };
+window.addCatalog=id=>{ const x=CATALOG.find(c=>c.id===id); if(!x || S.items.some(i=>i.id===id)) return; S.items.push({id:x.id, name:x.name, cat:x.cat, unit:x.unit, qty:1, monthly:0, daily:0, low:0}); save(); toast('✅ '+x.name+' ලිස්ට් එකට දැම්මා'); };
+
+$('cookBtn').onclick=cook;
+const _shopJump=$('shopJumpBtn'); if(_shopJump) _shopJump.onclick=()=>{tab='shop'; render();};
+const _sortBtn=$('sortBtn'); if(_sortBtn) _sortBtn.onclick=()=>{sortLowFirst=!sortLowFirst; render();};
+const _densBtn=$('densityBtn'); if(_densBtn) _densBtn.onclick=()=>{density=!density; try{localStorage.setItem('geda_density', density?'1':'0');}catch(e){} document.body.classList.toggle('compact', density); render();};
+document.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{ const col=b.dataset.theme; document.documentElement.style.setProperty('--main', col); try{localStorage.setItem('geda_theme', col);}catch(e){} toast('🎨 පාට වෙනස් කළා'); });
+const _csb=$('catSearchBox'); if(_csb) _csb.oninput=()=>{catSearchText=_csb.value.trim(); render();};
+ if($('headerSyncBtn')) $('headerSyncBtn').onclick=()=>{ load(); toast('🔄 Sync කරනවා...'); };
+if($('saveServerBtn')) $('saveServerBtn').onclick=()=>{ const v=$('serverUrl').value.trim().replace(/\/$/,''); if(v) localStorage.setItem('geda_server', v); else localStorage.removeItem('geda_server'); toast(v?'✅ සර්වර් ලින්ක් එක තියාගත්තා — දැන් ෆෝන් 3ම සින්ක් වෙනවා':'සර්වර් ලින්ක් එක අයින් කළා'); load(); };
+if($('exportBtn')) $('exportBtn').onclick=()=>{ $('syncBox').value=JSON.stringify(S); $('syncBox').select(); toast('📤 ලිස්ට් එක කොපි කරන්න ලෑස්තියි — WhatsApp එකෙන් යවන්න'); };
+if($('importBtn')) $('importBtn').onclick=()=>{ try{ const d=JSON.parse($('syncBox').value.trim()); if(!d||!Array.isArray(d.items)) throw 0; S=d; save(); toast('✅ අනිත් ෆෝන් එකේ ලිස්ට් එක දැම්මා'); }catch(e){ alert('කෝඩ් එක හරි නැහැ — සම්පූර්ණ කෝඩ් එකම පේස්ට් කරන්න'); } };
+$('addBtn').onclick=()=>{  const name=$('n-name').value.trim(); if(!name) return alert('නම දාන්න');
   const qty=parseFloat($('n-qty').value||'0');
   S.items.push({id:'x'+Date.now(), name, cat:$('n-cat').value, unit:$('n-unit').value.trim(), qty, monthly:parseFloat($('n-monthly').value||'0'), daily:parseFloat($('n-daily').value||'0'), low:0});
   ['n-name','n-unit','n-qty','n-monthly','n-daily'].forEach(id=>$(id).value=''); save();
 };
+$('addToggleBtn').onclick=()=>{ const f=$('addForm'); f.style.display = f.style.display==='none' ? 'block' : 'none'; };
+$('e-save').onclick=saveEdit;
+$('e-del').onclick=delFromEdit;
+$('e-close').onclick=closeEdit;
 load(); setInterval(()=>{ if(!editing) load(); }, 5000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
 </script></body></html>

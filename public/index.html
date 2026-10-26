@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si"><head>
-<!-- APP_VERSION:7 -->
+<!-- APP_VERSION:8 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -45,17 +45,20 @@ body{-webkit-tap-highlight-color:transparent}
 .catgrid button small{display:block;font-weight:400;font-size:13px;opacity:.75;margin-top:2px}
 #searchBox{margin-bottom:10px}
 
-.itemrow{display:flex;align-items:center;gap:10px;background:#fff;padding:11px 12px;border-bottom:1px solid #e6ebe7}
+.itemrow{display:flex;align-items:center;gap:10px;background:#fff;padding:13px 12px;border-bottom:1px solid #e6ebe7}
 .itemrow:first-child{border-radius:14px 14px 0 0}
 .itemrow:last-child{border-radius:0 0 14px 14px;border-bottom:0;margin-bottom:10px}
-.ri-info{flex:1;min-width:0}
-.ri-name{font-size:17px;font-weight:700;line-height:1.3}
+.ri-info{flex:1;min-width:0;cursor:pointer}
+.ri-name{font-size:18px;font-weight:700;line-height:1.3}
 .ri-sub{font-size:13px;color:#66796f;margin-top:3px}
 .ri-sub .bar{margin-top:6px}
-.ri-actions{display:grid;grid-template-columns:repeat(3,34px);gap:4px;flex-shrink:0}
-button.mini{width:34px;height:34px;padding:0;border-radius:9px;border:1px solid #cfe0d5;background:#f7faf8;font-size:15px;font-weight:700}
+.ri-actions{display:grid;grid-template-columns:repeat(4,38px);gap:6px;flex-shrink:0}
+button.mini{width:38px;height:38px;padding:0;border-radius:10px;border:1px solid #cfe0d5;background:#f7faf8;font-size:16px;font-weight:700}
 button.mini.danger{color:#b42318}
-.ri-side{flex-shrink:0;text-align:right;font-weight:800}
+.ri-side{flex-shrink:0;text-align:right;font-weight:800;font-size:17px;min-width:64px}
+#editSheet{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.25);padding:18px 16px calc(18px + env(safe-area-inset-bottom, 0px));max-width:760px;margin:auto;display:none}
+#editSheet h3{margin:0 0 10px;font-size:19px}
+#sheetBack{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:19;display:none}
 
 .cathead{background:#eef4ef;border-radius:12px;padding:10px 12px;margin:12px 0 6px;font-weight:800}
 .itemrow.done{opacity:.55} .itemrow.done .ri-name{text-decoration:line-through}
@@ -79,17 +82,17 @@ button.mini.check{font-size:20px}
 </div>
 
 <div id="view-list">
-<div class="card">
-<button class="btn primary" id="cookBtn" style="width:100%;font-size:17px">🍳 අද උයන්න — අද පාවිච්චි වුණ බඩු අඩු කරන්න</button>
-<p class="muted" style="margin:8px 0 0">මේක ඔබපුවාම හාල්, පරිප්පු, සීනි, පොල් තෙල් වගේ දිනපතා උයන්න යන ප්‍රමාණයෙන් අඩු වෙනවා. දවසට එක වතාවයි — දෙවෙනි වතාවට ඔබනකොට අහනවා.</p>
+<div class="card" style="padding:12px 14px">
+<button class="btn primary" id="cookBtn" style="width:100%;font-size:17px">🍳 අද උයන්න</button>
+<p class="muted" style="margin:8px 0 0">දිනපතා උයන්න යන ප්‍රමාණයෙන් (හාල්, පරිප්පු, සීනි, පොල් තෙල් වගේ) එකවර අඩු වෙනවා. දවසට එක වතාවයි.</p>
 </div>
 <button class="btn primary" id="shopJumpBtn" style="width:100%;margin-bottom:10px;font-size:17px">🛒 සාප්පු ලිස්ට් එක වෙනම බලන්න</button>
-<div class="row" style="margin-bottom:10px"><button class="btn" id="sortBtn">🔀 අඩු ඒවා මුලින්: OFF</button><button class="btn" id="densityBtn">📏 පොඩි අකුරු: OFF</button></div>
-<div class="row" style="margin-bottom:10px"><span class="muted" style="align-self:center">🎨 පාට:</span><button class="btn" data-theme="#0e7a4b">🟢</button><button class="btn" data-theme="#1565c0">🔵</button><button class="btn" data-theme="#6a1b9a">🟣</button><button class="btn" data-theme="#b45309">🟠</button></div>
 <input id="searchBox" placeholder="🔍 බඩුවක් හොයන්න... (උදා: හාල්, සබන්)"><div class="catgrid" id="cats"></div>
 <div id="items"></div>
+<div class="row" style="margin-bottom:10px"><button class="btn" id="sortBtn">🔀 අඩු ඒවා මුලින්: OFF</button><button class="btn" id="densityBtn">📏 පොඩි අකුරු: OFF</button></div>
 <div class="card">
-<h3>➕ අලුත් බඩුවක් එකතු කරන්න</h3>
+<button class="btn primary" id="addToggleBtn" style="width:100%">➕ අලුත් බඩුවක් එකතු කරන්න</button>
+<div id="addForm" style="display:none;margin-top:10px">
 <input id="n-name" placeholder="බඩුවේ නම (සිංහලෙන්)">
 <select id="n-cat"><option>එළවළු</option><option>පළතුරු</option><option>පිරිසිදු කරන ද්‍රව්‍ය</option><option>කුළුබඩු</option><option>බෙහෙත්</option><option>ධාන්‍ය වර්ග</option><option>මස් මාලු බිත්තර</option><option>වෙනත්</option></select>
 <input id="n-unit" placeholder="ඒකකය — උදා: kg, L, g, පැකට් (හිස්ව තියන්නත් පුළුවන්)">
@@ -99,16 +102,28 @@ button.mini.check{font-size:20px}
 <button class="btn primary" id="addBtn">එකතු කරන්න</button>
 </div>
 </div>
+</div>
 
 <div id="view-low" style="display:none"><div id="lowList"></div></div>
 <div id="view-shop" style="display:none"><div id="shopList"></div></div>
 <div id="view-month" style="display:none"><div id="monthList"></div></div>
 <div id="view-catalog" style="display:none"><div class="card"><h3>📚 ලංකාවේ ගෙවල්වල පාවිච්චි කරන බඩු — කැටලොග්</h3><p class="muted">මෙතනින් ඕන බඩුවක් “+ එකතු” ඔබලා ඔයාගේ ලිස්ට් එකට දාගන්න — ඒක ෆෝන් 3ටම සින්ක් වෙනවා. ලිස්ට් එකේ දැනටමත් තියෙන ඒවා “✓ තියෙනවා” කියලා පේනවා.</p></div><input id="catSearchBox" placeholder="🔍 කැටලොග් එකේ හොයන්න... (උදා: ගොටුකොළ)"><div id="catalogList"></div></div>
-<footer>ඔයාගේ ෆෝන් එකේ වෙනසක් කළාම තත්පර කීපයකින් අනිත් ෆෝන් දෙකේම ඒක පේනවා.<br>Highland = කිරි පැකට් ලෙස දැම්මා. වැරදි නම් බඩුවේ ✏️ එකෙන් හදන්න.</footer>
+<footer>බඩුවේ නම හදන්න නම් ඒ බඩුවේ <b>නම tap කරන්න</b>, නැත්නම් ✏️ ඔබන්න — නම, කාණ්ඩය, ඒකකය, ප්‍රමාණය ඔක්කොම හදන්න පුළුවන්.<br>Highland = කිරි පැකට් ලෙස දැම්මා.<br><span class="muted">🎨 පාට: </span><button class="btn" data-theme="#0e7a4b">🟢</button><button class="btn" data-theme="#1565c0">🔵</button><button class="btn" data-theme="#6a1b9a">🟣</button><button class="btn" data-theme="#b45309">🟠</button></footer>
 </main>
+<div id="sheetBack" onclick="closeEdit()"></div>
+<div id="editSheet">
+<h3>✏️ බඩුව හදන්න</h3>
+<label>නම</label><input id="e-name" placeholder="බඩුවේ නම">
+<label>කාණ්ඩය</label><select id="e-cat"><option>එළවළු</option><option>පළතුරු</option><option>පිරිසිදු කරන ද්‍රව්‍ය</option><option>කුළුබඩු</option><option>බෙහෙත්</option><option>ධාන්‍ය වර්ග</option><option>මස් මාලු බිත්තර</option><option>වෙනත්</option></select>
+<label>ඒකකය</label><input id="e-unit" placeholder="උදා: kg, L, g, පැකට්">
+<label>දැන් තියෙන ප්‍රමාණය</label><input id="e-qty" type="number" step="any">
+<label>මාසෙට ඕන ප්‍රමාණය</label><input id="e-monthly" type="number" step="any">
+<label>දවසට උයන්න යන ප්‍රමාණය</label><input id="e-daily" type="number" step="any">
+<div class="row"><button class="btn primary" id="e-save" style="flex:1">💾 තියාගන්න</button><button class="btn danger" id="e-del">🗑️ අයින් කරන්න</button><button class="btn" id="e-close">✖️ වහන්න</button></div>
+</div>
 <div id="toast"></div>
 <script>
-let S=null, tab='list', cat='', searchText='', catSearchText='', editing=false, sortLowFirst=false, boughtSet=new Set();
+let S=null, tab='list', cat='සියල්ල', searchText='', catSearchText='', editing=false, sortLowFirst=false, boughtSet=new Set();
 let density=false; try{ density=localStorage.getItem('geda_density')==='1'; document.body.classList.toggle('compact', density); const th=localStorage.getItem('geda_theme'); if(th) document.documentElement.style.setProperty('--main', th); }catch(e){}
 const CATALOG=[{"id": "c000", "name": "ගොටුකොළ", "cat": "එළවළු", "unit": "kg"}, {"id": "c001", "name": "මුකුණුවැන්න", "cat": "එළවළු", "unit": "kg"}, {"id": "c002", "name": "කංකුං", "cat": "එළවළු", "unit": "kg"}, {"id": "c003", "name": "මඤ්ඤොක්කා", "cat": "එළවළු", "unit": "kg"}, {"id": "c004", "name": "බතල", "cat": "එළවළු", "unit": "kg"}, {"id": "c005", "name": "කිරි අල", "cat": "එළවළු", "unit": "kg"}, {"id": "c006", "name": "රාබු", "cat": "එළවළු", "unit": "kg"}, {"id": "c007", "name": "පතෝල", "cat": "එළවළු", "unit": "kg"}, {"id": "c008", "name": "වැටකොළු", "cat": "එළවළු", "unit": "kg"}, {"id": "c009", "name": "කොස්", "cat": "එළවළු", "unit": "kg"}, {"id": "c010", "name": "පොලොස්", "cat": "එළවළු", "unit": "kg"}, {"id": "c011", "name": "අලුකෙසෙල්", "cat": "එළවළු", "unit": "kg"}, {"id": "c012", "name": "තිබ්බටු", "cat": "එළවළු", "unit": "kg"}, {"id": "c013", "name": "කතුරුමුරුංගා", "cat": "එළවළු", "unit": "kg"}, {"id": "c014", "name": "කොහිල", "cat": "එළවළු", "unit": "kg"}, {"id": "c015", "name": "රඹුටන්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c016", "name": "මැංගුස්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c017", "name": "කොමඩු", "cat": "පළතුරු", "unit": "kg"}, {"id": "c018", "name": "නාරං", "cat": "පළතුරු", "unit": "kg"}, {"id": "c019", "name": "දෙලුම්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c020", "name": "දිවුල්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c021", "name": "තැඹිලි", "cat": "පළතුරු", "unit": "ගෙඩි"}, {"id": "c022", "name": "රතු කෙසෙල්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c023", "name": "ඇඹුල් කෙසෙල්", "cat": "පළතුරු", "unit": "kg"}, {"id": "c024", "name": "උගුරැස්ස", "cat": "පළතුරු", "unit": "kg"}, {"id": "c025", "name": "ගොරක", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c026", "name": "කරපිංචා", "cat": "කුළුබඩු", "unit": "මිටි"}, {"id": "c027", "name": "රම්පෙ", "cat": "කුළුබඩු", "unit": "මිටි"}, {"id": "c028", "name": "සේර", "cat": "කුළුබඩු", "unit": "මිටි"}, {"id": "c029", "name": "උම්බලකඩ", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c030", "name": "වියලි මිරිස්", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c031", "name": "සියඹලා", "cat": "කුළුබඩු", "unit": "g"}, {"id": "c032", "name": "රතු හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c033", "name": "සම්බා හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c034", "name": "නාඩු හාල්", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c035", "name": "කීරි සම්බා", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c036", "name": "ඉඳි ආප්ප පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c037", "name": "ආප්ප පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c038", "name": "කුරක්කන් පිටි", "cat": "ධාන්‍ය වර්ග", "unit": "kg"}, {"id": "c039", "name": "රෙදි සෝදන කුඩු", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "kg"}, {"id": "c040", "name": "රෙදි සෝදන දියර", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "බෝතල්"}, {"id": "c041", "name": "ටිෂු", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "පැකට්"}, {"id": "c042", "name": "ටොයිලට් පේපර්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "රෝල්"}, {"id": "c043", "name": "කුණු බෑග්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": "පැකට්"}, {"id": "c044", "name": "ස්පොන්ජ්", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": ""}, {"id": "c045", "name": "බුරුසු", "cat": "පිරිසිදු කරන ද්‍රව්‍ය", "unit": ""}, {"id": "c046", "name": "හරක් මස්", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c047", "name": "ඌරු මස්", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c048", "name": "ඉස්සෝ", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c049", "name": "දැල්ලෝ", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c050", "name": "කරවල", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c051", "name": "හාල්මැස්සෝ", "cat": "මස් මාලු බිත්තර", "unit": "kg"}, {"id": "c052", "name": "බෑන්ඩේජ්", "cat": "බෙහෙත්", "unit": "පැකට්"}, {"id": "c053", "name": "කපු පුළුන්", "cat": "බෙහෙත්", "unit": "පැකට්"}, {"id": "c054", "name": "මෙන්තෝල් බාම්", "cat": "බෙහෙත්", "unit": "ටියුබ්"}, {"id": "c055", "name": "ගිනි පෙට්ටි", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c056", "name": "ඉටිපන්දම්", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c057", "name": "මදුරු දඟර", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c058", "name": "නැවුම් කිරි", "cat": "වෙනත්", "unit": "L"}, {"id": "c059", "name": "යෝගට්", "cat": "වෙනත්", "unit": "කප්"}, {"id": "c060", "name": "චීස්", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c061", "name": "පාන්", "cat": "වෙනත්", "unit": ""}, {"id": "c062", "name": "පොල්", "cat": "වෙනත්", "unit": "ගෙඩි"}, {"id": "c063", "name": "පොල් කිරි පැකට්", "cat": "වෙනත්", "unit": "පැකට්"}, {"id": "c064", "name": "පැණි", "cat": "වෙනත්", "unit": "බෝතල්"}, {"id": "c065", "name": "ජෑම්", "cat": "වෙනත්", "unit": "බෝතල්"}, {"id": "c066", "name": "ඕට්ස්", "cat": "වෙනත්", "unit": "g"}];
 const $=id=>document.getElementById(id);
@@ -162,13 +177,24 @@ function cook(){
   S.lastCookDate=today(); save(); toast('🍳 අඩු කළා: '+done.join(', '));
 }
 function del(id){ if(!confirm('මේ බඩුව ලිස්ට් එකෙන් අයින් කරන්නද?')) return; S.items=S.items.filter(i=>i.id!==id); save(); }
-function edit(it){
-  const q=prompt(it.name+' — දැන් තියෙන ප්‍රමාණය ('+ (it.unit||'') +')', it.qty);
-  if(q===null) return; const v=parseFloat(q); if(isNaN(v)) return alert('අංකයක් දාන්න');
-  const m=prompt('මාසෙට ඕන ප්‍රමාණය (දැන්: '+(it.monthly||'—')+')', it.monthly||'');
-  if(m!==null && m!=='' && !isNaN(parseFloat(m))) it.monthly=parseFloat(m);
-  it.qty=v; save();
+let editingId=null;
+function openEdit(id){
+  const it=S.items.find(i=>i.id===id); if(!it) return;
+  editingId=id; editing=true;
+  $('e-name').value=it.name; $('e-cat').value=CAT_ORDER.includes(it.cat)?it.cat:'වෙනත්'; $('e-unit').value=it.unit||''; $('e-qty').value=it.qty; $('e-monthly').value=it.monthly||''; $('e-daily').value=it.daily||'';
+  $('sheetBack').style.display='block'; $('editSheet').style.display='block';
 }
+function closeEdit(){ editingId=null; editing=false; $('sheetBack').style.display='none'; $('editSheet').style.display='none'; }
+function saveEdit(){
+  const it=S.items.find(i=>i.id===editingId); if(!it) return closeEdit();
+  const nm=$('e-name').value.trim(); if(!nm) return alert('නම දාන්න');
+  it.name=nm; it.cat=$('e-cat').value; it.unit=$('e-unit').value.trim();
+  const q=parseFloat($('e-qty').value); if(!isNaN(q)) it.qty=q;
+  const m=parseFloat($('e-monthly').value); it.monthly=isNaN(m)?0:m;
+  const d=parseFloat($('e-daily').value); it.daily=isNaN(d)?0:d;
+  closeEdit(); save(); toast('✅ '+it.name+' හදලා තියාගත්තා');
+}
+function delFromEdit(){ if(!editingId) return; const id=editingId; closeEdit(); del(id); }
 function shopNeeded(it){
   if(it.monthly>0) return Math.max(0, Math.round((it.monthly-it.qty)*100)/100);
   return isLow(it) ? 1 : 0;
@@ -194,7 +220,7 @@ function renderInner(){
   else if(shown.length===0){ $('items').innerHTML = '<div class="card">මේ කාණ්ඩයේ / හොයපු නමින් බඩු නැහැ.</div>'; }
   else $('items').innerHTML = shown.map(it=>{
     const pct = it.monthly>0 ? Math.min(100, it.qty/it.monthly*100) : 100;
-    return `<div class="itemrow"><div class="ri-info"><div class="ri-name">${it.name} ${isLow(it)?'<span class="low">• අඩුයි</span>':''}</div><div class="ri-sub">${dispCat(it)} • <b style="color:#1c2b22">${fmt(it.qty)} ${it.unit||''}</b>${it.monthly>0?' / මාසෙට '+fmt(it.monthly)+' '+(it.unit||''):''}</div>${it.monthly>0?`<div class="bar"><i style="width:${pct}%"></i></div>`:''}</div><div class="ri-actions"><button class="mini" onclick="doChange('${it.id}',-1)" title="අඩු">−</button><button class="mini" onclick="doChange('${it.id}',1)" title="වැඩි">+</button><button class="mini" onclick="doTick('${it.id}')" title="පාවිච්චි කළා">✓</button><button class="mini" onclick="doEdit('${it.id}')" title="සංස්කරණය">✏️</button><button class="mini danger" onclick="doDel('${it.id}')" title="අයින්">🗑️</button><span></span></div></div>`;
+    return `<div class="itemrow"><div class="ri-info" onclick="doEdit('${it.id}')"><div class="ri-name">${it.name} ${isLow(it)?'<span class="low">• අඩුයි</span>':''}</div><div class="ri-sub">${dispCat(it)}${it.monthly>0?' • මාසෙට '+fmt(it.monthly)+' '+(it.unit||''):''}</div>${it.monthly>0?`<div class="bar"><i style="width:${pct}%"></i></div>`:''}</div><div class="ri-side">${fmt(it.qty)} ${it.unit||''}</div><div class="ri-actions"><button class="mini" onclick="doChange('${it.id}',-1)" title="අඩු">−</button><button class="mini" onclick="doChange('${it.id}',1)" title="වැඩි">+</button><button class="mini" onclick="doTick('${it.id}')" title="පාවිච්චි කළා">✓</button><button class="mini" onclick="doEdit('${it.id}')" title="හදන්න">✏️</button></div></div>`;
   }).join('');
   // low
   const lows=S.items.filter(isLow);
@@ -237,7 +263,7 @@ window.setCat=c=>{cat=c; render();};
 const _sb=$('searchBox'); if(_sb) _sb.oninput=()=>{searchText=_sb.value.trim(); render();};
 window.doChange=(id,dir)=>{ const it=S.items.find(i=>i.id===id); change(it, dir*stepFor(it), dir<0?'use':'add'); };
 window.doTick=id=>{ const it=S.items.find(i=>i.id===id); change(it, -stepFor(it), 'use'); };
-window.doEdit=id=>edit(S.items.find(i=>i.id===id));
+window.doEdit=id=>openEdit(id);
 window.doDel=del;
 window.doBuy=(id,need)=>{ const it=S.items.find(i=>i.id===id); it.qty=Math.round((it.qty+need)*100)/100; S.log.push({date:today(), id, name:it.name, delta:need, why:'buy'}); save(); toast('✅ '+it.name+' ගත්තා'); };
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab; render();});
@@ -257,12 +283,15 @@ const _csb=$('catSearchBox'); if(_csb) _csb.oninput=()=>{catSearchText=_csb.valu
 if($('saveServerBtn')) $('saveServerBtn').onclick=()=>{ const v=$('serverUrl').value.trim().replace(/\/$/,''); if(v) localStorage.setItem('geda_server', v); else localStorage.removeItem('geda_server'); toast(v?'✅ සර්වර් ලින්ක් එක තියාගත්තා — දැන් ෆෝන් 3ම සින්ක් වෙනවා':'සර්වර් ලින්ක් එක අයින් කළා'); load(); };
 if($('exportBtn')) $('exportBtn').onclick=()=>{ $('syncBox').value=JSON.stringify(S); $('syncBox').select(); toast('📤 ලිස්ට් එක කොපි කරන්න ලෑස්තියි — WhatsApp එකෙන් යවන්න'); };
 if($('importBtn')) $('importBtn').onclick=()=>{ try{ const d=JSON.parse($('syncBox').value.trim()); if(!d||!Array.isArray(d.items)) throw 0; S=d; save(); toast('✅ අනිත් ෆෝන් එකේ ලිස්ට් එක දැම්මා'); }catch(e){ alert('කෝඩ් එක හරි නැහැ — සම්පූර්ණ කෝඩ් එකම පේස්ට් කරන්න'); } };
-$('addBtn').onclick=()=>{
-  const name=$('n-name').value.trim(); if(!name) return alert('නම දාන්න');
+$('addBtn').onclick=()=>{  const name=$('n-name').value.trim(); if(!name) return alert('නම දාන්න');
   const qty=parseFloat($('n-qty').value||'0');
   S.items.push({id:'x'+Date.now(), name, cat:$('n-cat').value, unit:$('n-unit').value.trim(), qty, monthly:parseFloat($('n-monthly').value||'0'), daily:parseFloat($('n-daily').value||'0'), low:0});
   ['n-name','n-unit','n-qty','n-monthly','n-daily'].forEach(id=>$(id).value=''); save();
 };
+$('addToggleBtn').onclick=()=>{ const f=$('addForm'); f.style.display = f.style.display==='none' ? 'block' : 'none'; };
+$('e-save').onclick=saveEdit;
+$('e-del').onclick=delFromEdit;
+$('e-close').onclick=closeEdit;
 load(); setInterval(()=>{ if(!editing) load(); }, 5000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
 </script></body></html>
