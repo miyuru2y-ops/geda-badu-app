@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:12 -->
+<!-- APP_VERSION:13 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -136,7 +136,8 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="catgrid" id="cats"></div>
   <div class="chips hide-simple" id="places"></div>
   <div id="items"></div>
-  <div class="row" style="margin:0 0 10px"><button class="btn hide-simple" id="sortBtn"></button><button class="btn primary" id="addOpen" style="flex:1">➕ අලුත් බඩුවක්</button></div>
+  <div class="row" style="margin:0 0 10px"><button class="btn hide-simple" id="sortBtn"></button><button class="btn primary" id="addOpen" style="flex:1">➕ අලුත් බඩුවක්</button><button class="btn primary" id="photoAdd" style="display:none">📸 Photo එකෙන්</button></div>
+  <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none">
   <button class="btn hide-simple" id="catOpen" style="width:100%">📚 කැටලොග් එකෙන් එකතු කරන්න</button>
 </section>
 
@@ -155,7 +156,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v12</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v13</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -284,6 +285,25 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="row"><button class="btn primary" id="vc-apply" style="flex:1">✅ හරි, කරන්න</button><button class="btn" id="vc-again">🎤 ආයේ</button><button class="btn" data-close>✖️</button></div>
 </div>
 
+<div class="sheet" id="identSheet">
+  <h3>📸 මේක මොකක්ද?</h3>
+  <div style="display:flex;gap:12px;align-items:center"><img id="idImg" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:12px;background:var(--soft)"><p class="muted" id="idMsg" style="margin:0;flex:1"></p></div>
+  <div id="idMatch"></div>
+  <div id="idForm">
+    <label for="id-name">නම</label>
+    <div style="display:flex;gap:8px"><input id="id-icon" maxlength="8" style="width:64px;text-align:center;font-size:22px"><input id="id-name" maxlength="80" style="flex:1"></div>
+    <div class="chips" id="idAlts" style="margin-top:4px"></div>
+    <div class="grid2">
+      <div><label for="id-cat">කාණ්ඩය</label><select id="id-cat"></select></div>
+      <div><label for="id-unit">ඒකකය</label><input id="id-unit" maxlength="20" list="units"></div>
+      <div><label for="id-qty">දැන් ගෙදර තියෙන්නේ</label><input id="id-qty" type="number" step="any" min="0" inputmode="decimal"></div>
+      <div><label for="id-barcode">Barcode</label><input id="id-barcode" maxlength="20" inputmode="numeric"></div>
+    </div>
+    <div class="row"><button class="btn primary" id="id-save" style="flex:1">➕ ලිස්ට් එකට එකතු කරන්න</button></div>
+  </div>
+  <div class="row"><button class="btn" id="id-again">📸 ආයේ</button><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
+</div>
+
 <div class="sheet" id="setSheet">
   <h3>⚙️ සැකසුම්</h3>
   <label for="s-name">මේ ෆෝන් එක කාගෙද? (ඉතිහාසයේ පේනවා)</label><input id="s-name" maxlength="30" placeholder="උදා: අම්මා, තාත්තා, නංගි">
@@ -323,7 +343,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 12;
+const APP_VERSION = 13;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -941,7 +961,9 @@ let aiOn = false;
 const isWebView = /; wv\)/.test(navigator.userAgent);
 async function checkAI(){
   try { const r = await api('/api/health'); const j = await r.json(); aiOn = !!j.ai; } catch (e) {}
-  $('receiptBtn').style.display = aiOn && (!isWebView || (NATIVE && NATIVE.hasFileChooser)) ? '' : 'none';
+  const camOk = aiOn && (!isWebView || (NATIVE && NATIVE.hasFileChooser));
+  $('receiptBtn').style.display = camOk ? '' : 'none';
+  $('photoAdd').style.display = camOk ? '' : 'none';
 }
 $('receiptBtn').onclick = () => $('receiptFile').click();
 function shrinkImage(file){
@@ -980,6 +1002,49 @@ $('rc-save').onclick = () => {
   });
   const res = doOp({ op: 'buy', items, extraSpent: extra, shop: $('rc-shop').value.trim() });
   closeSheets(); toast('✅ බඩු ' + items.length + 'ක් තොගයට • ' + rs(items.reduce((a, b) => a + b.price, 0) + extra), undoable(res, 'buy'));
+};
+
+// ---------- 📸 Photo එකෙන් බඩුවක් හඳුනගන්න (AI) ----------
+let idData = null;
+$('photoAdd').onclick = () => $('photoFile').click();
+$('id-again').onclick = () => { closeSheets(); $('photoFile').click(); };
+$('id-cat').innerHTML = C.CATS.map(c => `<option>${esc(c)}</option>`).join('');
+$('photoFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  closeSheets();
+  let image;
+  try { image = await shrinkImage(f); } catch (er) { return toast('⚠️ Photo එක අරින්න බැරි වුණා'); }
+  $('idImg').src = image; $('idMsg').textContent = '🔍 හඳුනගන්නවා… (තත්පර 5-10ක්)';
+  $('idForm').style.display = 'none'; $('idMatch').innerHTML = '';
+  openSheet('identSheet');
+  try {
+    const r = await api('/api/ai/identify', { method: 'POST', body: { image, mediaType: 'image/jpeg' } });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'error');
+    idData = j; showIdent();
+  } catch (er) { $('idMsg').textContent = '⚠️ හඳුනගන්න බැරි වුණා — ' + (er.message || 'නෙට් එක බලන්න') + '. ආයේ photo එකක් ගන්න, නැත්නම් ➕ අලුත් බඩුවක් එකෙන් දාන්න.'; }
+};
+function showIdent(){
+  const d = idData, conf = { high: '✅ හොඳටම විශ්වාසයි', medium: '🤔 බොහෝවිට', low: '❓ හරියටම විශ්වාස නැහැ — බලලා හදන්න' }[d.confidence] || '';
+  $('idMsg').innerHTML = `<b style="font-size:17px">${esc(d.icon)} ${esc(d.name)}</b>${d.nameEn ? '<br>' + esc(d.nameEn) : ''}<br>${conf}`;
+  const m = d.matchId && item(d.matchId);
+  if (m) {
+    $('idMatch').innerHTML = `<div class="card" style="background:var(--soft);margin:10px 0"><b>✓ මේක ලිස්ට් එකේ දැනටමත් තියෙනවා:</b><div class="ri-name" style="margin:6px 0">${esc(C.iconFor(m))} ${esc(m.name)} — ${fmt(m.qty)}${unitTxt(m)}</div>`
+      + `<div class="row" style="margin:0"><button class="btn primary" data-act="idBuy" style="flex:1">🛒 ගත්තා +${fmt(d.qty || 1)}${unitTxt(m)}</button><button class="btn" data-act="idOpen">↗ අරින්න</button></div>`
+      + `<p class="muted" style="margin:8px 0 0">වෙනම බඩුවක් නම් පහළින් අලුතෙන් එකතු කරන්න.</p></div>`;
+  }
+  $('id-icon').value = d.icon || ''; $('id-name').value = d.name || '';
+  $('id-cat').value = C.CATS.includes(d.cat) ? d.cat : 'වෙනත්';
+  $('id-unit').value = d.unit || ''; $('id-qty').value = fmt(d.qty || 1); $('id-barcode').value = d.barcode || '';
+  $('idAlts').innerHTML = (d.alternatives || []).map(a => `<button data-act="idAlt" data-id="${esc(a)}">${esc(a)}</button>`).join('');
+  $('idForm').style.display = '';
+}
+$('id-save').onclick = () => {
+  const name = $('id-name').value.trim(); if (!name) return toast('නම දාන්න');
+  const same = S.items.find(i => i.name.trim() === name);
+  if (same) { closeSheets(); toast('ඒ නමින් බඩුවක් දැනටමත් තියෙනවා'); return openEdit(same.id); }
+  const id = idData && idData.catalogId && !item(idData.catalogId) ? idData.catalogId : 'x' + uid();
+  doOp({ op: 'upsert', item: { id, name, icon: $('id-icon').value.trim(), cat: $('id-cat').value, unit: $('id-unit').value.trim(), qty: parseFloat($('id-qty').value) || 0, barcode: $('id-barcode').value.trim() } });
+  closeSheets(); toast('✅ ' + name + ' ලිස්ට් එකට දැම්මා');
 };
 
 // ---------- 🎤 කතා කරලා දාන්න ----------
@@ -1268,6 +1333,9 @@ document.addEventListener('click', async e => {
   else if (act === 'addcat') addCatalog(id);
   else if (act === 'addnamed') openEdit(null, { name: searchText });
   else if (act === 'cookr') cookRecipe(id);
+  else if (act === 'idAlt') $('id-name').value = id;
+  else if (act === 'idOpen') { const mid = idData.matchId; closeSheets(); openEdit(mid); }
+  else if (act === 'idBuy') { const m = item(idData.matchId); if (m) { const q = idData.qty || 1; const res = doOp({ op: 'buy', items: [{ id: m.id, qty: q, price: 0 }] }); closeSheets(); toast('✅ ' + m.name + ' +' + fmt(q), undoable(res, 'buy')); } }
   else if (act === 'catc') { catalogCat = id; render(); }
   else if (act === 'addnamedc') openEdit(null, { name: catSearchText });
   else if (act === 'addrx') addRecipeFromCatalog(id);

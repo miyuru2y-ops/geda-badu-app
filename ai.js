@@ -125,4 +125,51 @@ Reply with JSON only:
   return out;
 }
 
-module.exports = { enabled: !!PROVIDER, provider: PROVIDER, allow, readReceipt, parseVoice };
+// ලංකාවේ බඩු කැටලොග් එක (public/catalog.js) — photo එකෙන් හඳුනගන්න බඩු ගලපන්න
+let CATALOG = [], CATS = [];
+try {
+  const t = require('fs').readFileSync(require('path').join(__dirname, 'public', 'catalog.js'), 'utf8');
+  CATALOG = JSON.parse(t.match(/GEDA_CATALOG=(\[[\s\S]*?\]);\n/)[1]);
+  CATS = JSON.parse(t.match(/GEDA_CATS=(\[[\s\S]*?\]);/)[1]);
+} catch (e) { console.error('catalog load failed', e.message); }
+
+// 📸 බඩුවක photo එකක් → නම, කාණ්ඩය, ඒකකය, ප්‍රමාණය යෝජනා කරනවා
+async function identifyItem(state, image, mediaType) {
+  const cats = CATS.length ? CATS : Array.from(new Set(state.items.map(i => i.cat)));
+  const prompt = `A Sri Lankan family photographed one household item (food, grocery, cleaning, personal care, medicine…) to add it to their stock app.
+Identify the main item in the photo.
+
+Their current list (id | Sinhala name | unit | category):
+${itemList(state)}
+
+Common Sri Lankan items catalog (id | Sinhala name | unit | category):
+${CATALOG.map(c => `${c.id} | ${c.name} | ${c.unit || '-'} | ${c.cat}`).join('\n')}
+
+Rules:
+- "name": short natural Sinhala name a Sri Lankan family would use (keep well-known brand names in English, e.g. "Anchor කිරිපිටි", "Sunlight සබන්").
+- "matchId": the id from THEIR CURRENT LIST if this is clearly the same product, else null.
+- "catalogId": the id from the catalog if it is clearly that product, else null.
+- "cat": exactly one of: ${cats.join(', ')}
+- "unit": one of kg, g, L, ml, පැකට්, බෝතල්, ටින්, ගෙඩි, මිටි, රෝල්, ටියුබ් or "" for countable things.
+- "qty": the amount in that unit that this one package / item contains if you can read or estimate it (e.g. 400g packet with unit g → 400, 1kg bag with unit kg → 1), else 1.
+- "barcode": the barcode digits if clearly readable, else "".
+- "icon": one simple common emoji for it.
+- "alternatives": up to 3 other possible Sinhala names if unsure.
+- "confidence": "high", "medium" or "low".
+Reply with JSON only:
+{"name":"","nameEn":"","matchId":null,"catalogId":null,"cat":"","unit":"","qty":1,"barcode":"","icon":"","alternatives":[],"confidence":""}`;
+  const out = await callAI(prompt, image, mediaType, 700);
+  const ids = new Set(state.items.map(i => i.id)), cids = new Set(CATALOG.map(c => c.id));
+  return {
+    name: String(out.name || '').slice(0, 80), nameEn: String(out.nameEn || '').slice(0, 80),
+    matchId: ids.has(out.matchId) ? out.matchId : null,
+    catalogId: cids.has(out.catalogId) && !ids.has(out.catalogId) ? out.catalogId : null,
+    cat: cats.includes(out.cat) ? out.cat : 'වෙනත්',
+    unit: String(out.unit || '').slice(0, 20), qty: Math.max(0, Number(out.qty) || 1),
+    barcode: String(out.barcode || '').replace(/[^0-9]/g, '').slice(0, 20), icon: String(out.icon || '').slice(0, 8),
+    alternatives: (Array.isArray(out.alternatives) ? out.alternatives : []).map(x => String(x).slice(0, 60)).slice(0, 3),
+    confidence: ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : 'medium'
+  };
+}
+
+module.exports = { enabled: !!PROVIDER, provider: PROVIDER, allow, readReceipt, parseVoice, identifyItem };

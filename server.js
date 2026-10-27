@@ -175,6 +175,11 @@ const server = http.createServer(async (req, res) => {
             return send(res, 200, await ai.readReceipt(state, img, body.mediaType));
           }
           if (p === '/api/ai/voice') return send(res, 200, await ai.parseVoice(state, String(body.text || '')));
+          if (p === '/api/ai/identify') {
+            const img = String(body.image || '').replace(/^data:[^,]+,/, '');
+            if (img.length < 1000) return send(res, 400, { error: 'no image' });
+            return send(res, 200, await ai.identifyItem(state, img, body.mediaType));
+          }
         } catch (e) { console.error('AI error', e.message); return send(res, 502, { error: 'AI එකට සම්බන්ධ වෙන්න බැරි වුණා' }); }
         return send(res, 404, { error: 'not found' });
       }
