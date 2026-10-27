@@ -34,6 +34,22 @@
   var CAT_ICON = { 'එළවළු': '🥦', 'පළතුරු': '🍎', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'කුළුබඩු': '🌶️', 'බෙහෙත්': '💊', 'ධාන්‍ය වර්ග': '🌾', 'මස් මාලු බිත්තර': '🥚', 'වෙනත්': '📦' };
   function iconFor(it) { return it.icon || ICONS[it.id] || CAT_ICON[it.cat] || '📦'; }
 
+  // ලංකාවේ ගෙවල්වල සාමාන්‍ය කෑම — මුලින්ම දාන වට්ටෝරු (ගෙදර 4කට, ආසන්න ප්‍රමාණ — app එකෙන් හදන්න පුළුවන්)
+  var SEED_RECIPES = [
+    { rid: 'rc-rice', name: 'බත්', icon: '🍚', items: [{ id: 'rice', qty: 0.5 }] },
+    { rid: 'rc-dal', name: 'පරිප්පු කරිය', icon: '🫘', items: [{ id: 'dal', qty: 0.15 }, { id: 'red-onion', qty: 0.03 }, { id: 'garlic', qty: 5 }, { id: 'turmeric', qty: 2 }, { id: 'coco-eat', qty: 0.02 }, { id: 'salt', qty: 0.005 }] },
+    { rid: 'rc-potato', name: 'අල තෙල් දාලා', icon: '🥔', items: [{ id: 'potato', qty: 0.5 }, { id: 'big-onion', qty: 0.1 }, { id: 'chili-powder', qty: 5 }, { id: 'coco-eat', qty: 0.03 }, { id: 'mustard', qty: 2 }] },
+    { rid: 'rc-egg', name: 'බිත්තර කරිය', icon: '🥚', items: [{ id: 'eggs', qty: 4 }, { id: 'big-onion', qty: 0.05 }, { id: 'curry-powder', qty: 5 }, { id: 'chili-powder', qty: 3 }, { id: 'coco-eat', qty: 0.02 }] },
+    { rid: 'rc-chicken', name: 'චිකන් කරිය', icon: '🍗', items: [{ id: 'chicken', qty: 0.5 }, { id: 'big-onion', qty: 0.1 }, { id: 'garlic', qty: 10 }, { id: 'ginger', qty: 10 }, { id: 'curry-powder', qty: 15 }, { id: 'chili-powder', qty: 10 }, { id: 'coco-eat', qty: 0.03 }] },
+    { rid: 'rc-fish', name: 'ටින් මාළු', icon: '🐟', items: [{ id: 'canned-fish', qty: 1 }, { id: 'big-onion', qty: 0.1 }, { id: 'chili-powder', qty: 5 }, { id: 'coco-eat', qty: 0.02 }] },
+    { rid: 'rc-roti', name: 'රොටී', icon: '🫓', items: [{ id: 'wheat-flour', qty: 0.3 }, { id: 'salt', qty: 0.003 }] },
+    { rid: 'rc-tea', name: 'කිරි තේ (4ට)', icon: '🍵', items: [{ id: 'tea', qty: 8 }, { id: 'milk-powder', qty: 30 }, { id: 'sugar', qty: 0.04 }] }
+  ];
+  var BILL_SUGGEST = [
+    { name: 'කරන්ට් බිල', icon: '⚡', day: 10 }, { name: 'වතුර බිල', icon: '💧', day: 15 },
+    { name: 'ඉන්ටර්නෙට් / ෆෝන්', icon: '📶', day: 5 }, { name: 'ගෙවල් කුලිය', icon: '🏠', day: 1 }, { name: 'පාසල් ගාස්තු', icon: '🎒', day: 5 }
+  ];
+
   function r2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
   function num(v, dflt) { var n = parseFloat(v); return isFinite(n) ? n : dflt; }
   function str(v, max) { return String(v == null ? '' : v).trim().slice(0, max); }
@@ -83,6 +99,27 @@
     };
   }
 
+  function cleanRecipe(r) {
+    return {
+      rid: str(r.rid, 40) || 'rc' + Date.now(),
+      name: str(r.name, 60) || 'කෑමක්',
+      icon: str(r.icon, 8) || '🍛',
+      items: (Array.isArray(r.items) ? r.items : []).map(function (x) { return { id: str(x.id, 60), qty: Math.max(0, r2(num(x.qty, 0))) }; }).filter(function (x) { return x.id && x.qty > 0; }).slice(0, 30)
+    };
+  }
+  function cleanBill(b) {
+    return {
+      bid: str(b.bid, 40) || 'b' + Date.now(),
+      name: str(b.name, 50) || 'බිලක්',
+      icon: str(b.icon, 8) || '🧾',
+      day: Math.min(31, Math.max(1, Math.round(num(b.day, 1)))),   // මාසේ ගෙවන්න ඕන දවස
+      amount: Math.max(0, r2(num(b.amount, 0))),                  // සාමාන්‍ය ගණන
+      paid: b.paid && typeof b.paid === 'object' ? b.paid : {}     // {'2026-10': {amount, by, ts}}
+    };
+  }
+  function lastDayOf(mk) { var y = Number(mk.slice(0, 4)), m = Number(mk.slice(5, 7)); return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+  function prevMonth(mk) { var y = Number(mk.slice(0, 4)), m = Number(mk.slice(5, 7)) - 1; if (!m) { m = 12; y--; } return y + '-' + String(m).padStart(2, '0'); }
+
   // පරණ app එකේ state එකක් (v1-v8, v2) අලුත් හැඩයට හරවනවා
   function normalize(s, today) {
     s = s && typeof s === 'object' ? s : {};
@@ -106,9 +143,19 @@
       spend: s.spend && typeof s.spend === 'object' ? s.spend : {},     // {'2026-10': 38500}
       requests: Array.isArray(s.requests) ? s.requests.filter(Boolean).slice(-80) : [],
       ticks: s.ticks && typeof s.ticks === 'object' ? s.ticks : {},     // සාප්පු ලිස්ට් එකේ ✓ — ෆෝන් ඔක්කොටම එකයි
+      recipes: Array.isArray(s.recipes) ? s.recipes.map(cleanRecipe) : null,
+      bills: Array.isArray(s.bills) ? s.bills.map(cleanBill) : [],
+      gas: { history: s.gas && Array.isArray(s.gas.history) ? s.gas.history.filter(validDate).slice(-12) : [], days: s.gas ? Math.max(0, Math.round(num(s.gas.days, 0))) : 0, spend: s.gas && s.gas.spend && typeof s.gas.spend === 'object' ? s.gas.spend : {} },
+      budget: { total: s.budget ? Math.max(0, r2(num(s.budget.total, 0))) : 0, cats: s.budget && s.budget.cats && typeof s.budget.cats === 'object' ? s.budget.cats : {} },
       seenOps: Array.isArray(s.seenOps) ? s.seenOps.slice(-SEEN_MAX) : []
     };
     out.items.forEach(function (i) { if (out.monthStart[i.id] === undefined) out.monthStart[i.id] = i.qty; });
+    // මුල්ම වතාවට — ලිස්ට් එකේ තියෙන බඩු වලින් හදන්න පුළුවන් වට්ටෝරු ටික දානවා
+    if (!out.recipes) {
+      var have = {}; out.items.forEach(function (i) { have[i.id] = 1; });
+      out.recipes = SEED_RECIPES.filter(function (r) { return have[r.items[0].id]; }).map(function (r) { return cleanRecipe({ rid: r.rid, name: r.name, icon: r.icon, items: r.items.filter(function (x) { return have[x.id]; }) }); })
+        .filter(function (r) { return r.items.length; });
+    }
     return out;
   }
 
@@ -252,6 +299,64 @@
         state.requests = state.requests.filter(function (r) { return r.rid !== op.rid; });
         delete state.ticks['r:' + op.rid];
         break;
+      case 'cookRecipe':
+        // වට්ටෝරුවක් ඉව්වාම ඒකට යන බඩු විතරක් අඩු කරනවා
+        var rc = null; state.recipes.forEach(function (x) { if (x.rid === op.rid) rc = x; });
+        if (!rc) return { ok: false, err: 'no recipe' };
+        var times = Math.max(0.25, Math.min(10, num(op.times, 1)));
+        rc.items.forEach(function (ri) {
+          var x = find(state, ri.id); if (!x) return;
+          var b = x.qty; x.qty = Math.max(0, r2(x.qty - ri.qty * times));
+          var dd = r2(x.qty - b);
+          addLog(state, op, x, dd, 'cook');
+          if (dd) changes.push({ id: x.id, delta: dd });
+        });
+        break;
+      case 'recipeUpsert':
+        if (!op.recipe) return { ok: false, err: 'bad recipe' };
+        var nr = cleanRecipe(op.recipe), ri2 = -1;
+        state.recipes.forEach(function (x, i) { if (x.rid === nr.rid) ri2 = i; });
+        if (ri2 >= 0) state.recipes[ri2] = nr; else state.recipes.push(nr);
+        break;
+      case 'recipeDel':
+        state.recipes = state.recipes.filter(function (x) { return x.rid !== op.rid; });
+        break;
+      case 'billUpsert':
+        if (!op.bill) return { ok: false, err: 'bad bill' };
+        var ob = null; state.bills.forEach(function (x) { if (x.bid === op.bill.bid) ob = x; });
+        var nb = cleanBill(Object.assign({}, op.bill, { paid: ob ? ob.paid : {} }));
+        if (ob) state.bills[state.bills.indexOf(ob)] = nb; else state.bills.push(nb);
+        break;
+      case 'billDel':
+        state.bills = state.bills.filter(function (x) { return x.bid !== op.bid; });
+        break;
+      case 'billPaid':
+        state.bills.forEach(function (x) {
+          if (x.bid !== op.bid) return;
+          var bm = /^\d{4}-\d{2}$/.test(op.month || '') ? op.month : monthOf(op.date);
+          if (op.paid) x.paid[bm] = { amount: Math.max(0, r2(num(op.amount, x.amount))), by: op.by, ts: op.ts || 0 };
+          else delete x.paid[bm];
+          var keys = Object.keys(x.paid).sort(); keys.slice(0, Math.max(0, keys.length - 13)).forEach(function (k) { delete x.paid[k]; });
+        });
+        break;
+      case 'gas':
+        if (op.action === 'changed') {
+          if (state.gas.history.indexOf(op.date) < 0) state.gas.history.push(op.date);
+          state.gas.history.sort(); state.gas.history = state.gas.history.slice(-12);
+          var gp = Math.max(0, num(op.price, 0));
+          if (gp) { var gm = monthOf(op.date); state.gas.spend[gm] = r2((state.gas.spend[gm] || 0) + gp); }
+        } else if (op.action === 'undo') {
+          state.gas.history = state.gas.history.filter(function (d) { return d !== op.day; });
+          if (op.price) { var um = monthOf(op.day || op.date); state.gas.spend[um] = Math.max(0, r2((state.gas.spend[um] || 0) - num(op.price, 0))); }
+        } else if (op.action === 'setDays') state.gas.days = Math.max(0, Math.min(365, Math.round(num(op.days, 0))));
+        break;
+      case 'budget':
+        if (op.total !== undefined) state.budget.total = Math.max(0, r2(num(op.total, 0)));
+        if (op.cats && typeof op.cats === 'object') {
+          var bc = {}; Object.keys(op.cats).forEach(function (c) { var v = Math.max(0, r2(num(op.cats[c], 0))); if (v && (CATS.indexOf(c) >= 0 || c === 'ගෑස්')) bc[c] = v; });
+          state.budget.cats = bc;
+        }
+        break;
       case 'settings':
         if (op.shopDay !== undefined) state.shopDay = Math.min(28, Math.max(1, Math.round(num(op.shopDay, 25))));
         break;
@@ -338,6 +443,67 @@
     return 1;
   }
 
+  // ගෑස් සිලින්ඩරය — සාමාන්‍යයෙන් කොච්චර දවසක් යනවද, ඊළඟට මාරු කරන්න වෙන්නේ කවදාද
+  function gasStatus(state, today) {
+    var h = state.gas.history; if (!h.length) return null;
+    var avg = state.gas.days || 0, n = 0, sum = 0;
+    if (!avg) {
+      for (var i = 1; i < h.length; i++) { var g = dayNum(h[i]) - dayNum(h[i - 1]); if (g >= 7 && g <= 200) { sum += g; n++; } }
+      avg = n ? Math.round(sum / n) : 45;
+    }
+    var last = h[h.length - 1], used = dayNum(today) - dayNum(last);
+    return { last: last, avg: avg, learned: !state.gas.days && n > 0, used: used, left: avg - used, next: addDays(last, avg) };
+  }
+
+  // මාසේ වියදම කාණ්ඩ වලට බෙදලා (log එකේ ගෙවපු ගණන් වලින්)
+  function spendByCat(state, mk) {
+    var cat = {}, byId = {};
+    state.items.forEach(function (i) { byId[i.id] = i.cat; });
+    state.log.forEach(function (l) {
+      if (!l.p || l.why !== 'buy' || !l.d || l.d.slice(0, 7) !== mk) return;
+      var c = byId[l.id] || 'වෙනත්'; cat[c] = r2((cat[c] || 0) + l.p);
+    });
+    var itemsTotal = 0; Object.keys(cat).forEach(function (c) { itemsTotal += cat[c]; });
+    var other = r2((state.spend[mk] || 0) - itemsTotal);  // ලිස්ට් එකේ නැති දේවල්
+    if (other > 0) cat['වෙනත්'] = r2((cat['වෙනත්'] || 0) + other);
+    if (state.gas.spend[mk]) cat['ගෑස්'] = state.gas.spend[mk];
+    return cat;
+  }
+  function monthTotal(state, mk) { return r2((state.spend[mk] || 0) + (state.gas.spend[mk] || 0)); }
+
+  function billsStatus(state, today) {
+    var mk = monthOf(today), day = Number(today.slice(8)), last = lastDayOf(mk);
+    return state.bills.map(function (b) {
+      var due = Math.min(b.day, last), paid = b.paid[mk] || null;
+      return { bid: b.bid, name: b.name, icon: b.icon, amount: b.amount, due: due, left: due - day, paid: paid };
+    }).sort(function (a, b) { return (!!a.paid - !!b.paid) || a.due - b.due; });
+  }
+  function billsTotal(state, mk) { var t = 0; state.bills.forEach(function (b) { if (b.paid[mk]) t += b.paid[mk].amount || 0; }); return r2(t); }
+
+  // මාසේ සාරාංශය (WhatsApp එකට යවන්න)
+  function monthReport(state, mk, today) {
+    var sum = {}, names = {};
+    state.items.forEach(function (i) { names[i.id] = i; });
+    state.log.forEach(function (l) {
+      if (!l.d || l.d.slice(0, 7) !== mk) return;
+      var w = baseWhy(l.why), o = sum[l.id] || (sum[l.id] = { used: 0, spent: 0 });
+      if (w === 'use' || w === 'cook') o.used = r2(o.used - l.delta);
+      if (l.p && l.why === 'buy') o.spent = r2(o.spent + l.p);
+    });
+    var top = Object.keys(sum).filter(function (id) { return sum[id].spent > 0; }).sort(function (a, b) { return sum[b].spent - sum[a].spent; }).slice(0, 5)
+      .map(function (id) { return { name: (names[id] || {}).name || id, spent: sum[id].spent }; });
+    var used = Object.keys(sum).filter(function (id) { return sum[id].used > 0 && names[id]; }).sort(function (a, b) { return sum[b].used - sum[a].used; }).slice(0, 5)
+      .map(function (id) { return { name: names[id].name, used: sum[id].used, unit: names[id].unit }; });
+    return {
+      month: mk, total: monthTotal(state, mk), prevTotal: monthTotal(state, prevMonth(mk)), budget: state.budget.total,
+      byCat: spendByCat(state, mk), top: top, used: used, bills: billsTotal(state, mk),
+      billList: state.bills.filter(function (b) { return b.paid[mk]; }).map(function (b) { return { name: b.name, amount: b.paid[mk].amount }; }),
+      unpaid: state.bills.filter(function (b) { return !b.paid[mk]; }).map(function (b) { return b.name; }),
+      gasChanges: state.gas.history.filter(function (d) { return d.slice(0, 7) === mk; }).length,
+      toBuy: state.items.filter(function (it) { return shopNeeded(it) > 0; }).map(function (it) { return it.name; })
+    };
+  }
+
   // ෆෝන් notification එකටයි app එකේ banner එකටයි පණිවිඩ
   function alerts(state, today, rates) {
     rates = rates || usageRates(state, today);
@@ -356,6 +522,23 @@
     if (finished.length) out.push({ kind: 'finished', text: '🚫 ඉවරයි: ' + finished.join(', ') });
     var open = state.requests.filter(function (r) { return !r.done; });
     if (open.length) out.push({ kind: 'requests', text: '📝 ගෙදර අයගේ ඉල්ලීම් ' + open.length + 'ක්: ' + open.map(function (r) { return r.text; }).slice(0, 5).join(', ') });
+    // බිල්පත්
+    billsStatus(state, today).forEach(function (b) {
+      if (b.paid) return;
+      if (b.left < 0) out.push({ kind: 'billLate', text: b.icon + ' ' + b.name + ' තාම ගෙව්වේ නැහැ — ' + b.due + ' වෙනිදා ගෙවන්න තිබුණා' });
+      else if (b.left <= 3) out.push({ kind: 'bill', text: b.icon + ' ' + b.name + ' ගෙවන්න — ' + (b.left === 0 ? 'අද' : 'දවස් ' + b.left + 'කින්') + (b.amount ? ' (~රු. ' + Math.round(b.amount) + ')' : '') });
+    });
+    // ගෑස්
+    var gs = gasStatus(state, today);
+    if (gs && gs.left <= 5) out.push({ kind: 'gas', text: '🔥 ගෑස් සිලින්ඩරය ' + (gs.left < 0 ? 'ඉවර වෙන්න ඕන කාලේ පැනලා (දවස් ' + gs.used + ')' : 'දවස් ' + gs.left + 'කින් විතර ඉවර වෙයි') + ' — අමතරයක් ගන්න' });
+    // Budget
+    var mkB = monthOf(today), spentB = monthTotal(state, mkB);
+    if (state.budget.total > 0 && spentB >= state.budget.total * 0.8) {
+      var pctB = Math.round(spentB / state.budget.total * 100);
+      out.push({ kind: pctB >= 100 ? 'budgetOver' : 'budget', text: '💵 මේ මාසේ budget එකෙන් ' + pctB + '% ගියා (රු. ' + Math.round(spentB) + ' / ' + Math.round(state.budget.total) + ')' });
+    }
+    // මාසේ අන්තිම දවස් 2 — සාරාංශය යවන්න
+    if (Number(today.slice(8)) >= lastDayOf(mkB) - 1) out.push({ kind: 'summary', text: '📊 මාසේ ඉවර වෙනවා — "මාසය" ටැබ් එකෙන් සාරාංශය ගෙදර group එකට යවන්න' });
     var day = Number(today.slice(8)), sd = state.shopDay || 25;
     var need = state.items.filter(function (it) { return shopNeeded(it) > 0; }).length + open.length;
     if (day === sd) out.push({ kind: 'shopday', text: '🛒 අද සාප්පු යන දවස! ගන්න බඩු ' + need + 'ක් තියෙනවා.' });
@@ -378,9 +561,15 @@
       spend: state.spend,
       requests: state.requests,
       ticks: state.ticks,
+      recipes: state.recipes,
+      bills: state.bills,
+      gas: state.gas,
+      budget: state.budget,
       summary: monthSummary(state),
       rates: rates,
-      recent: state.log.slice(-60).reverse()
+      recent: state.log.slice(-60).reverse(),
+      // මිලක් තියෙන ගැනුම් විතරක් (අන්තිම දවස් 70) — app එකේ කාණ්ඩ වියදම / මාසික සාරාංශයට
+      paidLog: state.log.filter(function (l) { return l.p && l.d >= addDays(today, -70); })
     };
   }
 
@@ -388,6 +577,7 @@
     TZ: TZ, CATS: CATS, SHOPS: SHOPS, PLACES: PLACES, r2: r2, localDate: localDate, monthOf: monthOf, addDays: addDays,
     normalize: normalize, rollover: rollover, pruneLog: pruneLog, apply: apply, applyOnce: applyOnce, monthSummary: monthSummary,
     usageRates: usageRates, isLow: isLow, expiryStatus: expiryStatus, shopNeeded: shopNeeded, stepFor: stepFor, alerts: alerts,
-    publicView: publicView, cleanItem: cleanItem, iconFor: iconFor
+    publicView: publicView, cleanItem: cleanItem, iconFor: iconFor, gasStatus: gasStatus, spendByCat: spendByCat, monthTotal: monthTotal,
+    billsStatus: billsStatus, billsTotal: billsTotal, monthReport: monthReport, prevMonth: prevMonth, BILL_SUGGEST: BILL_SUGGEST
   };
 });

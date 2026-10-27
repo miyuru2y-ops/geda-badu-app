@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si"><head>
-<!-- APP_VERSION:10 -->
+<!-- APP_VERSION:11 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -17,8 +17,8 @@ main{padding:0 12px 110px;max-width:760px;margin:auto}
 #alerts{margin:12px 0 0}
 .alert{background:#fff3c4;border:1px solid #e6c200;padding:10px 12px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:6px;cursor:pointer}
 .alert.red{background:#fde8e6;border-color:#f3b4ad}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:12px 0}
-.tabs button{padding:8px 2px 7px;border:0;border-radius:12px;background:var(--card);font-size:13px;font-weight:700;color:var(--ink);position:relative;line-height:1.25}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:12px 0}
+.tabs button{padding:8px 1px 7px;border:0;border-radius:12px;background:var(--card);font-size:12px;font-weight:700;color:var(--ink);position:relative;line-height:1.25}
 .tabs button.on{background:var(--main);color:#fff}
 .tabs .ic{display:block;font-size:20px;margin-bottom:2px}
 .cnt{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--red);color:#fff;font-size:12px;line-height:20px}
@@ -86,6 +86,16 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 .big{font-size:28px;font-weight:800;margin:4px 0}
 #keyScreen{position:fixed;inset:0;z-index:50;background:var(--bg);display:none;padding:40px 20px}
 .swatch{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #cbd8cf}
+.rchips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+.rchips::-webkit-scrollbar{display:none}
+.rchips button{flex-shrink:0;padding:9px 12px;border-radius:14px;border:1px solid var(--edge);background:var(--soft);font-size:15px;font-weight:700;color:var(--ink);min-width:72px}
+.rchips button b{display:block;font-size:24px}
+.rrow{display:grid;grid-template-columns:1fr 90px 40px;gap:6px;align-items:center}
+.rrow select,.rrow input{margin:3px 0}
+.bill{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.bill:last-child{border-bottom:0} .bill .ico{font-size:26px}
+.cbar{margin:7px 0;font-size:13px} .cbar div:first-child{display:flex;justify-content:space-between;margin-bottom:3px}
+.bar i.over{background:var(--red)} .bar i.near{background:var(--amber)}
 #scanVideo{width:100%;border-radius:14px;background:#000;max-height:50vh;object-fit:cover}
 .switch{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-weight:700}
 </style></head>
@@ -101,12 +111,16 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <button data-tab="low" class="adv"><span class="ic">⚠️</span>අඩු</button>
   <button data-tab="shop"><span class="ic">🛒</span>සාප්පු</button>
   <button data-tab="req"><span class="ic">📝</span>ඉල්ලීම්</button>
+  <button data-tab="pay" class="adv"><span class="ic">💡</span>ගෙවීම්</button>
   <button data-tab="month" class="adv"><span class="ic">📅</span>මාසය</button>
 </div>
 
 <section id="view-list">
   <div class="card" style="padding:12px 14px">
-    <button class="btn primary" id="cookBtn" style="width:100%;font-size:17px">🍳 අද උයන්න</button>
+    <div style="display:flex;justify-content:space-between;align-items:center"><b>🍳 අද උයන්නේ මොනවද?</b><button class="btn hide-simple" id="recipesBtn" style="padding:6px 10px;font-size:13px">⚙️ වට්ටෝරු</button></div>
+    <p class="muted" style="margin:4px 0 6px">කෑමක් tap කළාම ඒකට යන බඩු ටික තොගයෙන් අඩු වෙනවා.</p>
+    <div class="rchips" id="recipeChips"></div>
+    <button class="btn" id="cookBtn" style="width:100%;margin-top:6px">🍳 දවසේ සාමාන්‍ය ප්‍රමාණය අඩු කරන්න</button>
     <p class="muted hide-simple" id="cookNote" style="margin:8px 0 0"></p>
   </div>
   <input id="searchBox" type="search" placeholder="🔍 බඩුවක් හොයන්න… (නම, ෆ්‍රිජ්, පොළ)" autocomplete="off">
@@ -125,13 +139,14 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   </div>
   <div id="reqList"></div>
 </section>
+<section id="view-pay" style="display:none"></section>
 <section id="view-month" style="display:none"></section>
 <section id="view-catalog" style="display:none">
   <div class="card"><h3>📚 ලංකාවේ ගෙවල්වල බඩු</h3><p class="muted">“+ එකතු” ඔබලා ලිස්ට් එකට දාගන්න.</p><button class="btn" data-act="back">← ආපහු</button></div>
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v10</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v11</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -186,6 +201,48 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="row"><button class="btn" id="linkSave" style="flex:1">🔗 සම්බන්ධ කරන්න</button><button class="btn" data-close>✖️</button></div>
 </div>
 
+<div class="sheet" id="recipesSheet">
+  <h3>🍳 වට්ටෝරු</h3>
+  <p class="muted">හැම කෑමකටම යන බඩු සහ ප්‍රමාණ (ගෙදර හැමෝටම එක පාරක් උයන ප්‍රමාණය).</p>
+  <div id="recipesList"></div>
+  <div class="row"><button class="btn primary" id="recipeNew" style="flex:1">➕ අලුත් කෑමක්</button><button class="btn" data-close>✖️</button></div>
+</div>
+
+<div class="sheet" id="recipeSheet">
+  <h3 id="recipeTitle">🍛 කෑම</h3>
+  <div style="display:flex;gap:8px"><input id="r-icon" maxlength="8" style="width:64px;text-align:center;font-size:22px" placeholder="🍛"><input id="r-name" maxlength="60" placeholder="කෑමේ නම (උදා: පොල් සම්බෝල)" style="flex:1"></div>
+  <label>යන බඩු</label>
+  <div id="r-items"></div>
+  <button class="btn" id="r-addRow" style="width:100%;margin-top:6px">➕ බඩුවක් එකතු කරන්න</button>
+  <div class="row"><button class="btn primary" id="r-save" style="flex:1">💾 තියාගන්න</button><button class="btn danger" id="r-del">🗑️</button><button class="btn" data-close>✖️</button></div>
+</div>
+
+<div class="sheet" id="billSheet">
+  <h3 id="billTitle">💡 බිල්පත</h3>
+  <div class="chips" id="billSuggest"></div>
+  <div style="display:flex;gap:8px"><input id="bl-icon" maxlength="8" style="width:64px;text-align:center;font-size:22px" placeholder="🧾"><input id="bl-name" maxlength="50" placeholder="උදා: කරන්ට් බිල" style="flex:1"></div>
+  <div class="grid2">
+    <div><label for="bl-day">ගෙවන්න ඕන දවස (මාසේ)</label><input id="bl-day" type="number" min="1" max="31" inputmode="numeric"></div>
+    <div><label for="bl-amount">සාමාන්‍ය ගණන (රු.)</label><input id="bl-amount" type="number" min="0" inputmode="decimal"></div>
+  </div>
+  <div class="row"><button class="btn primary" id="bl-save" style="flex:1">💾 තියාගන්න</button><button class="btn danger" id="bl-del">🗑️</button><button class="btn" data-close>✖️</button></div>
+</div>
+
+<div class="sheet" id="amountSheet">
+  <h3 id="amountTitle">✓ ගෙව්වා</h3>
+  <label for="am-value" id="amountLabel">ගෙවපු ගණන (රු.)</label><input id="am-value" type="number" min="0" inputmode="decimal">
+  <div id="amountExtra"></div>
+  <div class="row"><button class="btn primary" id="am-save" style="flex:1">✅ හරි</button><button class="btn" data-close>✖️</button></div>
+</div>
+
+<div class="sheet" id="budgetSheet">
+  <h3>💵 මාසික budget එක</h3>
+  <label for="bg-total">මාසෙට මුළු ගණන (රු.) — 0 නම් budget නැහැ</label><input id="bg-total" type="number" min="0" inputmode="decimal">
+  <p class="muted" style="margin:10px 0 2px">කාණ්ඩ අනුව (කැමති නම් විතරයි):</p>
+  <div class="grid2" id="bg-cats"></div>
+  <div class="row"><button class="btn primary" id="bg-save" style="flex:1">💾 තියාගන්න</button><button class="btn" data-close>✖️</button></div>
+</div>
+
 <div class="sheet" id="setSheet">
   <h3>⚙️ සැකසුම්</h3>
   <label for="s-name">මේ ෆෝන් එක කාගෙද? (ඉතිහාසයේ පේනවා)</label><input id="s-name" maxlength="30" placeholder="උදා: අම්මා, තාත්තා, නංගි">
@@ -224,7 +281,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 10;
+const APP_VERSION = 11;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -270,7 +327,7 @@ function rebuild(){
   if (!base) { S = null; return; }
   const st = C.normalize(clone(base), today());
   queue.forEach(op => C.apply(st, clone(op)));
-  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay });
+  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay, recipes: st.recipes, bills: st.bills, gas: st.gas, budget: st.budget, log: base.paidLog || [] });
   // offline වෙනස්කම් එක්ක "තව දවස්" ගණන ආයේ හදනවා
   const rates = {}; Object.keys(base.rates || {}).forEach(id => { const it = S.items.find(i => i.id === id); const r = base.rates[id]; if (it && r.rate > 0) rates[id] = { rate: r.rate, daysLeft: Math.floor(it.qty / r.rate) }; });
   S.items.forEach(it => { if (!rates[it.id] && it.daily > 0) rates[it.id] = { rate: it.daily, daysLeft: Math.floor(it.qty / it.daily) }; });
@@ -333,7 +390,7 @@ function flushSoon(){ clearTimeout(flushTimer); flushTimer = setTimeout(sync, 25
 function doOp(op){
   op.uid = uid(); op.date = today(); op.by = myName || ''; op.ts = Date.now();
   if (!S) return;
-  const st = C.normalize(clone({ items: S.items, monthStart: S.monthStart, lastCookDate: S.lastCookDate, monthKey: S.monthKey, version: S.version, ticks: S.ticks, requests: S.requests, spend: S.spend }), today());
+  const st = C.normalize(clone({ items: S.items, monthStart: S.monthStart, lastCookDate: S.lastCookDate, monthKey: S.monthKey, version: S.version, ticks: S.ticks, requests: S.requests, spend: S.spend, recipes: S.recipes, bills: S.bills, gas: S.gas, budget: S.budget }), today());
   const res = C.apply(st, clone(op));
   queue.push(op); LS.set('geda2_queue', queue);
   rebuild(); render(); flushSoon();
@@ -583,9 +640,9 @@ $('linkSave').onclick = () => {
 function render(){
   const y = window.scrollY;
   renderHeader();
-  const views = ['list','low','shop','req','month','catalog'];
+  const views = ['list','low','shop','req','pay','month','catalog'];
   if (!S) { views.forEach(v => $('view-' + v).style.display = 'none'); return; }
-  if (simple && (tab === 'low' || tab === 'month' || tab === 'catalog')) tab = 'list';
+  if (simple && (tab === 'low' || tab === 'month' || tab === 'catalog' || tab === 'pay')) tab = 'list';
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   views.forEach(v => $('view-' + v).style.display = v === tab ? 'block' : 'none');
   const lows = S.items.filter(C.isLow);
@@ -596,11 +653,14 @@ function render(){
   T[1].innerHTML = '<span class="ic">⚠️</span>අඩු' + (lows.length + exp.length ? `<span class="cnt">${lows.length + exp.length}</span>` : '');
   T[2].innerHTML = '<span class="ic">🛒</span>සාප්පු' + (shopN ? `<span class="cnt" style="background:#1c2b22">${shopN}</span>` : '');
   T[3].innerHTML = '<span class="ic">📝</span>ඉල්ලීම්' + (reqN ? `<span class="cnt">${reqN}</span>` : '');
+  const billN = C.billsStatus(S, today()).filter(b => !b.paid && b.left <= 3).length;
+  T[4].innerHTML = '<span class="ic">💡</span>ගෙවීම්' + (billN ? `<span class="cnt">${billN}</span>` : '');
   renderAlerts();
   if (tab === 'list') renderList();
   if (tab === 'low') renderLow(lows);
   if (tab === 'shop') renderShop();
   if (tab === 'req') renderReq();
+  if (tab === 'pay') renderPay();
   if (tab === 'month') renderMonth();
   if (tab === 'catalog') renderCatalog();
   requestAnimationFrame(() => window.scrollTo(0, y));
@@ -618,8 +678,9 @@ function renderHeader(){
 
 function renderAlerts(){
   const al = C.alerts(S, today(), S.rates).filter(a => a.kind !== 'requests' || tab !== 'req');
-  const go = { expired: 'low', expiry: 'low', ending: 'low', finished: 'shop', requests: 'req', shopday: 'shop' };
-  $('alerts').innerHTML = tab === 'list' || tab === 'shop' ? al.slice(0, 4).map(a => `<div class="alert ${a.kind === 'expired' || a.kind === 'finished' ? 'red' : ''}" data-act="gotab" data-id="${go[a.kind] || 'list'}">${esc(a.text)}</div>`).join('') : '';
+  const go = { expired: 'low', expiry: 'low', ending: 'low', finished: 'shop', requests: 'req', shopday: 'shop', bill: 'pay', billLate: 'pay', gas: 'pay', budget: 'pay', budgetOver: 'pay', summary: 'month' };
+  const red = { expired: 1, finished: 1, billLate: 1, budgetOver: 1 };
+  $('alerts').innerHTML = tab === 'list' || tab === 'shop' ? al.slice(0, 4).map(a => `<div class="alert ${red[a.kind] ? 'red' : ''}" data-act="gotab" data-id="${go[a.kind] || 'list'}">${esc(a.text)}</div>`).join('') : '';
 }
 
 function itemRow(it){
@@ -638,6 +699,7 @@ function renderList(){
   $('cookNote').textContent = S.lastCookDate === today()
     ? '✅ අද උයන්න අඩු කළා. (' + cookItems.length + ' බඩු)'
     : 'එක ටැප් එකෙන් දවසට උයන ප්‍රමාණය අඩු වෙනවා: ' + cookItems.slice(0, 5).map(i => i.name).join(', ') + (cookItems.length > 5 ? '…' : '');
+  $('recipeChips').innerHTML = (S.recipes || []).map(r => `<button data-act="cookr" data-id="${esc(r.rid)}"><b>${esc(r.icon)}</b>${esc(r.name)}</button>`).join('') || '<span class="muted">වට්ටෝරු නැහැ — ⚙️ වට්ටෝරු එකෙන් දාන්න</span>';
   const cats = CAT_ORDER.filter(c => c === 'සියල්ල' || S.items.some(i => i.cat === c));
   if (!cats.includes(cat)) cat = 'සියල්ල';
   $('cats').innerHTML = cats.map(c => {
@@ -727,17 +789,23 @@ function renderMonth(){
   const sum = S.summary || {};
   const mk = S.monthKey || today().slice(0, 7);
   const spend = S.spend || {};
-  const thisM = spend[mk] || 0;
+  const thisM = C.monthTotal(S, mk);
   // අන්තිම මාස 6
   const ms = []; let y = Number(mk.slice(0, 4)), m = Number(mk.slice(5, 7));
   for (let i = 0; i < 6; i++) { ms.unshift(y + '-' + String(m).padStart(2, '0')); m--; if (!m) { m = 12; y--; } }
-  const max = Math.max(1, ...ms.map(k => spend[k] || 0));
+  const mt = k => C.monthTotal(S, k);
+  const max = Math.max(1, ...ms.map(mt));
   let h = `<div class="card"><h3>💰 මේ මාසේ වියදම</h3><div class="big">${rs(thisM)}</div>`;
-  const prevM = spend[ms[4]] || 0;
+  const prevM = mt(ms[4]);
   if (prevM && thisM) h += `<p class="muted" style="margin:0 0 8px">පහුගිය මාසේ ${rs(prevM)} — ${thisM > prevM ? '<span class="low">↑ ' + rs(thisM - prevM) + ' වැඩියි</span>' : '<span style="color:var(--main)">↓ ' + rs(prevM - thisM) + ' අඩුයි</span>'}</p>`;
-  h += ms.map(k => `<div class="mbar"><span>${MONTHS[Number(k.slice(5)) - 1]} ${k.slice(2, 4)}</span><div class="bar"><i style="width:${(spend[k] || 0) / max * 100}%"></i></div><b>${spend[k] ? rs(spend[k]) : '—'}</b></div>`).join('');
+  h += ms.map(k => `<div class="mbar"><span>${MONTHS[Number(k.slice(5)) - 1]} ${k.slice(2, 4)}</span><div class="bar"><i style="width:${mt(k) / max * 100}%"></i></div><b>${mt(k) ? rs(mt(k)) : '—'}</b></div>`).join('');
+  const bt = C.billsTotal(S, mk); if (bt) h += `<p class="muted" style="margin:8px 0 0">💡 බිල්පත් වලට තවත් ${rs(bt)} • එකතුව ${rs(thisM + bt)}</p>`;
   if (!thisM) h += '<p class="muted">“ගත්තා” කරනකොට ගෙවපු ගණනත් දැම්මාම වියදම මෙතන පේනවා.</p>';
   h += '</div>';
+  const day = Number(today().slice(8));
+  h += `<div class="card"><h3>📊 මාසික සාරාංශය</h3><p class="muted">වියදම, කාණ්ඩ, බිල්පත්, ඊළඟට ගන්න ඕන දේවල් — ගෙදර WhatsApp group එකට යවන්න.</p>`
+    + `<div class="row"><button class="btn primary" data-act="report" data-id="${mk}" style="flex:1">💬 ${MONTHS_FULL[Number(mk.slice(5)) - 1]} සාරාංශය WhatsApp</button><button class="btn" data-act="reportCopy" data-id="${mk}">📋</button></div>`
+    + (day <= 7 ? `<div class="row"><button class="btn" data-act="report" data-id="${C.prevMonth(mk)}" style="flex:1">💬 පහුගිය මාසේ (${MONTHS_FULL[Number(C.prevMonth(mk).slice(5)) - 1]}) සාරාංශය</button></div>` : '') + '</div>';
   const top = S.items.filter(it => sum[it.id] && sum[it.id].spent).sort((a, b) => sum[b.id].spent - sum[a.id].spent).slice(0, 8);
   if (top.length) h += `<div class="card"><h3>🏷️ වැඩියෙන්ම වියදම් වුණ බඩු</h3>${top.map(it => `<div class="hist"><div style="flex:1">${esc(C.iconFor(it))} ${esc(it.name)}</div><b>${rs(sum[it.id].spent)}</b></div>`).join('')}</div>`;
   const up = S.items.filter(it => it.price && it.prevPrice && it.price !== it.prevPrice);
@@ -757,6 +825,168 @@ function renderMonth(){
   });
   h += '</div>';
   $('view-month').innerHTML = h;
+}
+
+// ---------- 🍳 වට්ටෝරු ----------
+function cookRecipe(rid){
+  const r = (S.recipes || []).find(x => x.rid === rid); if (!r) return;
+  const missing = r.items.filter(x => { const it = item(x.id); return !it || it.qty < x.qty; }).map(x => (item(x.id) || {}).name).filter(Boolean);
+  const res = doOp({ op: 'cookRecipe', rid });
+  toast(r.icon + ' ' + r.name + ' — බඩු ' + r.items.length + 'ක් අඩු කළා' + (missing.length ? ' ⚠️ මදි: ' + missing.join(', ') : ''), undoable(res, 'cook'));
+}
+let editingRecipe = null;
+function openRecipes(){
+  $('recipesList').innerHTML = '<div class="list">' + (S.recipes || []).map(r => `<div class="itemrow" data-act="editr" data-id="${esc(r.rid)}"><span class="ico">${esc(r.icon)}</span><div class="ri-info"><div class="ri-name">${esc(r.name)}</div><div class="ri-sub">${r.items.map(x => { const it = item(x.id); return it ? esc(it.name) + ' ' + fmt(x.qty) + unitTxt(it) : ''; }).filter(Boolean).join(', ')}</div></div><span class="muted">✏️</span></div>`).join('') + '</div>';
+  openSheet('recipesSheet');
+}
+function recipeRow(x){
+  const opts = S.items.slice().sort((a, b) => a.name.localeCompare(b.name, 'si')).map(i => `<option value="${esc(i.id)}" ${x && x.id === i.id ? 'selected' : ''}>${esc(i.name)}${i.unit ? ' (' + esc(i.unit) + ')' : ''}</option>`).join('');
+  return `<div class="rrow"><select class="r-item"><option value="">— බඩුව —</option>${opts}</select><input class="r-qty" type="number" step="any" min="0" inputmode="decimal" placeholder="ප්‍රමාණය" value="${x ? fmt(x.qty) : ''}"><button class="mini danger" data-act="rrowdel">✕</button></div>`;
+}
+function openRecipe(rid){
+  const r = rid ? (S.recipes || []).find(x => x.rid === rid) : null;
+  editingRecipe = r ? r.rid : null;
+  closeSheets();
+  $('recipeTitle').textContent = r ? '✏️ ' + r.name : '➕ අලුත් කෑමක්';
+  $('r-icon').value = r ? r.icon : ''; $('r-name').value = r ? r.name : '';
+  $('r-items').innerHTML = (r ? r.items : [null, null, null]).map(recipeRow).join('');
+  $('r-del').style.display = r ? '' : 'none';
+  openSheet('recipeSheet');
+}
+$('recipesBtn').onclick = openRecipes;
+$('recipeNew').onclick = () => openRecipe(null);
+$('r-addRow').onclick = () => $('r-items').insertAdjacentHTML('beforeend', recipeRow(null));
+$('r-save').onclick = () => {
+  const name = $('r-name').value.trim(); if (!name) return toast('කෑමේ නම දාන්න');
+  const items = [...document.querySelectorAll('#r-items .rrow')].map(row => ({ id: row.querySelector('.r-item').value, qty: parseFloat(row.querySelector('.r-qty').value) || 0 })).filter(x => x.id && x.qty > 0);
+  if (!items.length) return toast('අඩුම තරමේ එක බඩුවක් සහ ප්‍රමාණය දාන්න');
+  doOp({ op: 'recipeUpsert', recipe: { rid: editingRecipe || 'rc' + uid(), name, icon: $('r-icon').value.trim() || '🍛', items } });
+  closeSheets(); toast('✅ ' + name + ' තියාගත්තා');
+};
+$('r-del').onclick = () => { if (!editingRecipe || !confirm('මේ වට්ටෝරුව අයින් කරන්නද?')) return; doOp({ op: 'recipeDel', rid: editingRecipe }); closeSheets(); toast('🗑️ අයින් කළා'); };
+
+// ---------- 💡 ගෙවීම් (බිල්පත්, ගෑස්, budget) ----------
+let amountAction = null;
+function askAmount(title, label, value, onOk, extraHtml){
+  closeSheets();
+  $('amountTitle').textContent = title; $('amountLabel').textContent = label;
+  $('am-value').value = value ? fmt(value) : '';
+  $('amountExtra').innerHTML = extraHtml || '';
+  amountAction = onOk; openSheet('amountSheet');
+  setTimeout(() => $('am-value').focus(), 50);
+}
+$('am-save').onclick = () => { const v = parseFloat($('am-value').value) || 0; const f = amountAction; closeSheets(); if (f) f(v); };
+
+function renderPay(){
+  const t = today(), mk = t.slice(0, 7);
+  let h = '';
+  // budget
+  const total = C.monthTotal(S, mk), bud = S.budget || { total: 0, cats: {} }, byCat = C.spendByCat(S, mk);
+  const pct = bud.total ? Math.round(total / bud.total * 100) : 0;
+  const cls = p => p >= 100 ? 'over' : p >= 80 ? 'near' : '';
+  h += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3>💵 මේ මාසේ budget</h3><button class="btn" data-act="budget" style="padding:6px 10px;font-size:13px">✏️</button></div>`;
+  if (bud.total) {
+    h += `<div class="big">${rs(total)} <span class="muted" style="font-size:15px">/ ${rs(bud.total)}</span></div><div class="bar" style="height:12px"><i class="${cls(pct)}" style="width:${Math.min(100, pct)}%"></i></div>`
+      + `<p class="muted" style="margin:6px 0 0">${pct >= 100 ? '<span class="low">⛔ budget එක ' + rs(total - bud.total) + 'කින් පැනලා</span>' : 'ඉතිරි ' + rs(bud.total - total) + ' • ' + pct + '% ගියා'}</p>`;
+  } else h += `<div class="big">${rs(total)}</div><p class="muted">Budget එකක් දාලා නැහැ. ✏️ ඔබලා මාසෙට සීමාවක් දාන්න — 80% ගියාම මතක් කරනවා.</p>`;
+  const cats = Object.keys(Object.assign({}, byCat, bud.cats || {}));
+  if (cats.length) h += '<div style="margin-top:10px">' + cats.map(c => { const sp = byCat[c] || 0, b = (bud.cats || {})[c] || 0, p = b ? Math.round(sp / b * 100) : 0;
+    return `<div class="cbar"><div><span>${CAT_EMOJI[c] || (c === 'ගෑස්' ? '🔥' : '📦')} ${esc(c)}</span><b>${rs(sp)}${b ? ' / ' + rs(b) : ''}</b></div>${b ? `<div class="bar"><i class="${cls(p)}" style="width:${Math.min(100, p)}%"></i></div>` : ''}</div>`; }).join('') + '</div>';
+  h += '</div>';
+  // gas
+  const g = C.gasStatus(S, t);
+  h += `<div class="card"><h3>🔥 ගෑස් සිලින්ඩරය</h3>`;
+  if (g) {
+    const gp = Math.max(0, Math.min(100, g.left / g.avg * 100));
+    h += `<p style="margin:4px 0">අන්තිමට මාරු කළේ <b>${esc(g.last)}</b> (${g.used === 0 ? 'අද' : 'දවස් ' + g.used + 'කට කලින්'})</p><div class="bar" style="height:12px"><i class="${g.left <= 5 ? 'over' : g.left <= 10 ? 'near' : ''}" style="width:${gp}%"></i></div>`
+      + `<p class="muted" style="margin:6px 0 0">${g.left > 0 ? '⏳ තව දවස් ' + g.left + ' විතර' : '⚠️ ඕනම වෙලාවක ඉවර වෙන්න පුළුවන්'} • සාමාන්‍යයෙන් දවස් ${g.avg}${g.learned ? ' (ගෙදර පාවිච්චියෙන් ඉගෙනගත්තා)' : ''} • ඊළඟට ~${esc(g.next)}</p>`;
+  } else h += '<p class="muted">ගෑස් සිලින්ඩරය මාරු කරන දවසට පහළ බොත්තම ඔබන්න. දෙපාරක් ඔබලා ඉවර වුණාම ගෙදරට කොච්චර කාලයක් යනවද කියලා app එක ඉගෙනගන්නවා.</p>';
+  h += `<div class="row"><button class="btn primary" data-act="gasChanged" style="flex:1">🔥 අද ගෑස් මාරු කළා</button><button class="btn" data-act="gasDays">⚙️</button></div></div>`;
+  // bills
+  const bs = C.billsStatus(S, t);
+  h += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3>💡 බිල්පත් (${MONTHS_FULL[Number(mk.slice(5)) - 1]})</h3><button class="btn" data-act="billNew" style="padding:6px 10px;font-size:13px">➕</button></div>`;
+  if (!bs.length) h += '<p class="muted">කරන්ට් බිල, වතුර බිල, කුලිය වගේ හැම මාසෙම ගෙවන ඒවා ➕ එකෙන් දාන්න. ගෙවන දවසට දවස් 3කට කලින් මතක් කරනවා.</p>';
+  bs.forEach(b => {
+    const st = b.paid ? `<span style="color:var(--main)">✅ ගෙව්වා ${b.paid.amount ? rs(b.paid.amount) : ''}${b.paid.by ? ' — ' + esc(b.paid.by) : ''}</span>`
+      : b.left < 0 ? `<span class="low">⛔ ${b.due} වෙනිදා ගෙවන්න තිබුණා</span>` : b.left <= 3 ? `<span class="warn">⏰ ${b.left === 0 ? 'අද' : 'දවස් ' + b.left + 'කින්'} (${b.due} වෙනිදා)</span>` : `<span class="muted">${b.due} වෙනිදා</span>`;
+    h += `<div class="bill"><span class="ico">${esc(b.icon)}</span><div class="ri-info" data-act="billEdit" data-id="${esc(b.bid)}"><div class="ri-name">${esc(b.name)}</div><div class="ri-sub">${st}${!b.paid && b.amount ? ' • ~' + rs(b.amount) : ''}</div></div>`
+      + `<button class="btn ${b.paid ? '' : 'primary'}" data-act="billPay" data-id="${esc(b.bid)}" style="padding:9px 12px">${b.paid ? '↩️' : '✓ ගෙව්වා'}</button></div>`;
+  });
+  const bt = C.billsTotal(S, mk); if (bt) h += `<p class="muted" style="margin:8px 0 0">මේ මාසේ බිල්පත් වලට ගෙවපු මුළු ගණන: <b>${rs(bt)}</b></p>`;
+  h += '</div>';
+  $('view-pay').innerHTML = h;
+}
+const MONTHS_FULL = ['ජනවාරි','පෙබරවාරි','මාර්තු','අප්‍රේල්','මැයි','ජූනි','ජූලි','අගෝස්තු','සැප්තැම්බර්','ඔක්තෝබර්','නොවැම්බර්','දෙසැම්බර්'];
+
+let editingBill = null;
+function openBill(bid, sug){
+  const b = bid ? (S.bills || []).find(x => x.bid === bid) : null;
+  editingBill = b ? b.bid : null; closeSheets();
+  $('billTitle').textContent = b ? '✏️ ' + b.name : '➕ අලුත් බිලක්';
+  $('billSuggest').innerHTML = b ? '' : C.BILL_SUGGEST.map((x, i) => (S.bills || []).some(y => y.name === x.name) ? '' : `<button data-act="billSug" data-id="${i}">${x.icon} ${esc(x.name)}</button>`).join('');
+  const v = b || sug || {};
+  $('bl-icon').value = v.icon || ''; $('bl-name').value = v.name || ''; $('bl-day').value = v.day || ''; $('bl-amount').value = v.amount ? fmt(v.amount) : '';
+  $('bl-del').style.display = b ? '' : 'none';
+  openSheet('billSheet');
+}
+$('bl-save').onclick = () => {
+  const name = $('bl-name').value.trim(); if (!name) return toast('බිලේ නම දාන්න');
+  const day = parseInt($('bl-day').value, 10); if (!day || day < 1 || day > 31) return toast('ගෙවන දවස 1–31 අතර දාන්න');
+  doOp({ op: 'billUpsert', bill: { bid: editingBill || 'b' + uid(), name, icon: $('bl-icon').value.trim() || '🧾', day, amount: parseFloat($('bl-amount').value) || 0 } });
+  closeSheets(); toast('✅ ' + name + ' තියාගත්තා');
+};
+$('bl-del').onclick = () => { if (!editingBill || !confirm('මේ බිල අයින් කරන්නද?')) return; doOp({ op: 'billDel', bid: editingBill }); closeSheets(); };
+function payBill(bid){
+  const b = (S.bills || []).find(x => x.bid === bid); if (!b) return;
+  const mk = today().slice(0, 7);
+  if (b.paid[mk]) { if (confirm(b.name + ' “ගෙව්වා” අයින් කරන්නද?')) doOp({ op: 'billPaid', bid, month: mk, paid: false }); return; }
+  askAmount(b.icon + ' ' + b.name + ' ගෙව්වා', 'ගෙවපු ගණන (රු.)', b.amount, v => { doOp({ op: 'billPaid', bid, month: mk, paid: true, amount: v }); toast('✅ ' + b.name + ' ගෙව්වා' + (v ? ' • ' + rs(v) : '')); });
+}
+function gasChanged(){
+  const g = C.gasStatus(S, today());
+  if (g && g.last === today()) return toast('අද දැනටමත් සටහන් කළා');
+  askAmount('🔥 අද ගෑස් මාරු කළා', 'අලුත් සිලින්ඩරයට ගෙවපු ගණන (රු.) — නොදන්නවා නම් හිස්', 0, v => {
+    doOp({ op: 'gas', action: 'changed', price: v });
+    toast('🔥 සටහන් කළා' + (v ? ' • ' + rs(v) : ''), () => { doOp({ op: 'gas', action: 'undo', day: today(), price: v }); toast('↩️ අහෝසි කළා'); });
+  });
+}
+function gasDays(){
+  askAmount('⚙️ සිලින්ඩරයක් යන දවස් ගණන', 'දවස් කීයක් යනවද? (0 = ගෙදර පාවිච්චියෙන් ඉගෙනගන්න)', (S.gas || {}).days || 0, v => doOp({ op: 'gas', action: 'setDays', days: v }));
+}
+function openBudget(){
+  const b = S.budget || { total: 0, cats: {} };
+  $('bg-total').value = b.total ? fmt(b.total) : '';
+  $('bg-cats').innerHTML = C.CATS.concat(['ගෑස්']).map(c => `<div><label style="font-weight:400;font-size:13px">${CAT_EMOJI[c] || '🔥'} ${esc(c)}</label><input class="bg-cat" data-cat="${esc(c)}" type="number" min="0" inputmode="decimal" value="${b.cats && b.cats[c] ? fmt(b.cats[c]) : ''}"></div>`).join('');
+  openSheet('budgetSheet');
+}
+$('bg-save').onclick = () => {
+  const cats = {}; document.querySelectorAll('.bg-cat').forEach(i => { const v = parseFloat(i.value) || 0; if (v) cats[i.dataset.cat] = v; });
+  doOp({ op: 'budget', total: parseFloat($('bg-total').value) || 0, cats }); closeSheets(); toast('✅ Budget එක තියාගත්තා');
+};
+
+// ---------- 📊 මාසික සාරාංශය (WhatsApp) ----------
+function reportText(mk){
+  const r = C.monthReport(S, mk, today());
+  const mName = MONTHS_FULL[Number(mk.slice(5)) - 1] + ' ' + mk.slice(0, 4);
+  let t = '📊 ගෙදර බඩු — ' + mName + '\n\n';
+  t += '💰 මුළු වියදම: ' + rs(r.total) + (r.budget ? ' (budget ' + rs(r.budget) + ' — ' + Math.round(r.total / r.budget * 100) + '%)' : '') + '\n';
+  if (r.prevTotal) t += (r.total >= r.prevTotal ? '   ↑ පහුගිය මාසෙට වඩා ' + rs(r.total - r.prevTotal) + ' වැඩියි' : '   ↓ පහුගිය මාසෙට වඩා ' + rs(r.prevTotal - r.total) + ' අඩුයි') + '\n';
+  const cats = Object.keys(r.byCat).sort((a, b) => r.byCat[b] - r.byCat[a]);
+  if (cats.length) { t += '\n🗂️ කාණ්ඩ අනුව:\n'; cats.forEach(c => t += '• ' + c + ': ' + rs(r.byCat[c]) + '\n'); }
+  if (r.top.length) { t += '\n🏷️ වැඩියෙන්ම වියදම් වුණේ:\n'; r.top.forEach(x => t += '• ' + x.name + ': ' + rs(x.spent) + '\n'); }
+  if (r.billList.length || r.unpaid.length) {
+    t += '\n💡 බිල්පත්: ' + rs(r.bills) + '\n'; r.billList.forEach(b => t += '• ' + b.name + ': ' + rs(b.amount) + '\n');
+    if (r.unpaid.length) t += '⚠️ තාම නොගෙවපු: ' + r.unpaid.join(', ') + '\n';
+  }
+  if (r.gasChanges) t += '\n🔥 ගෑස් සිලින්ඩර ' + r.gasChanges + 'ක් මාරු කළා\n';
+  if (r.total || r.bills) t += '\n💵 බඩු + බිල්පත් එකතුව: ' + rs(r.total + r.bills) + '\n';
+  if (r.toBuy.length) t += '\n🛒 ඊළඟට ගන්න ඕන (' + r.toBuy.length + '): ' + r.toBuy.slice(0, 15).join(', ') + (r.toBuy.length > 15 ? '…' : '') + '\n';
+  return t;
+}
+async function sendReport(mk, how){
+  const t = reportText(mk);
+  if (how === 'copy') return toast(await copyText(t) ? '📋 සාරාංශය කොපි කළා' : 'කොපි කරන්න බැරි වුණා');
+  await copyText(t); location.href = 'https://wa.me/?text=' + encodeURIComponent(t);
 }
 
 function renderCatalog(){
@@ -790,6 +1020,18 @@ document.addEventListener('click', async e => {
   else if (act === 'finishShop') finishShopping();
   else if (act === 'addcat') addCatalog(id);
   else if (act === 'addnamed') openEdit(null, { name: searchText });
+  else if (act === 'cookr') cookRecipe(id);
+  else if (act === 'editr') openRecipe(id);
+  else if (act === 'rrowdel') el.closest('.rrow').remove();
+  else if (act === 'budget') openBudget();
+  else if (act === 'gasChanged') gasChanged();
+  else if (act === 'gasDays') gasDays();
+  else if (act === 'billNew') openBill(null);
+  else if (act === 'billSug') { const sg = C.BILL_SUGGEST[Number(id)]; $('bl-icon').value = sg.icon; $('bl-name').value = sg.name; $('bl-day').value = sg.day; }
+  else if (act === 'billEdit') openBill(id);
+  else if (act === 'billPay') payBill(id);
+  else if (act === 'report') sendReport(id, 'wa');
+  else if (act === 'reportCopy') sendReport(id, 'copy');
   else if (act === 'reqdone') { const r = S.requests.find(x => x.rid === id); if (r) doOp({ op: 'requestDone', rid: id, done: !r.done }); }
   else if (act === 'reqdel') { if (confirm('මේ ඉල්ලීම අයින් කරන්නද?')) doOp({ op: 'requestDel', rid: id }); }
   else if (act === 'copyshop') { const t = shopText(); if (!t) return toast('ගන්න දෙයක් නැහැ'); toast(await copyText(t) ? '📋 කොපි කළා — WhatsApp එකට paste කරන්න' : 'කොපි කරන්න බැරි වුණා'); }
