@@ -21,28 +21,31 @@
 
   // බඩුවල පින්තූර (emoji) — සරල mode එකේ ලොකුවට පේනවා
   var ICONS = {
-    rice: '🍚', dal: '🫘', atta: '🌾', 'wheat-flour': '🌾', butter: '🧈', astra: '🧈', 'coco-eat': '🥥', 'coco-lamp': '🪔', sugar: '🧂',
+    rice: '🍚', dal: '🍲', atta: '🌾', 'wheat-flour': '🌾', butter: '🧈', astra: '🧈', 'coco-eat': '🥥', 'coco-lamp': '🪔', sugar: '🧂',
     tea: '🍵', potato: '🥔', 'big-onion': '🧅', 'red-onion': '🧅', veg: '🥬', highland: '🥛', salt: '🧂', 'chili-powder': '🌶️',
-    'curry-powder': '🍛', turmeric: '🟡', pepper: '⚫', cinnamon: '🪵', garlic: '🧄', ginger: '🫚', noodles: '🍜', pasta: '🍝',
-    soya: '🥩', chickpea: '🫘', mung: '🫘', cowpea: '🫘', 'milk-powder': '🥛', eggs: '🥚', 'canned-fish': '🐟', vinegar: '🍶',
+    'curry-powder': '🍛', turmeric: '🟡', pepper: '⚫', cinnamon: '🪵', garlic: '🧄', ginger: '🌿', noodles: '🍜', pasta: '🍝',
+    soya: '🥩', chickpea: '🍲', mung: '🍲', cowpea: '🍲', 'milk-powder': '🥛', eggs: '🥚', 'canned-fish': '🐟', vinegar: '🍶',
     'soy-sauce': '🍶', 'tomato-sauce': '🍅', 'sunflower-oil': '🌻', coffee: '☕', biscuits: '🍪', peanuts: '🥜', jaggery: '🍯',
-    tomato: '🍅', carrot: '🥕', beetroot: '🟣', cabbage: '🥬', beans: '🫛', brinjal: '🍆', 'bitter-gourd': '🥒', leeks: '🥬',
+    tomato: '🍅', carrot: '🥕', beetroot: '🟣', cabbage: '🥬', beans: '🥬', brinjal: '🍆', 'bitter-gourd': '🥒', leeks: '🥬',
     cucumber: '🥒', greens: '🥬', banana: '🍌', lime: '🍋', apple: '🍎', orange: '🍊', mango: '🥭', papaya: '🍈', chicken: '🍗',
     fish: '🐟', paracetamol: '💊', plaster: '🩹', antiseptic: '🧴', 'baby-soap': '🧼', 'adult-soap': '🧼', comfort: '🧴',
     'vim-soap': '🧽', 'vim-liquid': '🧴', dash: '🧴', toilet: '🚽', air: '🌸', shampoo: '🧴', conditioner: '🧴'
   };
   var CAT_ICON = { 'එළවළු': '🥦', 'පළතුරු': '🍎', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'කුළුබඩු': '🌶️', 'බෙහෙත්': '💊', 'ධාන්‍ය වර්ග': '🌾', 'මස් මාලු බිත්තර': '🥚', 'වෙනත්': '📦' };
-  function iconFor(it) { return it.icon || ICONS[it.id] || CAT_ICON[it.cat] || '📦'; }
+  // අලුත් emoji (Unicode 14+) පරණ ෆෝන්වල කොටුවක් විදිහට පේන නිසා පරණ ඒවට මාරු කරනවා
+  var SAFE_EMOJI = { '\uD83E\uDED8': '🍲', '\uD83E\uDED3': '🥙', '\uD83E\uDEDB': '🥬', '\uD83E\uDEDA': '🌿' };
+  function safeIcon(e) { return SAFE_EMOJI[e] || e; }
+  function iconFor(it) { return safeIcon(it.icon || ICONS[it.id] || CAT_ICON[it.cat] || '📦'); }
 
   // ලංකාවේ ගෙවල්වල සාමාන්‍ය කෑම — මුලින්ම දාන වට්ටෝරු (ගෙදර 4කට, ආසන්න ප්‍රමාණ — app එකෙන් හදන්න පුළුවන්)
   var SEED_RECIPES = [
     { rid: 'rc-rice', name: 'බත්', icon: '🍚', items: [{ id: 'rice', qty: 0.5 }] },
-    { rid: 'rc-dal', name: 'පරිප්පු කරිය', icon: '🫘', items: [{ id: 'dal', qty: 0.15 }, { id: 'red-onion', qty: 0.03 }, { id: 'garlic', qty: 5 }, { id: 'turmeric', qty: 2 }, { id: 'coco-eat', qty: 0.02 }, { id: 'salt', qty: 0.005 }] },
+    { rid: 'rc-dal', name: 'පරිප්පු කරිය', icon: '🍲', items: [{ id: 'dal', qty: 0.15 }, { id: 'red-onion', qty: 0.03 }, { id: 'garlic', qty: 5 }, { id: 'turmeric', qty: 2 }, { id: 'coco-eat', qty: 0.02 }, { id: 'salt', qty: 0.005 }] },
     { rid: 'rc-potato', name: 'අල තෙල් දාලා', icon: '🥔', items: [{ id: 'potato', qty: 0.5 }, { id: 'big-onion', qty: 0.1 }, { id: 'chili-powder', qty: 5 }, { id: 'coco-eat', qty: 0.03 }, { id: 'mustard', qty: 2 }] },
     { rid: 'rc-egg', name: 'බිත්තර කරිය', icon: '🥚', items: [{ id: 'eggs', qty: 4 }, { id: 'big-onion', qty: 0.05 }, { id: 'curry-powder', qty: 5 }, { id: 'chili-powder', qty: 3 }, { id: 'coco-eat', qty: 0.02 }] },
     { rid: 'rc-chicken', name: 'චිකන් කරිය', icon: '🍗', items: [{ id: 'chicken', qty: 0.5 }, { id: 'big-onion', qty: 0.1 }, { id: 'garlic', qty: 10 }, { id: 'ginger', qty: 10 }, { id: 'curry-powder', qty: 15 }, { id: 'chili-powder', qty: 10 }, { id: 'coco-eat', qty: 0.03 }] },
     { rid: 'rc-fish', name: 'ටින් මාළු', icon: '🐟', items: [{ id: 'canned-fish', qty: 1 }, { id: 'big-onion', qty: 0.1 }, { id: 'chili-powder', qty: 5 }, { id: 'coco-eat', qty: 0.02 }] },
-    { rid: 'rc-roti', name: 'රොටී', icon: '🫓', items: [{ id: 'wheat-flour', qty: 0.3 }, { id: 'salt', qty: 0.003 }] },
+    { rid: 'rc-roti', name: 'රොටී', icon: '🥙', items: [{ id: 'wheat-flour', qty: 0.3 }, { id: 'salt', qty: 0.003 }] },
     { rid: 'rc-tea', name: 'කිරි තේ (4ට)', icon: '🍵', items: [{ id: 'tea', qty: 8 }, { id: 'milk-powder', qty: 30 }, { id: 'sugar', qty: 0.04 }] }
   ];
   var BILL_SUGGEST = [
@@ -103,7 +106,7 @@
     return {
       rid: str(r.rid, 40) || 'rc' + Date.now(),
       name: str(r.name, 60) || 'කෑමක්',
-      icon: str(r.icon, 8) || '🍛',
+      icon: safeIcon(str(r.icon, 8)) || '🍛',
       items: (Array.isArray(r.items) ? r.items : []).map(function (x) { return { id: str(x.id, 60), qty: Math.max(0, r2(num(x.qty, 0))) }; }).filter(function (x) { return x.id && x.qty > 0; }).slice(0, 30)
     };
   }
