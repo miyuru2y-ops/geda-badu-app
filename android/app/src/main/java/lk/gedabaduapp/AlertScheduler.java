@@ -26,11 +26,11 @@ public class AlertScheduler {
         scheduleUpdateCheck(ctx, am);
     }
 
-    /** අලුත් APK update එකක් තියෙනවද — පැය 3කට වරක් (app එක වහලා තිබුණත්) */
+    /** අලුත් APK update එකක් තියෙනවද — පැයෙන් පැය (app එක වහලා තිබුණත්) */
     static void scheduleUpdateCheck(Context ctx, AlarmManager am) {
         Intent i = new Intent(ctx, AlertReceiver.class).setAction(AlertReceiver.ACTION_UPDATE);
         PendingIntent pi = PendingIntent.getBroadcast(ctx, 2, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        long every = 3 * AlarmManager.INTERVAL_HOUR;
+        long every = AlarmManager.INTERVAL_HOUR;   // පැයෙන් පැය
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + every, every, pi);
     }
 }
