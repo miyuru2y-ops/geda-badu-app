@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: '17' }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: '8.9' }
@@ -43,6 +43,6 @@ jobs:
           GEDA_KEY_PASSWORD: ${{ secrets.GEDA_KEY_PASSWORD }}
         run: gradle --no-daemon assembleRelease
       - name: Rename
-        run: cp android/app/build/outputs/apk/release/app-release.apk "Geda-Badu-App-v2.0-$(date +%Y%m%d).apk"
+        run: cp android/app/build/outputs/apk/release/app-release.apk "Geda-Badu-App-v2.1-$(date +%Y%m%d).apk"
       - uses: actions/upload-artifact@v4
         with: { name: geda-badu-apk, path: 'Geda-Badu-App-*.apk' }
