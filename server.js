@@ -222,4 +222,4 @@ const server = http.createServer(async (req, res) => {
 function view() { const t = today(); return Object.assign(core.publicView(state, t), { tag: state.version + '_' + t, today: t }); }
 function rolloverIfNeeded() { return core.rollover(state, today()); }
 
-server.listen(PORT, () => console.log('Geda Badu v2 on port ' + PORT + ' | data: ' + DATA_DIR + ' | key: ' + (KEY ? 'ON' : 'OFF')));
+server.listen(PORT, () => console.log('Geda Badu v2 on port ' + PORT + ' | data: ' + DATA_DIR + ' | key: ' + (KEY ? 'ON' : 'OFF') + ' | AI: ' + (ai.provider || 'OFF')));
