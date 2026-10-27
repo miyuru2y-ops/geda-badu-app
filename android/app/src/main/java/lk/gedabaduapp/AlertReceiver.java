@@ -51,6 +51,7 @@ public class AlertReceiver extends BroadcastReceiver {
         final PendingResult pr = goAsync();
         new Thread(() -> {
             try { check(ctx.getApplicationContext()); } catch (Exception ignored) { }
+            try { UpdateChecker.notifyIfNew(ctx.getApplicationContext()); } catch (Exception ignored) { }
             finally { pr.finish(); }
         }).start();
     }
@@ -78,6 +79,19 @@ public class AlertReceiver extends BroadcastReceiver {
         if (sig.equals(p.getString("last", ""))) return;
         p.edit().putString("last", sig).apply();
         show(ctx, 1, arr.getJSONObject(0).optString("text"), text);
+    }
+
+    /** 🆕 Update notification — tap කළාම app එක ඇරිලා update dialog එක වහාම */
+    static void showUpdate(Context ctx, String title, String text) {
+        NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null || !nm.areNotificationsEnabled()) return;
+        if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(new NotificationChannel(CHANNEL, "ගෙදර බඩු මතක් කිරීම්", NotificationManager.IMPORTANCE_DEFAULT));
+        Intent i = new Intent(ctx, MainActivity.class).putExtra("checkUpdate", true).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent open = PendingIntent.getActivity(ctx, 77, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(ctx, CHANNEL) : new Notification.Builder(ctx);
+        b.setSmallIcon(R.drawable.ic_notif).setContentTitle(title).setContentText(text)
+            .setStyle(new Notification.BigTextStyle().bigText(text)).setContentIntent(open).setAutoCancel(true).setColor(0xFF0E7A4B);
+        nm.notify(3, b.build());
     }
 
     static void show(Context ctx, int nid, String title, String text) {

@@ -95,7 +95,14 @@ public class MainActivity extends Activity {
         }
         AlertScheduler.schedule(this);
         DoseScheduler.scheduleAll(this);
-        UpdateChecker.check(this);
+        UpdateChecker.check(this, getIntent() != null && getIntent().getBooleanExtra("checkUpdate", false));
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && intent.getBooleanExtra("checkUpdate", false)) UpdateChecker.check(this, true);
     }
 
     @Override

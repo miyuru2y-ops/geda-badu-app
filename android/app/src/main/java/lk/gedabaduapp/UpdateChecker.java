@@ -25,19 +25,41 @@ import java.nio.charset.StandardCharsets;
 public class UpdateChecker {
     static final String BASE = "https://github.com/miyuru2y-ops/geda-badu-app/releases/latest/download/";
 
-    static void check(Activity act) {
+    static void check(Activity act) { check(act, false); }
+
+    /** GitHub එකේ version.json — නැත්නම් null */
+    static JSONObject fetchVersion() throws Exception {
+        HttpURLConnection c = (HttpURLConnection) new URL(BASE + "version.json").openConnection();
+        c.setConnectTimeout(10000); c.setReadTimeout(10000);
+        if (c.getResponseCode() != 200) return null;
+        InputStream in = c.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buf = new byte[2048]; int n; while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+        return new JSONObject(out.toString(StandardCharsets.UTF_8.name()));
+    }
+
+    /** App එක වහලා තිබුණත් — alarm එකෙන් call වෙනවා. අලුත් version එකක් ආවොත් එක පාරක් notification එකක්. */
+    static void notifyIfNew(Context ctx) {
+        try {
+            JSONObject j = fetchVersion(); if (j == null) return;
+            int code = j.optInt("versionCode", 0);
+            if (code <= BuildConfig.VERSION_CODE) return;
+            SharedPreferences p = ctx.getSharedPreferences(AlertScheduler.PREFS, Context.MODE_PRIVATE);
+            if (p.getInt("updNotified", 0) == code) return;
+            p.edit().putInt("updNotified", code).apply();
+            String notes = j.optString("notes", "");
+            AlertReceiver.showUpdate(ctx, "🆕 ගෙදර බඩු " + j.optString("versionName", "") + " update එකක් තියෙනවා",
+                (notes.isEmpty() ? "" : notes + "\n") + "මෙතන tap කරලා Update ඔබන්න.");
+        } catch (Exception ignored) { }
+    }
+
+    static void check(Activity act, boolean force) {
         SharedPreferences p = act.getSharedPreferences(AlertScheduler.PREFS, Context.MODE_PRIVATE);
         long last = p.getLong("updCheck", 0);
-        if (System.currentTimeMillis() - last < 3600 * 1000L) return;   // පැයකට වරක්
+        if (!force && System.currentTimeMillis() - last < 3600 * 1000L) return;   // පැයකට වරක්
         p.edit().putLong("updCheck", System.currentTimeMillis()).apply();
         new Thread(() -> {
             try {
-                HttpURLConnection c = (HttpURLConnection) new URL(BASE + "version.json").openConnection();
-                c.setConnectTimeout(10000); c.setReadTimeout(10000);
-                if (c.getResponseCode() != 200) return;
-                InputStream in = c.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream();
-                byte[] buf = new byte[2048]; int n; while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
-                JSONObject j = new JSONObject(out.toString(StandardCharsets.UTF_8.name()));
+                JSONObject j = fetchVersion(); if (j == null) return;
                 int code = j.optInt("versionCode", 0);
                 if (code <= BuildConfig.VERSION_CODE) return;
                 String name = j.optString("versionName", ""), notes = j.optString("notes", "");
