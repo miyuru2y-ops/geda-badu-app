@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const core = require('./public/core.js');
+const ai = require('./ai.js');
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -20,7 +21,7 @@ const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const PUBLIC = path.join(__dirname, 'public');
 const KEY = (process.env.HOUSEHOLD_KEY || '').trim();
 const TZ = process.env.TZ_NAME || core.TZ;
-const MAX_BODY = 2 * 1024 * 1024;
+const MAX_BODY = 6 * 1024 * 1024; // බිල් photo එකට
 
 const today = () => core.localDate(new Date(), TZ);
 
@@ -114,7 +115,7 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Household-Key');
     if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
-    if (p === '/api/health') return send(res, 200, { ok: true, version: state.version, keyRequired: !!KEY });
+    if (p === '/api/health') return send(res, 200, { ok: true, version: state.version, keyRequired: !!KEY, ai: ai.enabled });
     // පරණ app (v1–v8): error එකක body එක හිස්ව යවනවා — එතකොට පරණ app එක "offline" කියලා හිතනවා, ලිස්ට් එක හිස් කරන්නේ නැහැ
     const legacy = p === '/api/state' && (req.method === 'POST' || !url.searchParams.has('v'));
     if (!authorized(req, url)) { if (legacy) { res.writeHead(401); return res.end(); } return send(res, 401, { error: 'key' }); }
@@ -149,9 +150,37 @@ const server = http.createServer(async (req, res) => {
         if (changed) commit();
         return send(res, 200, { results, state: view() });
       }
+      if (p === '/api/doses' && req.method === 'GET') {
+        // APK එකේ බෙහෙත් alarm වලට
+        const list = [];
+        state.items.forEach(it => (it.doses || []).forEach(d => list.push({ id: it.id, name: it.name, unit: it.unit, time: d.time, qty: d.qty, who: d.who })));
+        return send(res, 200, { doses: list });
+      }
+      if (p === '/api/widget' && req.method === 'GET') {
+        // Home screen widget එකට — පොඩි සාරාංශයක්
+        const t = today(), pn = core.planNeeds(state, t);
+        const low = state.items.filter(core.isLow).sort((a, b) => a.qty - b.qty).map(i => core.iconFor(i) + ' ' + i.name);
+        const shop = state.items.filter(i => core.shopNeeded(i, pn[i.id]) > 0).length + state.requests.filter(r => !r.done).length;
+        const al = core.alerts(state, t).filter(a => a.kind !== 'requests').map(a => a.text);
+        return send(res, 200, { low: low.slice(0, 6), lowCount: low.length, shop, alerts: al.slice(0, 2) });
+      }
+      if (p.startsWith('/api/ai/') && req.method === 'POST') {
+        if (!ai.enabled) return send(res, 501, { error: 'ai off' });
+        const body = await readBody(req);
+        if (!ai.allow(today())) return send(res, 429, { error: 'අද දවසට AI සීමාව ඉවරයි — හෙට ආයේ උත්සාහ කරන්න' });
+        try {
+          if (p === '/api/ai/receipt') {
+            const img = String(body.image || '').replace(/^data:[^,]+,/, '');
+            if (img.length < 1000) return send(res, 400, { error: 'no image' });
+            return send(res, 200, await ai.readReceipt(state, img, body.mediaType));
+          }
+          if (p === '/api/ai/voice') return send(res, 200, await ai.parseVoice(state, String(body.text || '')));
+        } catch (e) { console.error('AI error', e.message); return send(res, 502, { error: 'AI එකට සම්බන්ධ වෙන්න බැරි වුණා' }); }
+        return send(res, 404, { error: 'not found' });
+      }
       if (p === '/api/alerts' && req.method === 'GET') {
         // APK එකේ notification එකට — දවසට වරක් මේක බලනවා
-        return send(res, 200, { date: today(), alerts: core.alerts(state, today()) });
+        return send(res, 200, { date: today(), alerts: core.alerts(state, today(), null, core.nowHM()) });
       }
       if (p === '/api/export' && req.method === 'GET') {
         const out = Object.assign({}, state); delete out.seenOps;

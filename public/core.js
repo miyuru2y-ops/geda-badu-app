@@ -81,6 +81,18 @@
     return 'වෙනත්';
   }
 
+  function cleanPrices(p) {
+    var out = {}; if (!p || typeof p !== 'object') return out;
+    Object.keys(p).slice(0, 12).forEach(function (k) { var v = p[k] || {}; var pr = Math.max(0, r2(num(v.price, 0))); if (pr) out[str(k, 30)] = { price: pr, date: validDate(v.date) ? v.date : '' }; });
+    return out;
+  }
+  function cleanDoses(d) {
+    return (Array.isArray(d) ? d : []).map(function (x) {
+      var t = str(x && x.time, 5); if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) return null;
+      return { time: t, qty: Math.max(0, r2(num(x.qty, 1))) || 1, who: str(x.who, 30) };
+    }).filter(Boolean).slice(0, 8).sort(function (a, b) { return a.time < b.time ? -1 : 1; });
+  }
+
   function cleanItem(it) {
     var exp = str(it.expiry, 10);
     return {
@@ -98,7 +110,9 @@
       place: str(it.place, 30),                          // ගෙදර කොහෙද තියෙන්නේ
       expiry: validDate(exp) ? exp : '',                 // කල් ඉකුත් වෙන දිනය
       barcode: str(it.barcode, 40),
-      icon: str(it.icon, 8)
+      icon: str(it.icon, 8),
+      prices: cleanPrices(it.prices),                    // කඩෙන් කඩට මිල {කඩේ: {price, date}}
+      doses: cleanDoses(it.doses)                        // බෙහෙත් වෙලාවල් [{time:'08:00', qty:1, who:'අම්මා'}]
     };
   }
 
@@ -149,6 +163,8 @@
       recipes: Array.isArray(s.recipes) ? s.recipes.map(cleanRecipe) : null,
       bills: Array.isArray(s.bills) ? s.bills.map(cleanBill) : [],
       gas: { history: s.gas && Array.isArray(s.gas.history) ? s.gas.history.filter(validDate).slice(-12) : [], days: s.gas ? Math.max(0, Math.round(num(s.gas.days, 0))) : 0, spend: s.gas && s.gas.spend && typeof s.gas.spend === 'object' ? s.gas.spend : {} },
+      plan: s.plan && typeof s.plan === 'object' ? s.plan : {},               // සතියේ කෑම {'2026-10-28': ['rc-dal']}
+      doseLog: s.doseLog && typeof s.doseLog === 'object' ? s.doseLog : {},  // {'2026-10-28': {'paracetamol@08:00': {by, ts}}}
       budget: { total: s.budget ? Math.max(0, r2(num(s.budget.total, 0))) : 0, cats: s.budget && s.budget.cats && typeof s.budget.cats === 'object' ? s.budget.cats : {} },
       seenOps: Array.isArray(s.seenOps) ? s.seenOps.slice(-SEEN_MAX) : []
     };
@@ -180,6 +196,9 @@
     // ඉවර කරපු ඉල්ලීම් දවස් 14කට පස්සේ අයින්
     var cutTs = Date.now() - 14 * 86400000;
     state.requests = state.requests.filter(function (r) { return !r.done || (r.doneTs || 0) > cutTs; });
+    var cut14 = addDays(today, -14);
+    Object.keys(state.plan).forEach(function (d) { if (d < cut14) delete state.plan[d]; });
+    Object.keys(state.doseLog).forEach(function (d) { if (d < addDays(today, -7)) delete state.doseLog[d]; });
     // මාස 13කට වඩා පරණ වියදම් අයින්
     var months = Object.keys(state.spend).sort();
     months.slice(0, Math.max(0, months.length - 13)).forEach(function (m) { delete state.spend[m]; });
@@ -232,7 +251,10 @@
           var x = find(state, b.id); var q = Math.max(0, num(b.qty, 0)); var p = Math.max(0, num(b.price, 0));
           if (!x || (!q && !p)) return;
           x.qty = r2(x.qty + q);
-          if (p && q) { var unit = r2(p / q); if (unit !== x.price) { if (x.price) x.prevPrice = x.price; x.price = unit; } }
+          if (p && q) {
+            var unit = r2(p / q); if (unit !== x.price) { if (x.price) x.prevPrice = x.price; x.price = unit; }
+            var shop = str(b.shop || op.shop, 30); if (shop) x.prices[shop] = { price: unit, date: op.date };
+          }
           addLog(state, op, x, q, 'buy', p);
           spent += p;
           changes.push({ id: x.id, delta: q });
@@ -264,7 +286,7 @@
           addLog(state, op, clean, clean.qty, 'new');
         } else {
           var qtyBefore = it.qty;
-          ['name', 'cat', 'unit', 'monthly', 'daily', 'low', 'shop', 'place', 'expiry', 'barcode', 'icon'].forEach(function (k) {
+          ['name', 'cat', 'unit', 'monthly', 'daily', 'low', 'shop', 'place', 'expiry', 'barcode', 'icon', 'doses'].forEach(function (k) {
             if (op.item[k] !== undefined) it[k] = clean[k];
           });
           if (op.item.price !== undefined && clean.price !== it.price) { if (it.price) it.prevPrice = it.price; it.price = clean.price; }
@@ -360,6 +382,24 @@
           state.budget.cats = bc;
         }
         break;
+      case 'plan':
+        // එක දවසකට උයන කෑම ලිස්ට් එක
+        if (!validDate(op.day)) return { ok: false, err: 'bad day' };
+        var rids = (Array.isArray(op.rids) ? op.rids : []).map(function (x) { return str(x, 40); }).filter(function (x) { return state.recipes.some(function (r) { return r.rid === x; }); }).slice(0, 10);
+        if (rids.length) state.plan[op.day] = rids; else delete state.plan[op.day];
+        break;
+      case 'dose':
+        // බෙහෙත් බිව්වා / නැහැ
+        it = find(state, op.id); if (!it) return { ok: false, err: 'no item' };
+        var dz = null; it.doses.forEach(function (x) { if (x.time === op.time) dz = x; }); if (!dz) return { ok: false, err: 'no dose' };
+        var dl = state.doseLog[op.date] || (state.doseLog[op.date] = {}), dk = it.id + '@' + op.time;
+        if (op.taken && !dl[dk]) {
+          dl[dk] = { by: op.by, ts: op.ts || 0 };
+          var b0 = it.qty; it.qty = Math.max(0, r2(it.qty - dz.qty)); addLog(state, op, it, r2(it.qty - b0), 'use');
+        } else if (!op.taken && dl[dk]) {
+          delete dl[dk]; var b1 = it.qty; it.qty = r2(it.qty + dz.qty); addLog(state, op, it, r2(it.qty - b1), 'undo:use');
+        }
+        break;
       case 'settings':
         if (op.shopDay !== undefined) state.shopDay = Math.min(28, Math.max(1, Math.round(num(op.shopDay, 25))));
         break;
@@ -428,7 +468,36 @@
     return { left: left, level: 'ok' };
   }
 
-  function shopNeeded(it) {
+  // සතියේ කෑම සැලැස්මට (අද ඉඳන් දවස් 7) ඕන බඩු ප්‍රමාණ
+  function planNeeds(state, today) {
+    var need = {}, end = addDays(today, 6), rmap = {};
+    (state.recipes || []).forEach(function (r) { rmap[r.rid] = r; });
+    Object.keys(state.plan || {}).forEach(function (d) {
+      if (d < today || d > end) return;
+      state.plan[d].forEach(function (rid) { var r = rmap[rid]; if (r) r.items.forEach(function (x) { need[x.id] = r2((need[x.id] || 0) + x.qty); }); });
+    });
+    return need;
+  }
+  function shopNeeded(it, planNeed) {
+    var base = shopNeededBase(it);
+    if (planNeed && planNeed > it.qty) return Math.max(base, r2(planNeed - it.qty));
+    return base;
+  }
+  // බෙහෙත් වෙලාවල් — අද
+  function dosesToday(state, today) {
+    var out = [], dl = (state.doseLog || {})[today] || {};
+    state.items.forEach(function (it) { (it.doses || []).forEach(function (d) {
+      out.push({ id: it.id, name: it.name, unit: it.unit, time: d.time, qty: d.qty, who: d.who, taken: dl[it.id + '@' + d.time] || null, stock: it.qty });
+    }); });
+    return out.sort(function (a, b) { return a.time < b.time ? -1 : 1; });
+  }
+  function nowHM(d) {
+    try { return new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(d || new Date()); }
+    catch (e) { var o = new Date((d || new Date()).getTime() + 330 * 60000); return o.toISOString().slice(11, 16); }
+  }
+  function hmMin(t) { return Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5)); }
+
+  function shopNeededBase(it) {
     // මාසෙට ඕන ප්‍රමාණයෙන් බාගයක්වත් ඉවර වෙලා නම් හෝ අඩු නම් විතරයි ලිස්ට් එකට එන්නේ (0.03L වගේ පොඩි ඒවා නෙවෙයි)
     if (it.monthly > 0) return (isLow(it) || it.qty <= it.monthly * 0.5) ? Math.max(0, r2(it.monthly - it.qty)) : 0;
     if (!isLow(it)) return 0;
@@ -503,14 +572,21 @@
       billList: state.bills.filter(function (b) { return b.paid[mk]; }).map(function (b) { return { name: b.name, amount: b.paid[mk].amount }; }),
       unpaid: state.bills.filter(function (b) { return !b.paid[mk]; }).map(function (b) { return b.name; }),
       gasChanges: state.gas.history.filter(function (d) { return d.slice(0, 7) === mk; }).length,
-      toBuy: state.items.filter(function (it) { return shopNeeded(it) > 0; }).map(function (it) { return it.name; })
+      toBuy: (function () { var pn = planNeeds(state, today); return state.items.filter(function (it) { return shopNeeded(it, pn[it.id]) > 0; }).map(function (it) { return it.name; }); })()
     };
   }
 
   // ෆෝන් notification එකටයි app එකේ banner එකටයි පණිවිඩ
-  function alerts(state, today, rates) {
+  function alerts(state, today, rates, hm) {
     rates = rates || usageRates(state, today);
     var out = [];
+    var pn = planNeeds(state, today);
+    // බෙහෙත් — වෙලාව පැනලා පැයක් ගියත් බිව්වේ නැත්නම්
+    hm = hm || nowHM();
+    var missed = dosesToday(state, today).filter(function (d) { return !d.taken && hmMin(hm) - hmMin(d.time) >= 60; });
+    if (missed.length) out.push({ kind: 'dose', text: '💊 තාම බිව්වේ නැහැ: ' + missed.map(function (d) { return (d.who ? d.who + ' — ' : '') + d.name + ' (' + d.time + ')'; }).join(', ') });
+    var lowMed = state.items.filter(function (it) { return it.doses && it.doses.length && rates[it.id] && rates[it.id].daysLeft <= 5; }).map(function (it) { return it.name; });
+    if (lowMed.length) out.push({ kind: 'medLow', text: '💊 බෙහෙත් ඉවර වෙන්න ළඟයි (දවස් 5ක් ඇතුළත): ' + lowMed.join(', ') + ' — ෆාමසියට යන්න' });
     var expired = [], soon = [];
     state.items.forEach(function (it) {
       var e = expiryStatus(it, today);
@@ -543,7 +619,7 @@
     // මාසේ අන්තිම දවස් 2 — සාරාංශය යවන්න
     if (Number(today.slice(8)) >= lastDayOf(mkB) - 1) out.push({ kind: 'summary', text: '📊 මාසේ ඉවර වෙනවා — "මාසය" ටැබ් එකෙන් සාරාංශය ගෙදර group එකට යවන්න' });
     var day = Number(today.slice(8)), sd = state.shopDay || 25;
-    var need = state.items.filter(function (it) { return shopNeeded(it) > 0; }).length + open.length;
+    var need = state.items.filter(function (it) { return shopNeeded(it, pn[it.id]) > 0; }).length + open.length;
     if (day === sd) out.push({ kind: 'shopday', text: '🛒 අද සාප්පු යන දවස! ගන්න බඩු ' + need + 'ක් තියෙනවා.' });
     else if (day === sd - 1) out.push({ kind: 'shopday', text: '🛒 හෙට සාප්පු යන දවස — ගන්න බඩු ' + need + 'ක් තියෙනවා.' });
     return out;
@@ -568,6 +644,8 @@
       bills: state.bills,
       gas: state.gas,
       budget: state.budget,
+      plan: state.plan,
+      doseLog: state.doseLog,
       summary: monthSummary(state),
       rates: rates,
       recent: state.log.slice(-60).reverse(),
@@ -581,6 +659,6 @@
     normalize: normalize, rollover: rollover, pruneLog: pruneLog, apply: apply, applyOnce: applyOnce, monthSummary: monthSummary,
     usageRates: usageRates, isLow: isLow, expiryStatus: expiryStatus, shopNeeded: shopNeeded, stepFor: stepFor, alerts: alerts,
     publicView: publicView, cleanItem: cleanItem, iconFor: iconFor, gasStatus: gasStatus, spendByCat: spendByCat, monthTotal: monthTotal,
-    billsStatus: billsStatus, billsTotal: billsTotal, monthReport: monthReport, prevMonth: prevMonth, BILL_SUGGEST: BILL_SUGGEST
+    billsStatus: billsStatus, billsTotal: billsTotal, planNeeds: planNeeds, dosesToday: dosesToday, nowHM: nowHM, monthReport: monthReport, prevMonth: prevMonth, BILL_SUGGEST: BILL_SUGGEST
   };
 });
