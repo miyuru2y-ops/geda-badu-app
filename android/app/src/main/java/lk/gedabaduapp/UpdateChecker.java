@@ -28,7 +28,7 @@ public class UpdateChecker {
     static void check(Activity act) {
         SharedPreferences p = act.getSharedPreferences(AlertScheduler.PREFS, Context.MODE_PRIVATE);
         long last = p.getLong("updCheck", 0);
-        if (System.currentTimeMillis() - last < 6 * 3600 * 1000L) return;   // පැය 6කට වරක්
+        if (System.currentTimeMillis() - last < 3600 * 1000L) return;   // පැයකට වරක්
         p.edit().putLong("updCheck", System.currentTimeMillis()).apply();
         new Thread(() -> {
             try {

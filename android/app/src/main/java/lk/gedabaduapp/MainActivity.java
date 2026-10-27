@@ -158,7 +158,7 @@ public class MainActivity extends Activity {
         catch (Exception e) { Toast.makeText(this, "මේ ෆෝන් එකේ voice typing නැහැ — Google app එක install කරන්න", Toast.LENGTH_LONG).show(); }
     }
 
-    @Override protected void onResume() { super.onResume(); if (webView != null) webView.onResume(); }
+    @Override protected void onResume() { super.onResume(); if (webView != null) webView.onResume(); UpdateChecker.check(this); }
     @Override protected void onPause() { if (webView != null) webView.onPause(); super.onPause(); }
 
     @Override
