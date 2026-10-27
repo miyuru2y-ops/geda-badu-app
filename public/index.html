@@ -372,7 +372,7 @@ function rebuild(){
   S.items.forEach(it => { if (!rates[it.id] && it.daily > 0) rates[it.id] = { rate: it.daily, daysLeft: Math.floor(it.qty / it.daily) }; });
   S.rates = rates;
   S.planNeeds = C.planNeeds(S, today());
-  pushDoses();
+  try { pushDoses(); } catch (e) {}
 }
 rebuild();
 
@@ -457,7 +457,7 @@ function undoable(res, of, extra){
 // ---------- helpers ----------
 const item = id => S && S.items.find(i => i.id === id);
 const need = it => C.shopNeeded(it, S && S.planNeeds ? S.planNeeds[it.id] : 0);
-let lastDosesJson = '';
+var lastDosesJson = ''; // var — rebuild() එක මේකට කලින් call වෙනවා (APK එකේ crash එක)
 function pushDoses(){
   // APK එකට බෙහෙත් වෙලාවල් දෙනවා — alarm දාන්න
   if (!NATIVE || !NATIVE.setDoses || !S) return;
