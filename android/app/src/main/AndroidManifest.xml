@@ -3,6 +3,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -24,11 +25,17 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".GedaWidget" android:exported="false" android:label="ගෙදර බඩු">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info" />
+        </receiver>
         <!-- Google code scanner module එක install වෙලාම download කරගන්නවා -->
         <meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="barcode_ui" />
     </application>
     <queries>
         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="https" /></intent>
         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="whatsapp" /></intent>
+        <intent><action android:name="android.speech.action.RECOGNIZE_SPEECH" /></intent>
+        <intent><action android:name="android.media.action.IMAGE_CAPTURE" /></intent>
     </queries>
 </manifest>

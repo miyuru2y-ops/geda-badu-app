@@ -29,6 +29,22 @@ public class AlertReceiver extends BroadcastReceiver {
         String a = intent.getAction();
         if (Intent.ACTION_BOOT_COMPLETED.equals(a) || Intent.ACTION_MY_PACKAGE_REPLACED.equals(a)) {
             AlertScheduler.schedule(ctx);
+            DoseScheduler.scheduleAll(ctx);
+            return;
+        }
+        if (DoseScheduler.ACTION.equals(a)) {
+            // 💊 බෙහෙත් වෙලාව
+            try {
+                org.json.JSONObject d = new org.json.JSONObject(intent.getStringExtra("dose"));
+                String who = d.optString("who", ""), unit = d.optString("unit", "");
+                double q = d.optDouble("qty", 1);
+                String qty = q == Math.floor(q) ? String.valueOf((long) q) : String.valueOf(q);
+                show(ctx, 100 + intent.getIntExtra("idx", 0), "💊 බෙහෙත් වෙලාව — " + d.optString("time"),
+                    (who.isEmpty() ? "" : who + ": ") + d.optString("name") + " " + qty + (unit.isEmpty() ? "" : " " + unit) + " බොන්න. බිව්වාම app එකේ ☑ කරන්න.");
+                // හෙට මේ වෙලාවටම
+                android.app.AlarmManager am = (android.app.AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+                if (am != null) DoseScheduler.schedule(ctx, am, intent.getIntExtra("idx", 0), d);
+            } catch (Exception ignored) { }
             return;
         }
         if (!ACTION_CHECK.equals(a)) return;
@@ -61,18 +77,18 @@ public class AlertReceiver extends BroadcastReceiver {
         String sig = date + "|" + text.hashCode();
         if (sig.equals(p.getString("last", ""))) return;
         p.edit().putString("last", sig).apply();
-        show(ctx, arr.getJSONObject(0).optString("text"), text);
+        show(ctx, 1, arr.getJSONObject(0).optString("text"), text);
     }
 
-    static void show(Context ctx, String title, String text) {
+    static void show(Context ctx, int nid, String title, String text) {
         NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null || !nm.areNotificationsEnabled()) return;
         if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(new NotificationChannel(CHANNEL, "ගෙදර බඩු මතක් කිරීම්", NotificationManager.IMPORTANCE_DEFAULT));
-        PendingIntent open = PendingIntent.getActivity(ctx, 0, new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent open = PendingIntent.getActivity(ctx, nid, new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(ctx, CHANNEL) : new Notification.Builder(ctx);
-        b.setSmallIcon(R.drawable.ic_notif).setContentTitle("🏠 ගෙදර බඩු").setContentText(title)
+        b.setSmallIcon(R.drawable.ic_notif).setContentTitle(nid == 1 ? "🏠 ගෙදර බඩු" : title).setContentText(nid == 1 ? title : text)
             .setStyle(new Notification.BigTextStyle().bigText(text)).setContentIntent(open).setAutoCancel(true)
             .setColor(0xFF0E7A4B);
-        nm.notify(1, b.build());
+        nm.notify(nid, b.build());
     }
 }
