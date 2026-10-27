@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 /** Alarm එක ආවාම server එකේ /api/alerts බලලා notification එකක් පෙන්නනවා. Restart කළාම alarm එක ආයේ දානවා. */
 public class AlertReceiver extends BroadcastReceiver {
     static final String ACTION_CHECK = "lk.gedabaduapp.CHECK_ALERTS";
+    static final String ACTION_UPDATE = "lk.gedabaduapp.CHECK_UPDATE";
     static final String CHANNEL = "geda_alerts";
 
     @Override
@@ -45,6 +46,11 @@ public class AlertReceiver extends BroadcastReceiver {
                 android.app.AlarmManager am = (android.app.AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
                 if (am != null) DoseScheduler.schedule(ctx, am, intent.getIntExtra("idx", 0), d);
             } catch (Exception ignored) { }
+            return;
+        }
+        if (ACTION_UPDATE.equals(a)) {
+            final PendingResult pu = goAsync();
+            new Thread(() -> { try { UpdateChecker.notifyIfNew(ctx.getApplicationContext()); } finally { pu.finish(); } }).start();
             return;
         }
         if (!ACTION_CHECK.equals(a)) return;
