@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html lang="si"><head>
-<!-- APP_VERSION:9 -->
+<!-- APP_VERSION:10 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.png">
 <title>ගෙදර බඩු</title>
 <style>
-:root{--main:#0e7a4b;--bg:#f2f5f2;--card:#fff;--ink:#1c2b22;--muted:#66796f;--line:#e6ebe7;--soft:#f7faf8;--edge:#cfe0d5;--red:#b42318}
+:root{--main:#0e7a4b;--bg:#f2f5f2;--card:#fff;--ink:#1c2b22;--muted:#66796f;--line:#e6ebe7;--soft:#f7faf8;--edge:#cfe0d5;--red:#b42318;--amber:#b45309}
 *{box-sizing:border-box} html{scroll-behavior:smooth}
 body{margin:0;font-family:system-ui,-apple-system,'Noto Sans Sinhala',sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
-header{background:var(--main);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 14px 12px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px}
-header h1{margin:0;font-size:21px} #syncLine{margin:3px 0 0;opacity:.92;font-size:13px}
-.hbtn{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:12px;padding:9px 12px;font-size:16px;font-weight:700;flex-shrink:0}
-#banner{background:#fff3c4;border:1px solid #e6c200;padding:12px;margin:12px;border-radius:12px;font-weight:700}
-main{padding:0 12px 100px;max-width:760px;margin:auto}
+header{background:var(--main);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 12px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px}
+header h1{margin:0;font-size:21px} #syncLine{margin:3px 0 0;opacity:.92;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtn{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:12px;padding:9px 11px;font-size:16px;font-weight:700;flex-shrink:0}
+main{padding:0 12px 110px;max-width:760px;margin:auto}
+#alerts{margin:12px 0 0}
+.alert{background:#fff3c4;border:1px solid #e6c200;padding:10px 12px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:6px;cursor:pointer}
+.alert.red{background:#fde8e6;border-color:#f3b4ad}
 .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:12px 0}
 .tabs button{padding:8px 2px 7px;border:0;border-radius:12px;background:var(--card);font-size:13px;font-weight:700;color:var(--ink);position:relative;line-height:1.25}
-.tabs .ic{display:block;font-size:20px;margin-bottom:2px}
-.tabs .cnt{position:absolute;top:3px;right:3px;margin:0}
 .tabs button.on{background:var(--main);color:#fff}
-.tabs .cnt{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:10px;background:var(--red);color:#fff;font-size:12px;line-height:20px}
+.tabs .ic{display:block;font-size:20px;margin-bottom:2px}
+.cnt{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--red);color:#fff;font-size:12px;line-height:20px}
+.tabs .cnt{position:absolute;top:3px;right:3px}
 .card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
 .card h3{margin:0 0 4px;font-size:18px} .muted{color:var(--muted);font-size:13px}
 .bar{height:8px;background:#e4ece6;border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--main);transition:width .3s}
@@ -29,106 +31,171 @@ main{padding:0 12px 100px;max-width:760px;margin:auto}
 button.btn{padding:11px 14px;border-radius:11px;border:1px solid var(--edge);background:var(--soft);font-size:15px;font-weight:700;color:var(--ink);transition:transform .12s}
 button.btn:active,button.mini:active{transform:scale(.95)}
 button.primary{background:var(--main);color:#fff;border-color:var(--main)}
-button.danger{color:var(--red)} .low{color:var(--red);font-weight:800}
+button.danger{color:var(--red)} .low{color:var(--red);font-weight:800} .warn{color:var(--amber);font-weight:800}
 button:disabled{opacity:.55}
 input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #cbd8cf;border-radius:11px;font-size:16px;background:#fff;color:var(--ink);font-family:inherit}
 label{font-size:14px;font-weight:700;display:block;margin-top:6px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
-#toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:#1c2b22;color:#fff;padding:12px 14px;border-radius:12px;display:none;z-index:40;align-items:center;gap:10px;max-width:736px;margin:auto}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:#1c2b22;color:#fff;padding:12px 14px;border-radius:12px;display:none;z-index:60;align-items:center;gap:10px;max-width:736px;margin:auto}
 #toast span{flex:1} #toast button{background:#fff;color:#1c2b22;border:0;border-radius:9px;padding:8px 12px;font-weight:800;font-size:15px}
 table{width:100%;border-collapse:collapse;font-size:14px} td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left} th{font-size:12px;color:var(--muted)}
 td.n{text-align:right;white-space:nowrap} th.n{text-align:right}
 footer{color:var(--muted);font-size:12px;text-align:center;padding:12px}
-.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .catgrid button{padding:12px 10px;border-radius:14px;border:1px solid var(--edge);background:var(--card);font-size:15px;font-weight:700;text-align:left;color:var(--ink)}
 .catgrid button.on{background:var(--main);color:#fff;border-color:var(--main)}
 .catgrid small{display:block;font-weight:400;font-size:12.5px;opacity:.8;margin-top:2px}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex-shrink:0;padding:8px 12px;border-radius:20px;border:1px solid var(--edge);background:#fff;font-size:14px;font-weight:700;color:var(--ink)}
+.chips button.on{background:var(--main);color:#fff;border-color:var(--main)}
 .list{border-radius:14px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.itemrow{display:flex;align-items:center;gap:10px;background:var(--card);padding:12px;border-bottom:1px solid var(--line)}
+.itemrow{display:flex;align-items:center;gap:10px;background:var(--card);padding:11px 12px;border-bottom:1px solid var(--line)}
 .itemrow:last-child{border-bottom:0}
+.ico{font-size:24px;width:30px;text-align:center;flex-shrink:0}
 .ri-info{flex:1;min-width:0}
 .ri-name{font-size:17px;font-weight:700;line-height:1.3;word-break:break-word}
 .ri-sub{font-size:13px;color:var(--muted);margin-top:3px}
 .ri-sub .bar{margin-top:6px}
-.ri-side{flex-shrink:0;text-align:right;font-weight:800;font-size:16px;min-width:58px}
+.ri-side{flex-shrink:0;text-align:right;font-weight:800;font-size:16px;min-width:56px}
 .ri-actions{display:flex;gap:6px;flex-shrink:0}
 button.mini{width:42px;height:42px;padding:0;border-radius:11px;border:1px solid var(--edge);background:var(--soft);font-size:19px;font-weight:800;color:var(--ink)}
-.cathead{background:#eef4ef;border-radius:12px;padding:9px 12px;margin:12px 0 6px;font-weight:800}
-.itemrow.done{opacity:.55} .itemrow.done .ri-name{text-decoration:line-through}
-.shopq{width:86px;margin:0;padding:9px;text-align:right}
+.cathead{background:#eef4ef;border-radius:12px;padding:9px 12px;margin:12px 0 6px;font-weight:800;display:flex;justify-content:space-between}
+.itemrow.done{background:#f3f7f4} .itemrow.done .ri-name{text-decoration:line-through;opacity:.6}
+.shopq{width:78px;margin:0;padding:9px;text-align:right}
+.pricein{width:120px;margin:4px 0 0;padding:8px;font-size:15px}
+.tag{display:inline-block;padding:1px 7px;border-radius:9px;background:#eef4ef;font-size:12px;margin-right:4px;color:var(--ink)}
+.tag.red{background:#fde8e6;color:var(--red)} .tag.amber{background:#fff1dc;color:var(--amber)}
 body.compact .itemrow{padding:6px 10px} body.compact .ri-name{font-size:15px} body.compact button.mini{width:36px;height:36px;font-size:16px}
+/* සරල mode — වැඩිහිටි අයට */
+body.simple .ico{font-size:38px;width:46px} body.simple .ri-name{font-size:21px} body.simple .ri-side{font-size:20px}
+body.simple button.mini{width:52px;height:52px;font-size:24px} body.simple .bar, body.simple .hide-simple{display:none!important}
+body.simple .tabs{grid-template-columns:repeat(3,1fr)} body.simple .tabs .adv{display:none}
+body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{font-size:26px}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.25);padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));max-width:760px;margin:auto;display:none;max-height:92vh;overflow-y:auto}
 .sheet h3{margin:0 0 8px;font-size:19px}
 #sheetBack{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:29;display:none}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 10px}
+.quick button{padding:10px 2px;border-radius:12px;border:1px solid var(--edge);background:var(--soft);font-size:13px;font-weight:700;color:var(--ink)}
+.quick button b{display:block;font-size:20px}
 .hist{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .hist:last-child{border-bottom:0} .hist .t{color:var(--muted);font-size:12px;white-space:nowrap}
 .pill{display:inline-block;padding:2px 8px;border-radius:10px;background:#eef4ef;font-size:12px;margin-left:4px}
+.mbar{display:flex;align-items:center;gap:8px;font-size:13px;margin:5px 0}
+.mbar span:first-child{width:62px;color:var(--muted)} .mbar .bar{flex:1;height:14px} .mbar b{width:84px;text-align:right}
+.big{font-size:28px;font-weight:800;margin:4px 0}
 #keyScreen{position:fixed;inset:0;z-index:50;background:var(--bg);display:none;padding:40px 20px}
 .swatch{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #cbd8cf}
+#scanVideo{width:100%;border-radius:14px;background:#000;max-height:50vh;object-fit:cover}
+.switch{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-weight:700}
 </style></head>
 <body>
 <header>
   <div style="min-width:0"><h1>🏠 ගෙදර බඩු</h1><p id="syncLine">පූරණය වෙනවා…</p></div>
-  <div style="display:flex;gap:6px"><button class="hbtn" id="syncBtn" aria-label="Sync">🔄</button><button class="hbtn" id="setBtn" aria-label="සැකසුම්">⚙️</button></div>
+  <div style="display:flex;gap:6px;flex-shrink:0"><button class="hbtn" id="scanBtn" aria-label="Barcode scan" style="display:none">📷</button><button class="hbtn" id="syncBtn" aria-label="Sync">🔄</button><button class="hbtn" id="setBtn" aria-label="සැකසුම්">⚙️</button></div>
 </header>
-<div id="banner" style="display:none"></div>
 <main>
+<div id="alerts"></div>
 <div class="tabs" id="tabs">
   <button data-tab="list" class="on"><span class="ic">📋</span>බඩු</button>
-  <button data-tab="low"><span class="ic">⚠️</span>අඩු</button>
+  <button data-tab="low" class="adv"><span class="ic">⚠️</span>අඩු</button>
   <button data-tab="shop"><span class="ic">🛒</span>සාප්පු</button>
-  <button data-tab="month"><span class="ic">📅</span>මාසය</button>
-  <button data-tab="catalog"><span class="ic">📚</span>කැටලොග්</button>
+  <button data-tab="req"><span class="ic">📝</span>ඉල්ලීම්</button>
+  <button data-tab="month" class="adv"><span class="ic">📅</span>මාසය</button>
 </div>
 
 <section id="view-list">
   <div class="card" style="padding:12px 14px">
     <button class="btn primary" id="cookBtn" style="width:100%;font-size:17px">🍳 අද උයන්න</button>
-    <p class="muted" id="cookNote" style="margin:8px 0 0"></p>
+    <p class="muted hide-simple" id="cookNote" style="margin:8px 0 0"></p>
   </div>
-  <input id="searchBox" type="search" placeholder="🔍 බඩුවක් හොයන්න… (උදා: හාල්, සබන්)" autocomplete="off">
+  <input id="searchBox" type="search" placeholder="🔍 බඩුවක් හොයන්න… (නම, ෆ්‍රිජ්, පොළ)" autocomplete="off">
   <div class="catgrid" id="cats"></div>
+  <div class="chips hide-simple" id="places"></div>
   <div id="items"></div>
-  <div class="row" style="margin:0 0 10px"><button class="btn" id="sortBtn"></button><button class="btn primary" id="addOpen" style="flex:1">➕ අලුත් බඩුවක්</button></div>
+  <div class="row" style="margin:0 0 10px"><button class="btn hide-simple" id="sortBtn"></button><button class="btn primary" id="addOpen" style="flex:1">➕ අලුත් බඩුවක්</button></div>
+  <button class="btn hide-simple" id="catOpen" style="width:100%">📚 කැටලොග් එකෙන් එකතු කරන්න</button>
 </section>
 
 <section id="view-low" style="display:none"></section>
 <section id="view-shop" style="display:none"></section>
+<section id="view-req" style="display:none">
+  <div class="card"><h3>📝 ගෙදර අයගේ ඉල්ලීම්</h3><p class="muted">ලිස්ට් එකේ නැති දෙයක් ඕන නම් මෙතන ලියන්න. සාප්පු ලිස්ට් එකේ උඩින්ම පේනවා.</p>
+    <div style="display:flex;gap:8px"><input id="reqText" maxlength="120" placeholder="උදා: මට shampoo එකක් ඕන" style="flex:1"><button class="btn primary" id="reqAdd" style="margin:6px 0">➕</button></div>
+  </div>
+  <div id="reqList"></div>
+</section>
 <section id="view-month" style="display:none"></section>
 <section id="view-catalog" style="display:none">
-  <div class="card"><h3>📚 ලංකාවේ ගෙවල්වල බඩු</h3><p class="muted">“+ එකතු” ඔබලා ලිස්ට් එකට දාගන්න. ලිස්ට් එකේ දැනටමත් තියෙන ඒවා “✓ තියෙනවා” කියලා පේනවා.</p></div>
+  <div class="card"><h3>📚 ලංකාවේ ගෙවල්වල බඩු</h3><p class="muted">“+ එකතු” ඔබලා ලිස්ට් එකට දාගන්න.</p><button class="btn" data-act="back">← ආපහු</button></div>
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම නම, ප්‍රමාණය, අඩු සීමාව ඔක්කොම හදන්න පුළුවන්.<br><span id="appVer">v9</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v10</span></footer>
 </main>
 
 <div id="sheetBack"></div>
 
 <div class="sheet" id="editSheet">
-  <h3 id="editTitle">✏️ බඩුව හදන්න</h3>
-  <label for="e-name">නම</label><input id="e-name" maxlength="80">
+  <h3 id="editTitle">✏️ බඩුව</h3>
+  <div id="itemQuick"></div>
+  <label for="e-name">නම</label>
+  <div style="display:flex;gap:8px"><input id="e-icon" maxlength="8" style="width:64px;text-align:center;font-size:22px" aria-label="පින්තූරය (emoji)"><input id="e-name" maxlength="80" style="flex:1"></div>
   <div class="grid2">
     <div><label for="e-cat">කාණ්ඩය</label><select id="e-cat"></select></div>
     <div><label for="e-unit">ඒකකය</label><input id="e-unit" maxlength="20" placeholder="kg, L, g, පැකට්" list="units"></div>
-  </div>
-  <datalist id="units"><option value="kg"><option value="g"><option value="L"><option value="ml"><option value="පැකට්"><option value="බෝතල්"><option value="ටින්"><option value="ගෙඩි"><option value="මිටි"><option value="රෝල්"></datalist>
-  <div class="grid2">
     <div><label for="e-qty">දැන් තියෙන්නේ</label><input id="e-qty" type="number" step="any" min="0" inputmode="decimal"></div>
     <div><label for="e-monthly">මාසෙට ඕන</label><input id="e-monthly" type="number" step="any" min="0" inputmode="decimal" placeholder="නොදන්නවා නම් හිස්"></div>
     <div><label for="e-daily">දවසට උයන්න</label><input id="e-daily" type="number" step="any" min="0" inputmode="decimal" placeholder="නැත්නම් හිස්"></div>
     <div><label for="e-low">අඩුයි කියන්නේ (≤)</label><input id="e-low" type="number" step="any" min="0" inputmode="decimal" placeholder="උදා: 1"></div>
+    <div><label for="e-price">මිල (ඒකකයට, රු.)</label><input id="e-price" type="number" step="any" min="0" inputmode="decimal"></div>
+    <div><label for="e-expiry">කල් ඉකුත් වෙන දිනය</label><input id="e-expiry" type="date"></div>
+    <div><label for="e-shop">ගන්නේ කොහෙන්ද</label><input id="e-shop" maxlength="30" list="shops" placeholder="පොළ, සුපර්මාර්කට්"></div>
+    <div><label for="e-place">ගෙදර තියෙන්නේ</label><input id="e-place" maxlength="30" list="placesList" placeholder="කුස්සිය, ෆ්‍රිජ්"></div>
   </div>
-  <div class="row"><button class="btn primary" id="e-save" style="flex:1">💾 තියාගන්න</button><button class="btn danger" id="e-del">🗑️ අයින්</button><button class="btn" data-close>✖️</button></div>
+  <label for="e-barcode">Barcode</label>
+  <div style="display:flex;gap:8px"><input id="e-barcode" maxlength="40" inputmode="numeric" style="flex:1"><button class="btn scanOnly" id="e-scan" style="margin:6px 0;display:none">📷</button></div>
+  <datalist id="units"><option value="kg"><option value="g"><option value="L"><option value="ml"><option value="පැකට්"><option value="බෝතල්"><option value="ටින්"><option value="ගෙඩි"><option value="මිටි"><option value="රෝල්"></datalist>
+  <datalist id="shops"></datalist><datalist id="placesList"></datalist>
+  <div class="row"><button class="btn primary" id="e-save" style="flex:1">💾 තියාගන්න</button><button class="btn danger" id="e-del">🗑️</button><button class="btn" data-close>✖️</button></div>
+</div>
+
+<div class="sheet" id="buySheet">
+  <h3 id="buyTitle">🛒 ගත්තා</h3>
+  <div class="grid2">
+    <div><label for="b-qty">ගත්ත ප්‍රමාණය</label><input id="b-qty" type="number" step="any" min="0" inputmode="decimal"></div>
+    <div><label for="b-price">ගෙවපු ගණන (රු.)</label><input id="b-price" type="number" step="any" min="0" inputmode="decimal" placeholder="නොදන්නවා නම් හිස්"></div>
+  </div>
+  <label for="b-expiry">කල් ඉකුත් වෙන දිනය (තියෙනවා නම්)</label><input id="b-expiry" type="date">
+  <div class="row"><button class="btn primary" id="b-save" style="flex:1">✅ තොගයට දාන්න</button><button class="btn" data-close>✖️</button></div>
+</div>
+
+<div class="sheet" id="scanSheet">
+  <h3>📷 Barcode scan කරන්න</h3>
+  <video id="scanVideo" playsinline muted></video>
+  <p class="muted" id="scanMsg">කැමරාව barcode එකට අල්ලන්න…</p>
+  <div class="row"><button class="btn" data-close>✖️ වහන්න</button></div>
+</div>
+
+<div class="sheet" id="linkSheet">
+  <h3>📦 අලුත් barcode එකක්</h3>
+  <p class="muted">Barcode <b id="linkCode"></b> ලිස්ට් එකේ කිසිම බඩුවකට සම්බන්ධ කරලා නැහැ.</p>
+  <button class="btn primary" id="linkNew" style="width:100%">➕ අලුත් බඩුවක් ලෙස එකතු කරන්න</button>
+  <label for="linkSel" style="margin-top:14px">නැත්නම් පවතින බඩුවකට සම්බන්ධ කරන්න</label>
+  <select id="linkSel"></select>
+  <div class="row"><button class="btn" id="linkSave" style="flex:1">🔗 සම්බන්ධ කරන්න</button><button class="btn" data-close>✖️</button></div>
 </div>
 
 <div class="sheet" id="setSheet">
   <h3>⚙️ සැකසුම්</h3>
   <label for="s-name">මේ ෆෝන් එක කාගෙද? (ඉතිහාසයේ පේනවා)</label><input id="s-name" maxlength="30" placeholder="උදා: අම්මා, තාත්තා, නංගි">
   <label for="s-key">ගෙදර කෝඩ් එක</label><input id="s-key" type="password" autocomplete="off" placeholder="server එකේ HOUSEHOLD_KEY">
+  <label for="s-shopday">සාප්පු යන දවස (මාසේ)</label><input id="s-shopday" type="number" min="1" max="28" inputmode="numeric">
+  <div class="switch"><span>👵 සරල mode (ලොකු අකුරු, පින්තූර)</span><button class="btn" id="simpleBtn"></button></div>
+  <div class="switch"><span>📏 පොඩි අකුරු</span><button class="btn" id="densBtn"></button></div>
+  <div class="switch" id="notifRow" style="display:none"><span>🔔 Notifications</span><span class="muted" id="notifState"></span></div>
   <label>පාට</label>
   <div class="row" id="swatches" style="margin-top:4px"></div>
-  <div class="row"><button class="btn" id="densBtn"></button></div>
   <div class="card" style="margin-top:14px;background:#f7faf8">
     <b>💾 Backup</b><p class="muted" style="margin:4px 0 8px">Server එක දවසකට එක backup එකක් ස්වයංක්‍රීයව තියාගන්නවා. මෙතනින් කොපියක් WhatsApp එකට යවලා තියාගන්නත් පුළුවන්.</p>
     <div class="row" style="margin:0"><button class="btn" id="expBtn">📤 Backup කොපි කරන්න</button><button class="btn" id="impOpen">📥 Restore</button></div>
@@ -157,17 +224,20 @@ body.compact .itemrow{padding:6px 10px} body.compact .ri-name{font-size:15px} bo
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 9;
+const APP_VERSION = 10;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
+const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
 const CAT_ORDER = ['සියල්ල'].concat(C.CATS);
 const CAT_EMOJI = {'සියල්ල':'🏠','එළවළු':'🥦','පළතුරු':'🍎','පිරිසිදු කරන ද්‍රව්‍ය':'🧹','කුළුබඩු':'🌶️','බෙහෙත්':'💊','ධාන්‍ය වර්ග':'🌾','මස් මාලු බිත්තර':'🥚','වෙනත්':'📦'};
 const THEMES = ['#0e7a4b','#1565c0','#6a1b9a','#b45309','#be123c','#334155'];
 const WHY = {use:'පාවිච්චි',add:'එකතු',cook:'🍳 ඉව්වා',buy:'🛒 ගත්තා',set:'✏️ හැදුවා',new:'➕ අලුත්'};
+const MONTHS = ['ජන','පෙබ','මාර්','අප්‍රේ','මැයි','ජූනි','ජූලි','අගෝ','සැප්','ඔක්','නොවැ','දෙසැ'];
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = n => { if (n == null || n === '') return ''; const s = (Math.round(Number(n)*100)/100).toString(); return s; };
+const fmt = n => { if (n == null || n === '') return ''; return (Math.round(Number(n)*100)/100).toString(); };
+const rs = n => 'රු. ' + Math.round(Number(n) || 0).toLocaleString('en-US');
 const unitTxt = it => it.unit ? ' ' + esc(it.unit) : '';
 const today = () => C.localDate();
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -189,20 +259,22 @@ let S = null;
 let key = LS.get('geda2_key', '');
 let myName = LS.get('geda2_name', '');
 let density = LS.get('geda2_density', false);
+let simple = LS.get('geda2_simple', false);
 let theme = LS.get('geda2_theme', '') || (function(){ try{ return localStorage.getItem('geda_theme') || ''; }catch(e){ return ''; } })();
-let bought = LS.get('geda2_bought', {}); // shop ticks: {id: qty}
-let tab = 'list', cat = 'සියල්ල', searchText = '', catSearchText = '', sortLowFirst = LS.get('geda2_sort', false);
-let editingId = null, online = true, lastOk = 0, lastTry = 0, inflight = false, needKey = false, dirty = true;
+let tab = 'list', cat = 'සියල්ල', place = '', shopFilter = '', searchText = '', catSearchText = '', sortLowFirst = LS.get('geda2_sort', false);
+let editingId = null, buyingId = null, online = true, lastOk = 0, lastTry = 0, inflight = false, needKey = false, dirty = true;
 
-// පරණ v8 app එකේ ෆෝන් එකේ දත්ත තිබුණොත් (server එකට ලැබෙන්න කලින්) පාවිච්චි කරනවා
 if (!base) { const old = LS.get('geda', null); if (old && Array.isArray(old.items)) base = C.publicView(C.normalize(old, today())); }
-if (!base) base = null;
 
 function rebuild(){
   if (!base) { S = null; return; }
   const st = C.normalize(clone(base), today());
   queue.forEach(op => C.apply(st, clone(op)));
-  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart });
+  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay });
+  // offline වෙනස්කම් එක්ක "තව දවස්" ගණන ආයේ හදනවා
+  const rates = {}; Object.keys(base.rates || {}).forEach(id => { const it = S.items.find(i => i.id === id); const r = base.rates[id]; if (it && r.rate > 0) rates[id] = { rate: r.rate, daysLeft: Math.floor(it.qty / r.rate) }; });
+  S.items.forEach(it => { if (!rates[it.id] && it.daily > 0) rates[it.id] = { rate: it.daily, daysLeft: Math.floor(it.qty / it.daily) }; });
+  S.rates = rates;
 }
 rebuild();
 
@@ -240,7 +312,7 @@ async function sync(){
       queue = queue.filter(op => !done.has(op.uid)); LS.set('geda2_queue', queue);
       setBase(j.state);
     } else {
-      const r = await api('/api/state?v=' + (base ? base.version : 0));
+      const r = await api('/api/state?v=' + encodeURIComponent(base && base.tag ? base.tag : '0'));
       if (r.status === 200) setBase(await r.json());
       else if (r.status !== 204) throw new Error('state ' + r.status);
     }
@@ -258,10 +330,10 @@ let flushTimer = null;
 function flushSoon(){ clearTimeout(flushTimer); flushTimer = setTimeout(sync, 250); }
 
 // හැම වෙනස්කමක්ම මෙතනින්
-function doOp(op, undoMsg){
+function doOp(op){
   op.uid = uid(); op.date = today(); op.by = myName || ''; op.ts = Date.now();
   if (!S) return;
-  const st = C.normalize(clone({ items: S.items, monthStart: S.monthStart, lastCookDate: S.lastCookDate, monthKey: S.monthKey, version: S.version }), today());
+  const st = C.normalize(clone({ items: S.items, monthStart: S.monthStart, lastCookDate: S.lastCookDate, monthKey: S.monthKey, version: S.version, ticks: S.ticks, requests: S.requests, spend: S.spend }), today());
   const res = C.apply(st, clone(op));
   queue.push(op); LS.set('geda2_queue', queue);
   rebuild(); render(); flushSoon();
@@ -279,13 +351,33 @@ function toast(msg, undoFn){
 }
 $('toastBtn').onclick = () => { const f = toastUndo; $('toast').style.display = 'none'; toastUndo = null; if (f) f(); };
 function undoable(res, of, extra){
-  if (!res || !res.ok || !res.changes || !res.changes.length) return null;
-  return () => { doOp(Object.assign({ op: 'undo', changes: res.changes, of }, extra || {})); toast('↩️ අහෝසි කළා'); };
+  if (!res || !res.ok || ((!res.changes || !res.changes.length) && !res.spent)) return null;
+  return () => { doOp(Object.assign({ op: 'undo', changes: res.changes, of, spent: res.spent || 0 }, extra || {})); toast('↩️ අහෝසි කළා'); };
 }
 
-// ---------- actions ----------
+// ---------- helpers ----------
 const item = id => S && S.items.find(i => i.id === id);
+function daysLeftTxt(it){
+  const r = S.rates && S.rates[it.id]; if (!r || it.qty <= 0) return '';
+  const d = r.daysLeft;
+  const cls = d <= 3 ? 'red' : d <= 7 ? 'amber' : '';
+  const txt = d >= 60 ? '⏳ මාස ' + Math.floor(d / 30) + '+' : d === 0 ? '⏳ අදින් ඉවරයි' : '⏳ තව දවස් ' + d;
+  return `<span class="tag ${cls}">${txt}</span>`;
+}
+function expiryTxt(it){
+  const e = C.expiryStatus(it, today()); if (!e || e.level === 'ok') return '';
+  return e.level === 'expired' ? '<span class="tag red">⛔ කල් ඉකුත්</span>' : `<span class="tag amber">⏰ දවස් ${e.left}න් කල් ඉකුත්</span>`;
+}
+function priceTxt(it){
+  if (!it.price) return '';
+  let s = rs(it.price) + (it.unit ? '/' + esc(it.unit) : '');
+  if (it.prevPrice && it.prevPrice !== it.price) s += it.price > it.prevPrice ? ' <span class="low">↑</span>' : ' <span style="color:var(--main)">↓</span>';
+  return s;
+}
+function usedShops(){ const set = new Set(C.SHOPS); S.items.forEach(i => i.shop && set.add(i.shop)); return [...set]; }
+function usedPlaces(){ const set = new Set(); S.items.forEach(i => i.place && set.add(i.place)); return [...set]; }
 
+// ---------- actions ----------
 function adjust(id, dir){
   const it = item(id); if (!it) return;
   const step = C.stepFor(it);
@@ -293,7 +385,11 @@ function adjust(id, dir){
   const res = doOp({ op: 'adjust', id, delta: dir * step, why: dir < 0 ? 'use' : 'add' });
   toast((dir < 0 ? '➖ ' : '➕ ') + it.name + ' ' + fmt(step) + (it.unit ? ' ' + it.unit : ''), undoable(res, dir < 0 ? 'use' : 'add'));
 }
-
+function finishItem(id){
+  const it = item(id); if (!it || it.qty <= 0) return toast('දැනටමත් ඉවරයි');
+  const res = doOp({ op: 'adjust', id, delta: -it.qty, why: 'use' });
+  closeSheets(); toast('🚫 ' + it.name + ' ඉවරයි — සාප්පු ලිස්ට් එකට වැටුණා', undoable(res, 'use'));
+}
 function cook(){
   if (!S) return;
   const cookItems = S.items.filter(i => i.daily > 0);
@@ -305,33 +401,54 @@ function cook(){
 }
 
 function openSheet(id){ $('sheetBack').style.display = 'block'; $(id).style.display = 'block'; }
-function closeSheets(){ editingId = null; $('sheetBack').style.display = 'none'; document.querySelectorAll('.sheet').forEach(s => s.style.display = 'none'); }
+function closeSheets(){ editingId = null; buyingId = null; stopScan(); $('sheetBack').style.display = 'none'; document.querySelectorAll('.sheet').forEach(s => s.style.display = 'none'); }
 $('sheetBack').onclick = closeSheets;
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSheets);
 
 $('e-cat').innerHTML = C.CATS.map(c => `<option>${esc(c)}</option>`).join('');
-function openEdit(id, fromCatalog){
+function fillLists(){
+  $('shops').innerHTML = usedShops().map(s => `<option value="${esc(s)}">`).join('');
+  const pl = new Set(C.PLACES.concat(usedPlaces()));
+  $('placesList').innerHTML = [...pl].map(s => `<option value="${esc(s)}">`).join('');
+}
+function openEdit(id, opts){
+  opts = opts || {};
   const it = id ? item(id) : null;
   editingId = id || 'new';
-  $('editTitle').textContent = it ? (fromCatalog ? '➕ ' + it.name + ' — ප්‍රමාණය දාන්න' : '✏️ බඩුව හදන්න') : '➕ අලුත් බඩුවක්';
-  $('e-name').value = it ? it.name : '';
+  fillLists();
+  $('editTitle').textContent = it ? (opts.fromCatalog ? '➕ ' + it.name + ' — ප්‍රමාණය දාන්න' : C.iconFor(it) + ' ' + it.name) : '➕ අලුත් බඩුවක්';
+  $('itemQuick').innerHTML = it && !opts.fromCatalog ? `<div class="quick">
+      <button data-act="minus" data-id="${esc(it.id)}"><b>−</b>${fmt(C.stepFor(it))}</button>
+      <button data-act="plus" data-id="${esc(it.id)}"><b>+</b>${fmt(C.stepFor(it))}</button>
+      <button data-act="finish" data-id="${esc(it.id)}"><b>🚫</b>ඉවරයි</button>
+      <button data-act="buy1" data-id="${esc(it.id)}"><b>🛒</b>ගත්තා</button></div>
+      <p class="muted" style="margin:0 0 6px">දැන් <b>${fmt(it.qty)}${unitTxt(it)}</b> ${daysLeftTxt(it)} ${expiryTxt(it)} ${it.price ? '• ' + priceTxt(it) : ''}</p>` : '';
+  $('e-icon').value = it ? (it.icon || '') : '';
+  $('e-icon').placeholder = it ? C.iconFor(it) : '📦';
+  $('e-name').value = it ? it.name : (opts.name || '');
   $('e-cat').value = it ? it.cat : (cat !== 'සියල්ල' ? cat : 'වෙනත්');
   $('e-unit').value = it ? it.unit : '';
   $('e-qty').value = it ? fmt(it.qty) : '';
   $('e-monthly').value = it && it.monthly ? fmt(it.monthly) : '';
   $('e-daily').value = it && it.daily ? fmt(it.daily) : '';
   $('e-low').value = it && it.low ? fmt(it.low) : '';
+  $('e-price').value = it && it.price ? fmt(it.price) : '';
+  $('e-expiry').value = it ? it.expiry : '';
+  $('e-shop').value = it ? it.shop : '';
+  $('e-place').value = it ? it.place : '';
+  $('e-barcode').value = it ? it.barcode : (opts.barcode || '');
   $('e-del').style.display = it ? '' : 'none';
   openSheet('editSheet');
-  if (!it) setTimeout(() => $('e-name').focus(), 50);
+  if (!it && !opts.name) setTimeout(() => $('e-name').focus(), 50);
 }
 function numVal(id){ const v = parseFloat($(id).value); return isFinite(v) && v >= 0 ? v : 0; }
 $('e-save').onclick = () => {
   const name = $('e-name').value.trim(); if (!name) { $('e-name').focus(); return toast('නම දාන්න'); }
   const isNew = editingId === 'new';
   const it = {
-    id: isNew ? 'x' + uid() : editingId, name, cat: $('e-cat').value, unit: $('e-unit').value.trim(),
-    monthly: numVal('e-monthly'), daily: numVal('e-daily'), low: numVal('e-low')
+    id: isNew ? 'x' + uid() : editingId, name, cat: $('e-cat').value, unit: $('e-unit').value.trim(), icon: $('e-icon').value.trim(),
+    monthly: numVal('e-monthly'), daily: numVal('e-daily'), low: numVal('e-low'), price: numVal('e-price'),
+    expiry: $('e-expiry').value || '', shop: $('e-shop').value.trim(), place: $('e-place').value.trim(), barcode: $('e-barcode').value.trim()
   };
   const q = $('e-qty').value.trim();
   if (q !== '' || isNew) it.qty = numVal('e-qty');
@@ -346,55 +463,144 @@ $('e-del').onclick = () => {
   toast('🗑️ ' + copy.name + ' අයින් කළා', () => { doOp({ op: 'upsert', item: copy }); toast('↩️ ආපහු දැම්මා'); });
 };
 
+// තනි බඩුවක් "ගත්තා" — ප්‍රමාණය + මිල + කල් ඉකුත් දිනය
+function openBuy(id){
+  const it = item(id); if (!it) return;
+  closeSheets(); buyingId = id;
+  $('buyTitle').textContent = '🛒 ' + it.name + ' ගත්තා';
+  $('b-qty').value = fmt(C.shopNeeded(it) || C.stepFor(it) || 1);
+  $('b-price').value = ''; $('b-price').placeholder = it.price ? 'අන්තිම මිල ' + rs(it.price) + '/' + (it.unit || 'එකක්') : 'නොදන්නවා නම් හිස්';
+  $('b-expiry').value = '';
+  openSheet('buySheet');
+}
+$('b-save').onclick = () => {
+  const it = item(buyingId); if (!it) return closeSheets();
+  const qty = numVal('b-qty'), price = numVal('b-price'), exp = $('b-expiry').value;
+  if (!qty) return toast('ප්‍රමාණය දාන්න');
+  const res = doOp({ op: 'buy', items: [{ id: it.id, qty, price }] });
+  if (exp) doOp({ op: 'upsert', item: { id: it.id, expiry: exp } });
+  closeSheets(); toast('✅ ' + it.name + ' +' + fmt(qty) + (price ? ' • ' + rs(price) : ''), undoable(res, 'buy'));
+};
+
 function addCatalog(id){
   const x = CATALOG.find(c => c.id === id); if (!x || item(id)) return;
   doOp({ op: 'upsert', item: { id: x.id, name: x.name, cat: x.cat, unit: x.unit, qty: 0, monthly: 0, daily: 0, low: 0 } });
-  openEdit(x.id, true);
+  openEdit(x.id, { fromCatalog: true });
 }
 
-// ---------- shopping ----------
-function shopRows(){ return S.items.map(it => ({ it, need: C.shopNeeded(it) })).filter(x => x.need > 0 || bought[x.it.id] !== undefined); }
-function toggleBought(id){
-  const it = item(id); if (!it) return;
-  if (bought[id] !== undefined) delete bought[id]; else bought[id] = C.shopNeeded(it) || 1;
-  LS.set('geda2_bought', bought); render();
+// ---------- requests ----------
+$('reqAdd').onclick = () => {
+  const t = $('reqText').value.trim(); if (!t) return $('reqText').focus();
+  doOp({ op: 'request', rid: 'r' + uid(), text: t }); $('reqText').value = '';
+  toast('📝 ඉල්ලීම දැම්මා — ෆෝන් ඔක්කොටම පේනවා');
+};
+$('reqText').addEventListener('keydown', e => { if (e.key === 'Enter') $('reqAdd').click(); });
+
+// ---------- shopping (ticks ෆෝන් ඔක්කොටම එකයි) ----------
+function shopRows(){
+  return S.items.map(it => ({ it, need: C.shopNeeded(it), tick: S.ticks[it.id] })).filter(x => x.need > 0 || x.tick);
+}
+function openReqs(){ return (S.requests || []).filter(r => !r.done); }
+function rowQty(id){ const el = document.querySelector(`.shopq[data-id="${CSS.escape(id)}"]`); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) && v > 0 ? v : null; }
+function toggleTick(key){
+  const t = S.ticks[key];
+  if (t) return doOp({ op: 'tick', key, on: false });
+  if (key.startsWith('r:')) return doOp({ op: 'tick', key, on: true, qty: 1 });
+  const it = item(key); if (!it) return;
+  doOp({ op: 'tick', key, on: true, qty: rowQty(key) || C.shopNeeded(it) || 1 });
 }
 function finishShopping(){
-  const list = Object.keys(bought).map(id => ({ id, qty: Number(bought[id]) || 0 })).filter(x => item(x.id) && x.qty > 0);
-  if (!list.length) return toast('මුලින් ගත්තු බඩු ටික ☐ tap කරන්න');
-  const res = doOp({ op: 'buy', items: list });
-  bought = {}; LS.set('geda2_bought', bought); render();
-  toast('✅ බඩු ' + list.length + 'ක් තොගයට දැම්මා', undoable(res, 'buy'));
+  const items = [], reqs = [];
+  Object.keys(S.ticks).forEach(k => {
+    const t = S.ticks[k];
+    if (k.startsWith('r:')) reqs.push(k.slice(2));
+    else if (item(k)) items.push({ id: k, qty: t.qty || 0, price: t.price || 0 });
+  });
+  const extra = parseFloat(($('extraSpent') || {}).value) || 0;
+  if (!items.length && !reqs.length && !extra) return toast('මුලින් ගත්තු බඩු ටික ☐ tap කරන්න');
+  const res = doOp({ op: 'buy', items, requests: reqs, extraSpent: extra });
+  const total = items.reduce((a, b) => a + (b.price || 0), 0) + extra;
+  toast('✅ බඩු ' + items.length + 'ක් තොගයට දැම්මා' + (total ? ' • ' + rs(total) : ''), undoable(res, 'buy'));
 }
 function shopText(){
   const rows = S.items.map(it => ({ it, need: C.shopNeeded(it) })).filter(x => x.need > 0);
+  const reqs = openReqs();
   let txt = '🛒 සාප්පු ලිස්ට් (' + today() + ')\n';
-  C.CATS.forEach(c => { const g = rows.filter(x => x.it.cat === c); if (g.length) { txt += '\n' + c + ':\n'; g.forEach(x => { txt += '• ' + x.it.name + ' — ' + fmt(x.need) + (x.it.unit ? ' ' + x.it.unit : '') + '\n'; }); } });
-  return rows.length ? txt : '';
+  if (reqs.length) { txt += '\n📝 ඉල්ලීම්:\n'; reqs.forEach(r => txt += '• ' + r.text + (r.by ? ' (' + r.by + ')' : '') + '\n'); }
+  const groups = {};
+  rows.forEach(x => { const s = x.it.shop || 'වෙනත්'; (groups[s] = groups[s] || []).push(x); });
+  Object.keys(groups).forEach(s => { txt += '\n🏪 ' + s + ':\n'; groups[s].forEach(x => { txt += '• ' + x.it.name + ' — ' + fmt(x.need) + (x.it.unit ? ' ' + x.it.unit : '') + '\n'; }); });
+  return rows.length || reqs.length ? txt : '';
 }
 async function copyText(txt){
   try { await navigator.clipboard.writeText(txt); return true; }
   catch (e) { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (er) {} ta.remove(); return ok; }
 }
 
+// ---------- barcode ----------
+const canWebScan = 'BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+const canScan = !!(NATIVE && NATIVE.scan) || canWebScan;
+let scanStream = null, scanTimer = null, scanTarget = null;
+document.querySelectorAll('#scanBtn, #e-scan').forEach(b => b.style.display = canScan ? '' : 'none');
+async function startScan(target){
+  scanTarget = target || null;
+  if (NATIVE && NATIVE.scan) { NATIVE.scan(); return; }
+  if (!canWebScan) return toast('මේ ෆෝන් එකේ scan කරන්න බැහැ');
+  if (!target) closeSheets();
+  $('scanMsg').textContent = 'කැමරාව barcode එකට අල්ලන්න…';
+  $('scanSheet').style.display = 'block'; $('sheetBack').style.display = 'block';
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const v = $('scanVideo'); v.srcObject = scanStream; await v.play();
+    const det = new BarcodeDetector();
+    scanTimer = setInterval(async () => {
+      try { const codes = await det.detect(v); if (codes.length) { const c = codes[0].rawValue; stopScan(); $('scanSheet').style.display = 'none'; onScan(c); } } catch (e) {}
+    }, 300);
+  } catch (e) { $('scanMsg').textContent = '⚠️ කැමරාව අරින්න බැරි වුණා — permission දෙන්න'; }
+}
+function stopScan(){ clearInterval(scanTimer); scanTimer = null; if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; } }
+function onScan(code){
+  code = String(code || '').trim(); if (!code) return;
+  if (scanTarget === 'edit') { $('e-barcode').value = code; scanTarget = null; return; }
+  const it = S && S.items.find(i => i.barcode === code);
+  if (it) { closeSheets(); openEdit(it.id); return; }
+  closeSheets();
+  $('linkCode').textContent = code;
+  $('linkSel').innerHTML = '<option value="">— බඩුවක් තෝරන්න —</option>' + S.items.slice().sort((a, b) => a.name.localeCompare(b.name, 'si')).map(i => `<option value="${esc(i.id)}">${esc(i.name)}</option>`).join('');
+  $('linkSheet').dataset.code = code;
+  openSheet('linkSheet');
+}
+window.gedaOnScan = onScan; // APK එකෙන් scan result එක මෙතනට එනවා
+$('scanBtn').onclick = () => startScan();
+$('e-scan').onclick = () => startScan('edit');
+$('linkNew').onclick = () => { const code = $('linkSheet').dataset.code; closeSheets(); openEdit(null, { barcode: code }); };
+$('linkSave').onclick = () => {
+  const id = $('linkSel').value, code = $('linkSheet').dataset.code; if (!id) return toast('බඩුවක් තෝරන්න');
+  doOp({ op: 'upsert', item: { id, barcode: code } }); closeSheets(); toast('🔗 Barcode එක සම්බන්ධ කළා'); openEdit(id);
+};
+
 // ---------- render ----------
 function render(){
   const y = window.scrollY;
   renderHeader();
-  if (!S) { ['list','low','shop','month','catalog'].forEach(v => $('view-' + v).style.display = 'none'); return; }
+  const views = ['list','low','shop','req','month','catalog'];
+  if (!S) { views.forEach(v => $('view-' + v).style.display = 'none'); return; }
+  if (simple && (tab === 'low' || tab === 'month' || tab === 'catalog')) tab = 'list';
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
-  ['list','low','shop','month','catalog'].forEach(v => $('view-' + v).style.display = v === tab ? 'block' : 'none');
+  views.forEach(v => $('view-' + v).style.display = v === tab ? 'block' : 'none');
   const lows = S.items.filter(C.isLow);
-  const shopN = S.items.filter(it => C.shopNeeded(it) > 0).length;
-  $('tabs').children[1].innerHTML = '<span class="ic">⚠️</span>අඩු' + (lows.length ? `<span class="cnt">${lows.length}</span>` : '');
-  $('tabs').children[2].innerHTML = '<span class="ic">🛒</span>සාප්පු' + (shopN ? `<span class="cnt" style="background:#1c2b22">${shopN}</span>` : '');
-  const d = today();
-  const banner = $('banner');
-  if (d.slice(8) === '25') { banner.style.display = 'block'; banner.textContent = '🛒 අද 25 වෙනිදා — සාප්පු යන දවස! “සාප්පු” ටැබ් එක බලන්න.'; }
-  else banner.style.display = 'none';
+  const exp = S.items.filter(it => { const e = C.expiryStatus(it, today()); return e && e.level !== 'ok'; });
+  const shopN = S.items.filter(it => C.shopNeeded(it) > 0).length + openReqs().length;
+  const reqN = openReqs().length;
+  const T = $('tabs').children;
+  T[1].innerHTML = '<span class="ic">⚠️</span>අඩු' + (lows.length + exp.length ? `<span class="cnt">${lows.length + exp.length}</span>` : '');
+  T[2].innerHTML = '<span class="ic">🛒</span>සාප්පු' + (shopN ? `<span class="cnt" style="background:#1c2b22">${shopN}</span>` : '');
+  T[3].innerHTML = '<span class="ic">📝</span>ඉල්ලීම්' + (reqN ? `<span class="cnt">${reqN}</span>` : '');
+  renderAlerts();
   if (tab === 'list') renderList();
   if (tab === 'low') renderLow(lows);
   if (tab === 'shop') renderShop();
+  if (tab === 'req') renderReq();
   if (tab === 'month') renderMonth();
   if (tab === 'catalog') renderCatalog();
   requestAnimationFrame(() => window.scrollTo(0, y));
@@ -410,12 +616,19 @@ function renderHeader(){
   $('syncLine').textContent = s;
 }
 
+function renderAlerts(){
+  const al = C.alerts(S, today(), S.rates).filter(a => a.kind !== 'requests' || tab !== 'req');
+  const go = { expired: 'low', expiry: 'low', ending: 'low', finished: 'shop', requests: 'req', shopday: 'shop' };
+  $('alerts').innerHTML = tab === 'list' || tab === 'shop' ? al.slice(0, 4).map(a => `<div class="alert ${a.kind === 'expired' || a.kind === 'finished' ? 'red' : ''}" data-act="gotab" data-id="${go[a.kind] || 'list'}">${esc(a.text)}</div>`).join('') : '';
+}
+
 function itemRow(it){
   const low = C.isLow(it);
   const pct = it.monthly > 0 ? Math.min(100, it.qty / it.monthly * 100) : 0;
-  return `<div class="itemrow"><div class="ri-info" data-act="edit" data-id="${esc(it.id)}"><div class="ri-name">${esc(it.name)} ${low ? '<span class="low">• අඩුයි</span>' : ''}</div>`
-    + `<div class="ri-sub">${it.monthly > 0 ? 'මාසෙට ' + fmt(it.monthly) + unitTxt(it) : esc(it.cat)}${it.daily > 0 ? ' • 🍳 ' + fmt(it.daily) : ''}</div>`
-    + (it.monthly > 0 ? `<div class="ri-sub"><div class="bar"><i class="${low ? 'lowc' : ''}" style="width:${pct}%"></i></div></div>` : '')
+  const sub = [daysLeftTxt(it), expiryTxt(it), it.place ? `<span class="tag">📍 ${esc(it.place)}</span>` : ''].join('');
+  return `<div class="itemrow"><span class="ico" data-act="edit" data-id="${esc(it.id)}">${esc(C.iconFor(it))}</span><div class="ri-info" data-act="edit" data-id="${esc(it.id)}"><div class="ri-name">${esc(it.name)} ${low ? '<span class="low">• අඩුයි</span>' : ''}</div>`
+    + (sub ? `<div class="ri-sub">${sub}</div>` : '')
+    + (it.monthly > 0 ? `<div class="ri-sub hide-simple">මාසෙට ${fmt(it.monthly)}${unitTxt(it)}<div class="bar"><i class="${low ? 'lowc' : ''}" style="width:${pct}%"></i></div></div>` : '')
     + `</div><div class="ri-side${low ? ' low' : ''}">${fmt(it.qty)}${unitTxt(it)}</div>`
     + `<div class="ri-actions"><button class="mini" data-act="minus" data-id="${esc(it.id)}" aria-label="අඩු කරන්න">−</button><button class="mini" data-act="plus" data-id="${esc(it.id)}" aria-label="වැඩි කරන්න">+</button></div></div>`;
 }
@@ -432,8 +645,11 @@ function renderList(){
     const lowN = list.filter(C.isLow).length;
     return `<button class="${c === cat ? 'on' : ''}" data-act="cat" data-id="${esc(c)}">${CAT_EMOJI[c] || '📦'} ${esc(c)}<small>${list.length} බඩු${lowN ? ' • ⚠️ ' + lowN : ''}</small></button>`;
   }).join('');
+  const pls = usedPlaces();
+  if (place && !pls.includes(place)) place = '';
+  $('places').innerHTML = pls.length ? `<button class="${place ? '' : 'on'}" data-act="place" data-id="">📍 ඕනම තැනක්</button>` + pls.map(p => `<button class="${p === place ? 'on' : ''}" data-act="place" data-id="${esc(p)}">${esc(p)}</button>`).join('') : '';
   const q = searchText.toLowerCase();
-  let shown = q ? S.items.filter(i => i.name.toLowerCase().includes(q)) : S.items.filter(i => cat === 'සියල්ල' || i.cat === cat);
+  let shown = q ? S.items.filter(i => (i.name + ' ' + i.place + ' ' + i.shop).toLowerCase().includes(q)) : S.items.filter(i => (cat === 'සියල්ල' || i.cat === cat) && (!place || i.place === place));
   shown = shown.slice().sort((a, b) => (sortLowFirst ? (C.isLow(a) ? 0 : 1) - (C.isLow(b) ? 0 : 1) : 0) || (CAT_ORDER.indexOf(a.cat) - CAT_ORDER.indexOf(b.cat)) || a.name.localeCompare(b.name, 'si'));
   $('sortBtn').textContent = sortLowFirst ? '🔀 අඩු ඒවා උඩට: ON' : '🔀 අඩු ඒවා උඩට: OFF';
   $('items').innerHTML = shown.length ? `<div class="list">${shown.map(itemRow).join('')}</div>`
@@ -441,41 +657,92 @@ function renderList(){
 }
 
 function renderLow(lows){
-  $('view-low').innerHTML = `<div class="card"><h3>⚠️ අඩු බඩු (${lows.length})</h3><p class="muted">ඉවර වෙලා හෝ ඉවර වෙන්න ළඟ. “අඩුයි” සීමාව ✏️ කරලා වෙනස් කරන්න පුළුවන්.</p></div>`
-    + (lows.length ? `<div class="list">${lows.sort((a,b) => a.qty - b.qty).map(itemRow).join('')}</div>` : '<div class="card">👍 අඩු බඩු නැහැ!</div>');
+  const t = today();
+  const exp = S.items.map(it => ({ it, e: C.expiryStatus(it, t) })).filter(x => x.e && x.e.level !== 'ok').sort((a, b) => a.e.left - b.e.left);
+  const ending = S.items.filter(it => { const r = S.rates[it.id]; return r && it.qty > 0 && r.daysLeft <= 7 && !C.isLow(it); }).sort((a, b) => S.rates[a.id].daysLeft - S.rates[b.id].daysLeft);
+  let h = '';
+  if (exp.length) h += `<div class="cathead"><span>⏰ කල් ඉකුත් / ළඟදීම</span><span>${exp.length}</span></div><div class="list">${exp.map(x => itemRow(x.it)).join('')}</div>`;
+  if (ending.length) h += `<div class="cathead"><span>⏳ සතියකින් ඉවර වෙන</span><span>${ending.length}</span></div><div class="list">${ending.map(itemRow).join('')}</div>`;
+  h += `<div class="cathead"><span>⚠️ අඩු බඩු</span><span>${lows.length}</span></div>`;
+  h += lows.length ? `<div class="list">${lows.sort((a, b) => a.qty - b.qty).map(itemRow).join('')}</div>` : '<div class="card">👍 අඩු බඩු නැහැ!</div>';
+  $('view-low').innerHTML = `<div class="card"><h3>⚠️ අවධානය ඕන බඩු</h3><p class="muted">කල් ඉකුත් වෙන, ඉක්මනින් ඉවර වෙන, අඩු වෙලා තියෙන ඒවා. "අඩුයි" සීමාව සහ කල් ඉකුත් දිනය බඩුවේ නම tap කරලා දාන්න.</p></div>` + h;
 }
 
 function renderShop(){
   const rows = shopRows();
-  Object.keys(bought).forEach(id => { if (!item(id)) delete bought[id]; });
-  const doneN = rows.filter(x => bought[x.it.id] !== undefined).length;
-  const pct = rows.length ? Math.round(doneN / rows.length * 100) : 100;
-  let h = `<div class="card"><h3>🛒 සාප්පු ලිස්ට්</h3><p class="muted">කඩේදී ගත්තාම ☐ tap කරන්න. ගත්ත ප්‍රමාණය වෙනස් නම් අංකය හදන්න. අන්තිමට “සාප්පු ඉවරයි” ඔබන්න.</p>`
-    + `<div class="bar"><i style="width:${pct}%"></i></div><p style="margin:8px 0 0"><b>${doneN} / ${rows.length} ගත්තා</b></p>`
-    + `<div class="row"><button class="btn primary" data-act="finish" style="flex:1">✅ සාප්පු ඉවරයි — තොගයට දාන්න</button></div>`
+  const reqs = openReqs();
+  const shops = [...new Set(rows.map(x => x.it.shop || ''))];
+  if (shopFilter && !shops.includes(shopFilter === '-' ? '' : shopFilter)) shopFilter = '';
+  const vis = rows.filter(x => !shopFilter || (x.it.shop || '-') === shopFilter);
+  const ticked = Object.keys(S.ticks).length;
+  const total = rows.length + reqs.length;
+  const est = vis.filter(x => !x.tick).reduce((a, x) => a + (x.it.price || 0) * x.need, 0);
+  const paid = Object.values(S.ticks).reduce((a, t) => a + (t.price || 0), 0);
+  const pct = total ? Math.round(ticked / total * 100) : 100;
+  let h = `<div class="card"><h3>🛒 සාප්පු ලිස්ට්</h3><p class="muted hide-simple">ගත්තාම ☐ tap කරන්න — ෆෝන් ඔක්කොටම පේනවා, ඒ නිසා එකම දේ දෙපාරක් ගන්නේ නැහැ. ගෙවපු ගණනත් දාන්න පුළුවන්.</p>`
+    + `<div class="bar"><i style="width:${pct}%"></i></div><p style="margin:8px 0 0"><b>${ticked} / ${total} ගත්තා</b>${est ? ` <span class="muted">• ඉතිරි ඇස්තමේන්තුව ${rs(est)}</span>` : ''}${paid ? ` <span class="muted">• ගෙවපු ${rs(paid)}</span>` : ''}</p>`
+    + `<div class="hide-simple"><label for="extraSpent" style="font-weight:400" class="muted">ලිස්ට් එකේ නැති දේවල් වලට ගෙවපු ගණන (රු.)</label><input id="extraSpent" type="number" min="0" inputmode="decimal" placeholder="0"></div>`
+    + `<div class="row"><button class="btn primary" data-act="finishShop" style="flex:1">✅ සාප්පු ඉවරයි — තොගයට දාන්න</button></div>`
     + `<div class="row"><button class="btn" data-act="copyshop">📋 කොපි</button><button class="btn" data-act="wa">💬 WhatsApp</button></div></div>`;
-  if (!rows.length) h += '<div class="card">👍 ගන්න දෙයක් නැහැ — හැමදේම තියෙනවා!</div>';
+  if (shops.length > 1 || (shops.length === 1 && shops[0])) {
+    h += `<div class="chips"><button class="${shopFilter ? '' : 'on'}" data-act="shopf" data-id="">🏪 ඔක්කොම</button>` + shops.map(s => `<button class="${(s || '-') === shopFilter ? 'on' : ''}" data-act="shopf" data-id="${esc(s || '-')}">${esc(s || 'නොදන්න')}</button>`).join('') + '</div>';
+  }
+  if (reqs.length && !shopFilter) {
+    h += `<div class="cathead"><span>📝 ඉල්ලීම්</span><span>${reqs.length}</span></div><div class="list">` + reqs.map(r => {
+      const t = S.ticks['r:' + r.rid];
+      return `<div class="itemrow${t ? ' done' : ''}"><button class="mini" data-act="tick" data-id="r:${esc(r.rid)}">${t ? '☑' : '☐'}</button><div class="ri-info" data-act="tick" data-id="r:${esc(r.rid)}"><div class="ri-name">${esc(r.text)}</div><div class="ri-sub">${r.by ? esc(r.by) + ' ඉල්ලුවා' : ''}${t && t.by ? ' • ✓ ' + esc(t.by) : ''}</div></div></div>`;
+    }).join('') + '</div>';
+  }
+  if (!vis.length && !reqs.length) h += '<div class="card">👍 ගන්න දෙයක් නැහැ — හැමදේම තියෙනවා!</div>';
   else {
-    rows.sort((a, b) => ((bought[a.it.id] !== undefined) - (bought[b.it.id] !== undefined)) || (CAT_ORDER.indexOf(a.it.cat) - CAT_ORDER.indexOf(b.it.cat)) || a.it.name.localeCompare(b.it.name, 'si'));
-    let cur = '', open = false;
-    rows.forEach(x => {
-      const done = bought[x.it.id] !== undefined;
-      const c = done ? '✅ ගත්තා' : x.it.cat;
-      if (c !== cur) { if (open) h += '</div>'; cur = c; h += `<div class="cathead">${done ? '' : (CAT_EMOJI[c] || '📦') + ' '}${esc(c)}</div><div class="list">`; open = true; }
-      h += `<div class="itemrow${done ? ' done' : ''}"><button class="mini" data-act="tick" data-id="${esc(x.it.id)}" aria-label="ගත්තා">${done ? '☑' : '☐'}</button>`
-        + `<div class="ri-info" data-act="tick" data-id="${esc(x.it.id)}"><div class="ri-name">${esc(x.it.name)}</div><div class="ri-sub">දැන් ${fmt(x.it.qty)}${unitTxt(x.it)}${x.it.monthly ? ' • මාසෙට ' + fmt(x.it.monthly) : ''}</div></div>`
-        + `<input class="shopq" type="number" step="any" min="0" inputmode="decimal" data-id="${esc(x.it.id)}" value="${fmt(done ? bought[x.it.id] : x.need)}" aria-label="ප්‍රමාණය"><span class="muted" style="min-width:28px">${esc(x.it.unit)}</span></div>`;
+    vis.sort((a, b) => ((!!a.tick) - (!!b.tick)) || (a.it.shop || '').localeCompare(b.it.shop || '') || (CAT_ORDER.indexOf(a.it.cat) - CAT_ORDER.indexOf(b.it.cat)) || a.it.name.localeCompare(b.it.name, 'si'));
+    let cur = null, open = false;
+    vis.forEach(x => {
+      const done = !!x.tick;
+      const g = done ? '✅ ගත්තා' : '🏪 ' + (x.it.shop || 'කොහෙන්ද කියලා නැහැ');
+      if (g !== cur) { if (open) h += '</div>'; cur = g; h += `<div class="cathead"><span>${esc(g)}</span></div><div class="list">`; open = true; }
+      const id = esc(x.it.id);
+      h += `<div class="itemrow${done ? ' done' : ''}"><button class="mini" data-act="tick" data-id="${id}" aria-label="ගත්තා">${done ? '☑' : '☐'}</button>`
+        + `<div class="ri-info"><div class="ri-name" data-act="tick" data-id="${id}">${esc(C.iconFor(x.it))} ${esc(x.it.name)}</div><div class="ri-sub">දැන් ${fmt(x.it.qty)}${unitTxt(x.it)}${x.it.price && !done ? ' • ~' + rs(x.it.price * x.need) : ''}${done && x.tick.by ? ' • ✓ ' + esc(x.tick.by) : ''}</div>`
+        + (done ? `<input class="pricein" type="number" min="0" inputmode="decimal" data-price="${id}" placeholder="රු. ගෙවපු" value="${x.tick.price ? fmt(x.tick.price) : ''}">` : '')
+        + `</div><input class="shopq" type="number" step="any" min="0" inputmode="decimal" data-id="${id}" value="${fmt(done ? x.tick.qty : x.need)}" aria-label="ප්‍රමාණය"><span class="muted" style="min-width:24px">${esc(x.it.unit)}</span></div>`;
     });
     if (open) h += '</div>';
   }
+  const extraVal = $('extraSpent') ? $('extraSpent').value : '';
   $('view-shop').innerHTML = h;
+  if ($('extraSpent')) $('extraSpent').value = extraVal;
+}
+
+function renderReq(){
+  const all = (S.requests || []).slice().sort((a, b) => (a.done - b.done) || (b.ts - a.ts));
+  if (!all.length) { $('reqList').innerHTML = '<div class="card muted">තාම ඉල්ලීම් නැහැ.</div>'; return; }
+  $('reqList').innerHTML = '<div class="list">' + all.map(r => {
+    const t = r.ts ? new Date(r.ts).toLocaleString('si-LK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    return `<div class="itemrow${r.done ? ' done' : ''}"><button class="mini" data-act="reqdone" data-id="${esc(r.rid)}">${r.done ? '☑' : '☐'}</button><div class="ri-info"><div class="ri-name">${esc(r.text)}</div><div class="ri-sub">${r.by ? esc(r.by) + ' • ' : ''}${esc(t)}${r.done ? ' • ✓ ගත්තා' + (r.doneBy ? ' (' + esc(r.doneBy) + ')' : '') : ''}</div></div><button class="mini danger" data-act="reqdel" data-id="${esc(r.rid)}" aria-label="අයින් කරන්න">🗑</button></div>`;
+  }).join('') + '</div>';
 }
 
 function renderMonth(){
   const sum = S.summary || {};
   const mk = S.monthKey || today().slice(0, 7);
-  let h = `<div class="card"><h3>📅 මේ මාසේ (${esc(mk)})</h3><p class="muted">මාසේ මුල තිබුණ ප්‍රමාණය, ගත්ත ප්‍රමාණය, පාවිච්චි කළ ප්‍රමාණය සහ දැන් ඉතිරි.</p></div>`;
-  h += '<div class="card" style="overflow-x:auto"><table><tr><th>බඩුව</th><th class="n">මුල</th><th class="n">ගත්තා</th><th class="n">පාවිච්චි</th><th class="n">ඉතිරි</th></tr>';
+  const spend = S.spend || {};
+  const thisM = spend[mk] || 0;
+  // අන්තිම මාස 6
+  const ms = []; let y = Number(mk.slice(0, 4)), m = Number(mk.slice(5, 7));
+  for (let i = 0; i < 6; i++) { ms.unshift(y + '-' + String(m).padStart(2, '0')); m--; if (!m) { m = 12; y--; } }
+  const max = Math.max(1, ...ms.map(k => spend[k] || 0));
+  let h = `<div class="card"><h3>💰 මේ මාසේ වියදම</h3><div class="big">${rs(thisM)}</div>`;
+  const prevM = spend[ms[4]] || 0;
+  if (prevM && thisM) h += `<p class="muted" style="margin:0 0 8px">පහුගිය මාසේ ${rs(prevM)} — ${thisM > prevM ? '<span class="low">↑ ' + rs(thisM - prevM) + ' වැඩියි</span>' : '<span style="color:var(--main)">↓ ' + rs(prevM - thisM) + ' අඩුයි</span>'}</p>`;
+  h += ms.map(k => `<div class="mbar"><span>${MONTHS[Number(k.slice(5)) - 1]} ${k.slice(2, 4)}</span><div class="bar"><i style="width:${(spend[k] || 0) / max * 100}%"></i></div><b>${spend[k] ? rs(spend[k]) : '—'}</b></div>`).join('');
+  if (!thisM) h += '<p class="muted">“ගත්තා” කරනකොට ගෙවපු ගණනත් දැම්මාම වියදම මෙතන පේනවා.</p>';
+  h += '</div>';
+  const top = S.items.filter(it => sum[it.id] && sum[it.id].spent).sort((a, b) => sum[b.id].spent - sum[a.id].spent).slice(0, 8);
+  if (top.length) h += `<div class="card"><h3>🏷️ වැඩියෙන්ම වියදම් වුණ බඩු</h3>${top.map(it => `<div class="hist"><div style="flex:1">${esc(C.iconFor(it))} ${esc(it.name)}</div><b>${rs(sum[it.id].spent)}</b></div>`).join('')}</div>`;
+  const up = S.items.filter(it => it.price && it.prevPrice && it.price !== it.prevPrice);
+  if (up.length) h += `<div class="card"><h3>📈 මිල වෙනස් වුණ බඩු</h3>${up.map(it => `<div class="hist"><div style="flex:1">${esc(it.name)}</div><div>${rs(it.prevPrice)} → <b class="${it.price > it.prevPrice ? 'low' : ''}">${rs(it.price)}</b></div></div>`).join('')}</div>`;
+  h += `<div class="card" style="overflow-x:auto"><h3>📅 ${esc(mk)} — බඩු</h3><table><tr><th>බඩුව</th><th class="n">මුල</th><th class="n">ගත්තා</th><th class="n">පාවිච්චි</th><th class="n">ඉතිරි</th></tr>`;
   S.items.slice().sort((a, b) => (CAT_ORDER.indexOf(a.cat) - CAT_ORDER.indexOf(b.cat)) || a.name.localeCompare(b.name, 'si')).forEach(it => {
     const s = sum[it.id] || {}; const start = S.monthStart && S.monthStart[it.id] != null ? S.monthStart[it.id] : null;
     h += `<tr><td>${esc(it.name)}</td><td class="n">${start == null ? '—' : fmt(start)}</td><td class="n">${s.bought ? fmt(s.bought) : '—'}</td><td class="n">${s.used > 0 ? fmt(s.used) : '—'}</td><td class="n"><b class="${C.isLow(it) ? 'low' : ''}">${fmt(it.qty)}${unitTxt(it)}</b></td></tr>`;
@@ -486,7 +753,7 @@ function renderMonth(){
   rec.forEach(l => {
     const w = l.why.indexOf('undo:') === 0 ? '↩️ අහෝසි' : (WHY[l.why] || l.why);
     const t = l.ts ? new Date(l.ts).toLocaleString('si-LK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : l.d;
-    h += `<div class="hist"><div style="flex:1"><b>${esc(l.n)}</b> ${l.delta > 0 ? '+' : ''}${fmt(l.delta)} <span class="pill">${esc(w)}</span>${l.by ? ' <span class="muted">— ' + esc(l.by) + '</span>' : ''}</div><div class="t">${esc(t)}</div></div>`;
+    h += `<div class="hist"><div style="flex:1"><b>${esc(l.n)}</b> ${l.delta > 0 ? '+' : ''}${fmt(l.delta)}${l.p ? ' • ' + rs(l.p) : ''} <span class="pill">${esc(w)}</span>${l.by ? ' <span class="muted">— ' + esc(l.by) + '</span>' : ''}</div><div class="t">${esc(t)}</div></div>`;
   });
   h += '</div>';
   $('view-month').innerHTML = h;
@@ -498,7 +765,7 @@ function renderCatalog(){
   let h = '';
   C.CATS.forEach(c => {
     const g = shown.filter(x => x.cat === c); if (!g.length) return;
-    h += `<div class="cathead">${CAT_EMOJI[c] || '📦'} ${esc(c)} (${g.length})</div><div class="list">`;
+    h += `<div class="cathead"><span>${CAT_EMOJI[c] || '📦'} ${esc(c)}</span><span>${g.length}</span></div><div class="list">`;
     g.forEach(x => { const has = !!item(x.id); h += `<div class="itemrow"><div class="ri-info"><div class="ri-name">${esc(x.name)}</div><div class="ri-sub">${esc(x.unit || '—')}</div></div><button class="btn ${has ? '' : 'primary'}" ${has ? 'disabled' : ''} data-act="addcat" data-id="${esc(x.id)}">${has ? '✓ තියෙනවා' : '+ එකතු'}</button></div>`; });
     h += '</div>';
   });
@@ -510,20 +777,34 @@ document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const id = el.dataset.id, act = el.dataset.act;
   if (act === 'cat') { cat = id; searchText = ''; $('searchBox').value = ''; render(); }
+  else if (act === 'place') { place = id; render(); }
+  else if (act === 'shopf') { shopFilter = id; render(); }
+  else if (act === 'gotab') { tab = id; render(); window.scrollTo(0, 0); }
+  else if (act === 'back') { tab = 'list'; render(); }
   else if (act === 'edit') openEdit(id);
-  else if (act === 'minus') adjust(id, -1);
-  else if (act === 'plus') adjust(id, 1);
-  else if (act === 'tick') toggleBought(id);
-  else if (act === 'finish') finishShopping();
+  else if (act === 'minus') { adjust(id, -1); if (editingId) openEdit(id); }
+  else if (act === 'plus') { adjust(id, 1); if (editingId) openEdit(id); }
+  else if (act === 'finish') finishItem(id);
+  else if (act === 'buy1') openBuy(id);
+  else if (act === 'tick') toggleTick(id);
+  else if (act === 'finishShop') finishShopping();
   else if (act === 'addcat') addCatalog(id);
-  else if (act === 'addnamed') { openEdit(null); $('e-name').value = searchText; }
+  else if (act === 'addnamed') openEdit(null, { name: searchText });
+  else if (act === 'reqdone') { const r = S.requests.find(x => x.rid === id); if (r) doOp({ op: 'requestDone', rid: id, done: !r.done }); }
+  else if (act === 'reqdel') { if (confirm('මේ ඉල්ලීම අයින් කරන්නද?')) doOp({ op: 'requestDel', rid: id }); }
   else if (act === 'copyshop') { const t = shopText(); if (!t) return toast('ගන්න දෙයක් නැහැ'); toast(await copyText(t) ? '📋 කොපි කළා — WhatsApp එකට paste කරන්න' : 'කොපි කරන්න බැරි වුණා'); }
   else if (act === 'wa') { const t = shopText(); if (!t) return toast('ගන්න දෙයක් නැහැ'); await copyText(t); location.href = 'https://wa.me/?text=' + encodeURIComponent(t); }
 });
 document.addEventListener('change', e => {
-  if (e.target.classList.contains('shopq')) {
-    const id = e.target.dataset.id, v = parseFloat(e.target.value);
-    if (isFinite(v) && v > 0) { bought[id] = v; LS.set('geda2_bought', bought); render(); }
+  const t = e.target;
+  if (t.classList.contains('shopq')) {
+    const id = t.dataset.id, v = parseFloat(t.value);
+    const tick = S.ticks[id];
+    if (tick && isFinite(v) && v > 0) doOp({ op: 'tick', key: id, on: true, qty: v, price: tick.price || 0 });
+  }
+  if (t.classList.contains('pricein')) {
+    const id = t.dataset.price, v = parseFloat(t.value) || 0, tick = S.ticks[id];
+    if (tick) doOp({ op: 'tick', key: id, on: true, qty: tick.qty, price: v });
   }
 });
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { tab = b.dataset.tab; render(); window.scrollTo(0, 0); });
@@ -531,26 +812,35 @@ $('searchBox').oninput = e => { searchText = e.target.value.trim(); render(); };
 $('catSearchBox').oninput = e => { catSearchText = e.target.value.trim(); render(); };
 $('cookBtn').onclick = cook;
 $('addOpen').onclick = () => openEdit(null);
+$('catOpen').onclick = () => { tab = 'catalog'; render(); window.scrollTo(0, 0); };
 $('sortBtn').onclick = () => { sortLowFirst = !sortLowFirst; LS.set('geda2_sort', sortLowFirst); render(); };
 $('syncBtn').onclick = () => { toast('🔄 Sync කරනවා…'); sync(); };
 
 // ---------- settings ----------
 function applyLook(){
   if (theme) { document.documentElement.style.setProperty('--main', theme); document.querySelector('meta[name=theme-color]').content = theme; }
-  document.body.classList.toggle('compact', !!density);
-  $('densBtn').textContent = '📏 පොඩි අකුරු: ' + (density ? 'ON' : 'OFF');
+  document.body.classList.toggle('compact', !!density && !simple);
+  document.body.classList.toggle('simple', !!simple);
+  $('densBtn').textContent = density ? 'ON' : 'OFF';
+  $('simpleBtn').textContent = simple ? 'ON' : 'OFF';
 }
+function pushNative(){ try { if (NATIVE && NATIVE.setConfig) NATIVE.setConfig(key || '', myName || ''); } catch (e) {} }
 $('swatches').innerHTML = THEMES.map(c => `<button class="swatch" data-theme="${c}" style="background:${c}" aria-label="පාට"></button>`).join('');
 $('swatches').onclick = e => { const b = e.target.closest('[data-theme]'); if (!b) return; theme = b.dataset.theme; LS.set('geda2_theme', theme); applyLook(); };
 $('densBtn').onclick = () => { density = !density; LS.set('geda2_density', density); applyLook(); render(); };
+$('simpleBtn').onclick = () => { simple = !simple; LS.set('geda2_simple', simple); applyLook(); render(); };
 $('setBtn').onclick = () => {
-  $('s-name').value = myName; $('s-key').value = key; $('impBox').style.display = 'none';
-  $('diag').textContent = 'App v' + APP_VERSION + ' • දත්ත version ' + (base ? base.version : '—') + ' • යවන්න ඉතිරි ' + queue.length;
+  $('s-name').value = myName; $('s-key').value = key; $('s-shopday').value = S ? S.shopDay || 25 : 25; $('impBox').style.display = 'none';
+  $('diag').textContent = 'App v' + APP_VERSION + (NATIVE ? ' • APK ' + (NATIVE.version ? NATIVE.version() : '') : '') + ' • දත්ත version ' + (base ? base.version : '—') + ' • යවන්න ඉතිරි ' + queue.length;
+  if (NATIVE && NATIVE.notifStatus) { $('notifRow').style.display = 'flex'; $('notifState').textContent = NATIVE.notifStatus(); }
   openSheet('setSheet');
 };
 $('s-save').onclick = () => {
   myName = $('s-name').value.trim(); LS.set('geda2_name', myName);
   const k = $('s-key').value.trim(); if (k !== key) { key = k; LS.set('geda2_key', key); }
+  const sd = parseInt($('s-shopday').value, 10);
+  if (S && sd && sd !== S.shopDay) doOp({ op: 'settings', shopDay: sd });
+  pushNative();
   closeSheets(); toast('✅ තියාගත්තා'); sync();
 };
 $('expBtn').onclick = async () => {
@@ -569,12 +859,11 @@ $('impBtn').onclick = async () => {
 // ---------- household key ----------
 function showKey(){ needKey = true; $('keyScreen').style.display = 'block'; }
 $('k-save').onclick = async () => {
-  key = $('k-input').value.trim(); LS.set('geda2_key', key);
+  key = $('k-input').value.trim(); LS.set('geda2_key', key); pushNative();
   $('k-err').style.display = 'none';
   await sync();
   if (needKey) $('k-err').style.display = 'block';
 };
-// ලින්ක් එකේ #key=... තිබුණොත් ඒක තියාගන්නවා (WhatsApp එකෙන් යවන්න ලේසියි)
 (function(){ const m = location.hash.match(/key=([^&]+)/); if (m) { key = decodeURIComponent(m[1]); LS.set('geda2_key', key); history.replaceState(null, '', location.pathname); } })();
 
 // ---------- polling ----------
@@ -582,7 +871,7 @@ function tick(){
   if (document.hidden || needKey) return;
   const a = document.activeElement;
   if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.id !== 'searchBox' && a.id !== 'catSearchBox') return; // type කරන අතරේ තිරය වෙනස් කරන්නේ නැහැ
-  if (!online && Date.now() - lastTry < 15000) return; // offline නම් තත්පර 15කට වරක්
+  if (!online && Date.now() - lastTry < 15000) return;
   sync();
 }
 setInterval(tick, 4000);
@@ -591,7 +880,7 @@ window.addEventListener('online', () => sync());
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js').catch(() => {}); }
 
-applyLook(); render(); sync();
+applyLook(); pushNative(); render(); sync();
 })();
 </script>
 </body></html>

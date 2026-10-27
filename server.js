@@ -126,11 +126,11 @@ const server = http.createServer(async (req, res) => {
         const v = url.searchParams.get('v');
         if (v === null) {
           // පරණ app (v1–v8) එකට — කියවන්න විතරයි
-          const legacy = Object.assign({}, core.publicView(state), { log: state.log.filter(l => l.d.slice(0, 7) === state.monthKey).map(l => ({ date: l.d, id: l.id, name: l.n, delta: l.delta, why: l.why })) });
+          const legacy = Object.assign({}, view(), { log: state.log.filter(l => l.d.slice(0, 7) === state.monthKey).map(l => ({ date: l.d, id: l.id, name: l.n, delta: l.delta, why: l.why })) });
           return send(res, 200, legacy);
         }
-        if (Number(v) === state.version) { res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end(); }
-        return send(res, 200, core.publicView(state));
+        if (v === state.version + '_' + today()) { res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end(); }
+        return send(res, 200, view());
       }
       if (p === '/api/state' && req.method === 'POST') {
         // පරණ app එක මුළු ලිස්ට් එකම යවලා අනිත් අයගේ වෙනස්කම් මකන එක නවත්තනවා
@@ -147,7 +147,11 @@ const server = http.createServer(async (req, res) => {
           if (r.ok && !r.dup) changed = true;
         }
         if (changed) commit();
-        return send(res, 200, { results, state: core.publicView(state) });
+        return send(res, 200, { results, state: view() });
+      }
+      if (p === '/api/alerts' && req.method === 'GET') {
+        // APK එකේ notification එකට — දවසට වරක් මේක බලනවා
+        return send(res, 200, { date: today(), alerts: core.alerts(state, today()) });
       }
       if (p === '/api/export' && req.method === 'GET') {
         const out = Object.assign({}, state); delete out.seenOps;
@@ -164,7 +168,7 @@ const server = http.createServer(async (req, res) => {
         state.version = ver;
         rolloverIfNeeded();
         commit();
-        return send(res, 200, { ok: true, items: state.items.length, state: core.publicView(state) });
+        return send(res, 200, { ok: true, items: state.items.length, state: view() });
       }
       return send(res, 404, { error: 'not found' });
     } catch (e) {
@@ -186,6 +190,7 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
+function view() { const t = today(); return Object.assign(core.publicView(state, t), { tag: state.version + '_' + t, today: t }); }
 function rolloverIfNeeded() { return core.rollover(state, today()); }
 
 server.listen(PORT, () => console.log('Geda Badu v2 on port ' + PORT + ' | data: ' + DATA_DIR + ' | key: ' + (KEY ? 'ON' : 'OFF')));
