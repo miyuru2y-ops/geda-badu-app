@@ -15,7 +15,7 @@
   var RATE_DAYS = 30;       // "තව දවස් කීයද" ගණන් හදන්න අන්තිම දවස් 30ක පාවිච්චිය
   var EXPIRY_WARN_DAYS = 7;
 
-  var CATS = ['එළවළු', 'පළතුරු', 'පිරිසිදු කරන ද්‍රව්‍ය', 'කුළුබඩු', 'බෙහෙත්', 'ධාන්‍ය වර්ග', 'මස් මාලු බිත්තර', 'වෙනත්'];
+  var CATS = ['එළවළු', 'කොළ වර්ග', 'පළතුරු', 'ධාන්‍ය වර්ග', 'කුළුබඩු', 'මස් මාලු බිත්තර', 'කිරි නිෂ්පාදන', 'තෙල්, සෝස් සහ ටින්', 'බීම වර්ග', 'බිස්කට් සහ කෑම', 'පිරිසිදු කරන ද්‍රව්‍ය', 'පුද්ගලික සනීපාරක්ෂක', 'ළදරු', 'බෙහෙත්', 'වෙනත්'];
   var SHOPS = ['සුපර්මාර්කට්', 'පොළ', 'ළඟ කඩේ', 'ෆාමසිය'];
   var PLACES = ['කුස්සිය', 'ෆ්‍රිජ්', 'ස්ටෝර් රූම්', 'නාන කාමරේ', 'බෙහෙත් පෙට්ටිය'];
 
@@ -23,7 +23,7 @@
   var ICONS = {
     rice: '🍚', dal: '🍲', atta: '🌾', 'wheat-flour': '🌾', butter: '🧈', astra: '🧈', 'coco-eat': '🥥', 'coco-lamp': '🪔', sugar: '🧂',
     tea: '🍵', potato: '🥔', 'big-onion': '🧅', 'red-onion': '🧅', veg: '🥬', highland: '🥛', salt: '🧂', 'chili-powder': '🌶️',
-    'curry-powder': '🍛', turmeric: '🟡', pepper: '⚫', cinnamon: '🪵', garlic: '🧄', ginger: '🌿', noodles: '🍜', pasta: '🍝',
+    'curry-powder': '🍛', turmeric: '🟡', pepper: '⚫', cinnamon: '🌰', garlic: '🧄', ginger: '🌿', noodles: '🍜', pasta: '🍝',
     soya: '🥩', chickpea: '🍲', mung: '🍲', cowpea: '🍲', 'milk-powder': '🥛', eggs: '🥚', 'canned-fish': '🐟', vinegar: '🍶',
     'soy-sauce': '🍶', 'tomato-sauce': '🍅', 'sunflower-oil': '🌻', coffee: '☕', biscuits: '🍪', peanuts: '🥜', jaggery: '🍯',
     tomato: '🍅', carrot: '🥕', beetroot: '🟣', cabbage: '🥬', beans: '🥬', brinjal: '🍆', 'bitter-gourd': '🥒', leeks: '🥬',
@@ -31,7 +31,7 @@
     fish: '🐟', paracetamol: '💊', plaster: '🩹', antiseptic: '🧴', 'baby-soap': '🧼', 'adult-soap': '🧼', comfort: '🧴',
     'vim-soap': '🧽', 'vim-liquid': '🧴', dash: '🧴', toilet: '🚽', air: '🌸', shampoo: '🧴', conditioner: '🧴'
   };
-  var CAT_ICON = { 'එළවළු': '🥦', 'පළතුරු': '🍎', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'කුළුබඩු': '🌶️', 'බෙහෙත්': '💊', 'ධාන්‍ය වර්ග': '🌾', 'මස් මාලු බිත්තර': '🥚', 'වෙනත්': '📦' };
+  var CAT_ICON = {'එළවළු': '🥦', 'කොළ වර්ග': '🥬', 'පළතුරු': '🍎', 'ධාන්‍ය වර්ග': '🌾', 'කුළුබඩු': '🌶️', 'මස් මාලු බිත්තර': '🥚', 'කිරි නිෂ්පාදන': '🥛', 'තෙල්, සෝස් සහ ටින්': '🥫', 'බීම වර්ග': '🥤', 'බිස්කට් සහ කෑම': '🍪', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'පුද්ගලික සනීපාරක්ෂක': '🧴', 'ළදරු': '🍼', 'බෙහෙත්': '💊', 'වෙනත්': '📦'};
   // අලුත් emoji (Unicode 14+) පරණ ෆෝන්වල කොටුවක් විදිහට පේන නිසා පරණ ඒවට මාරු කරනවා
   var SAFE_EMOJI = { '\uD83E\uDED8': '🍲', '\uD83E\uDED3': '🥙', '\uD83E\uDEDB': '🥬', '\uD83E\uDEDA': '🌿' };
   function safeIcon(e) { return SAFE_EMOJI[e] || e; }

@@ -221,6 +221,9 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <p class="muted">හැම කෑමකටම යන බඩු සහ ප්‍රමාණ (ගෙදර හැමෝටම එක පාරක් උයන ප්‍රමාණය).</p>
   <div id="recipesList"></div>
   <div class="row"><button class="btn primary" id="recipeNew" style="flex:1">➕ අලුත් කෑමක්</button><button class="btn" data-close>✖️</button></div>
+  <h3 style="margin-top:18px">📚 ලංකාවේ කෑම</h3>
+  <p class="muted">“+ එකතු” ඔබපුවාම ඒ කෑම ඔයාගේ වට්ටෝරු වලට එනවා. ලිස්ට් එකේ නැති බඩු ඉබේම එකතු වෙනවා (ප්‍රමාණය 0 — සාප්පු ලිස්ට් එකට).</p>
+  <div id="recipeCatalog"></div>
 </div>
 
 <div class="sheet" id="recipeSheet">
@@ -325,7 +328,7 @@ const APP_VERSION = 12;
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
 const CAT_ORDER = ['සියල්ල'].concat(C.CATS);
-const CAT_EMOJI = {'සියල්ල':'🏠','එළවළු':'🥦','පළතුරු':'🍎','පිරිසිදු කරන ද්‍රව්‍ය':'🧹','කුළුබඩු':'🌶️','බෙහෙත්':'💊','ධාන්‍ය වර්ග':'🌾','මස් මාලු බිත්තර':'🥚','වෙනත්':'📦'};
+const CAT_EMOJI = {'සියල්ල': '🏠', 'එළවළු': '🥦', 'කොළ වර්ග': '🥬', 'පළතුරු': '🍎', 'ධාන්‍ය වර්ග': '🌾', 'කුළුබඩු': '🌶️', 'මස් මාලු බිත්තර': '🥚', 'කිරි නිෂ්පාදන': '🥛', 'තෙල්, සෝස් සහ ටින්': '🥫', 'බීම වර්ග': '🥤', 'බිස්කට් සහ කෑම': '🍪', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'පුද්ගලික සනීපාරක්ෂක': '🧴', 'ළදරු': '🍼', 'බෙහෙත්': '💊', 'වෙනත්': '📦'};
 const THEMES = ['#0e7a4b','#1565c0','#6a1b9a','#b45309','#be123c','#334155'];
 const WHY = {use:'පාවිච්චි',add:'එකතු',cook:'🍳 ඉව්වා',buy:'🛒 ගත්තා',set:'✏️ හැදුවා',new:'➕ අලුත්'};
 const MONTHS = ['ජන','පෙබ','මාර්','අප්‍රේ','මැයි','ජූනි','ජූලි','අගෝ','සැප්','ඔක්','නොවැ','දෙසැ'];
@@ -605,8 +608,8 @@ $('b-save').onclick = () => {
 };
 
 function addCatalog(id){
-  const x = CATALOG.find(c => c.id === id); if (!x || item(id)) return;
-  doOp({ op: 'upsert', item: { id: x.id, name: x.name, cat: x.cat, unit: x.unit, qty: 0, monthly: 0, daily: 0, low: 0 } });
+  const x = CATALOG.find(c => c.id === id); if (!x || inList(x)) return;
+  doOp({ op: 'upsert', item: { id: x.id, name: x.name, cat: x.cat, unit: x.unit, icon: x.icon || '', qty: 0, monthly: 0, daily: 0, low: 0 } });
   openEdit(x.id, { fromCatalog: true });
 }
 
@@ -1059,8 +1062,27 @@ function cookRecipe(rid){
 }
 let editingRecipe = null;
 function openRecipes(){
+  const mine = new Set((S.recipes || []).map(r => r.name.trim()));
+  $('recipeCatalog').innerHTML = '<div class="list">' + (window.GEDA_RECIPES || []).map(r => {
+    const has = mine.has(r.name.trim());
+    return `<div class="itemrow"><span class="ico">${esc(r.icon)}</span><div class="ri-info"><div class="ri-name">${esc(r.name)}</div><div class="ri-sub">${r.items.map(x => { const c = CATALOG.find(k => k.id === x.id); return c ? esc(c.name) : ''; }).filter(Boolean).join(', ')}</div></div><button class="btn ${has ? '' : 'primary'}" ${has ? 'disabled' : ''} data-act="addrx" data-id="${esc(r.rid)}">${has ? '✓' : '+ එකතු'}</button></div>`;
+  }).join('') + '</div>';
   $('recipesList').innerHTML = '<div class="list">' + (S.recipes || []).map(r => `<div class="itemrow" data-act="editr" data-id="${esc(r.rid)}"><span class="ico">${esc(r.icon)}</span><div class="ri-info"><div class="ri-name">${esc(r.name)}</div><div class="ri-sub">${r.items.map(x => { const it = item(x.id); return it ? esc(it.name) + ' ' + fmt(x.qty) + unitTxt(it) : ''; }).filter(Boolean).join(', ')}</div></div><span class="muted">✏️</span></div>`).join('') + '</div>';
   openSheet('recipesSheet');
+}
+function addRecipeFromCatalog(rid){
+  const r = (window.GEDA_RECIPES || []).find(x => x.rid === rid); if (!r) return;
+  // ලිස්ට් එකේ නැති බඩු — නමින් හරි id එකෙන් හරි හොයලා, නැත්නම් කැටලොග් එකෙන් එකතු කරනවා
+  const items = [], added = [];
+  r.items.forEach(x => {
+    const c = CATALOG.find(k => k.id === x.id) || {};
+    let it = item(x.id) || S.items.find(i => i.name.trim() === (c.name || '').trim());
+    if (!it && c.id) { doOp({ op: 'upsert', item: { id: c.id, name: c.name, cat: c.cat, unit: c.unit, icon: c.icon || '', qty: 0 } }); it = item(c.id); added.push(c.name); }
+    if (it) items.push({ id: it.id, qty: x.qty });
+  });
+  doOp({ op: 'recipeUpsert', recipe: { rid: 'rc' + uid(), name: r.name, icon: r.icon, items } });
+  toast('✅ ' + r.name + ' වට්ටෝරු වලට දැම්මා' + (added.length ? ' • අලුත් බඩු ' + added.length + 'ක් ලිස්ට් එකට' : ''));
+  openRecipes();
 }
 function recipeRow(x){
   const opts = S.items.slice().sort((a, b) => a.name.localeCompare(b.name, 'si')).map(i => `<option value="${esc(i.id)}" ${x && x.id === i.id ? 'selected' : ''}>${esc(i.name)}${i.unit ? ' (' + esc(i.unit) + ')' : ''}</option>`).join('');
@@ -1212,17 +1234,19 @@ async function sendReport(mk, how){
   await copyText(t); location.href = 'https://wa.me/?text=' + encodeURIComponent(t);
 }
 
+let catalogCat = '';
+function inList(x){ return !!item(x.id) || S.items.some(i => i.name.trim() === x.name.trim()); }
 function renderCatalog(){
   const q = catSearchText.toLowerCase();
-  const shown = CATALOG.filter(c => !q || c.name.toLowerCase().includes(q));
-  let h = '';
+  const shown = CATALOG.filter(c => (!q || c.name.toLowerCase().includes(q)) && (q || !catalogCat || c.cat === catalogCat));
+  let h = `<div class="chips"><button class="${catalogCat ? '' : 'on'}" data-act="catc" data-id="">📚 ඔක්කොම (${CATALOG.length})</button>` + C.CATS.filter(c => CATALOG.some(x => x.cat === c)).map(c => `<button class="${c === catalogCat ? 'on' : ''}" data-act="catc" data-id="${esc(c)}">${CAT_EMOJI[c] || '📦'} ${esc(c)}</button>`).join('') + '</div>';
   C.CATS.forEach(c => {
     const g = shown.filter(x => x.cat === c); if (!g.length) return;
     h += `<div class="cathead"><span>${CAT_EMOJI[c] || '📦'} ${esc(c)}</span><span>${g.length}</span></div><div class="list">`;
-    g.forEach(x => { const has = !!item(x.id); h += `<div class="itemrow"><div class="ri-info"><div class="ri-name">${esc(x.name)}</div><div class="ri-sub">${esc(x.unit || '—')}</div></div><button class="btn ${has ? '' : 'primary'}" ${has ? 'disabled' : ''} data-act="addcat" data-id="${esc(x.id)}">${has ? '✓ තියෙනවා' : '+ එකතු'}</button></div>`; });
+    g.forEach(x => { const has = inList(x); h += `<div class="itemrow"><span class="ico">${esc(x.icon || CAT_EMOJI[x.cat] || '📦')}</span><div class="ri-info"><div class="ri-name">${esc(x.name)}</div><div class="ri-sub">${esc(x.unit || '—')}</div></div><button class="btn ${has ? '' : 'primary'}" ${has ? 'disabled' : ''} data-act="addcat" data-id="${esc(x.id)}">${has ? '✓ තියෙනවා' : '+ එකතු'}</button></div>`; });
     h += '</div>';
   });
-  $('catalogList').innerHTML = h || '<div class="card">හොයපු නමින් කැටලොග් බඩු නැහැ.</div>';
+  $('catalogList').innerHTML = shown.length ? h : h + '<div class="card">හොයපු නමින් කැටලොග් බඩු නැහැ. <button class="btn" data-act="addnamedc">➕ “' + esc(catSearchText) + '” එකතු කරන්න</button></div>';
 }
 
 // ---------- events (එක තැනකින් — inline onclick නැහැ) ----------
@@ -1244,6 +1268,9 @@ document.addEventListener('click', async e => {
   else if (act === 'addcat') addCatalog(id);
   else if (act === 'addnamed') openEdit(null, { name: searchText });
   else if (act === 'cookr') cookRecipe(id);
+  else if (act === 'catc') { catalogCat = id; render(); }
+  else if (act === 'addnamedc') openEdit(null, { name: catSearchText });
+  else if (act === 'addrx') addRecipeFromCatalog(id);
   else if (act === 'planToggle') planToggle(id, el.dataset.day);
   else if (act === 'dose') { const d = C.dosesToday(S, today()).find(x => x.id === id && x.time === el.dataset.time); if (d) { doOp({ op: 'dose', id, time: d.time, taken: !d.taken }); toast(d.taken ? '↩️ අයින් කළා' : '💊 ' + d.name + ' බිව්වා'); } }
   else if (act === 'editr') openRecipe(id);
