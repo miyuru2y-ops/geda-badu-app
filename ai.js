@@ -25,25 +25,62 @@ function extractJson(text) {
   return JSON.parse(m[0]);
 }
 
+const GBASE = () => process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com';
+let lastError = '', lastModel = '';
+
+// Google එකෙන් ඔයාගේ key එකට තියෙන models ලිස්ට් එක ගෙනත් හොඳම "flash" එක තෝරනවා
+async function discoverGeminiModels() {
+  try {
+    const r = await fetch(GBASE() + '/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': GEMINI_KEY }, signal: AbortSignal.timeout(20000) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return [];
+    const names = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+      .map(m => String(m.name || '').replace(/^models\//, '')).filter(n => /flash/i.test(n) && !/(image|tts|audio|live|embedding|thinking-exp)/i.test(n));
+    const ver = n => { const m = n.match(/gemini-(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; };
+    // අලුත්ම version එක, "lite" නැති එක, "preview/exp" නැති එක මුලින්
+    names.sort((a, b) => (ver(b) - ver(a)) || (/lite/.test(a) - /lite/.test(b)) || (/(preview|exp)/.test(a) - /(preview|exp)/.test(b)));
+    return names.slice(0, 6);
+  } catch (e) { return []; }
+}
+
+async function geminiOnce(model, body) {
+  const r = await fetch(GBASE() + '/v1beta/models/' + model + ':generateContent', {
+    method: 'POST', headers: { 'x-goog-api-key': GEMINI_KEY, 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(90000)
+  });
+  const j = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.ok, j };
+}
+
 async function callGemini(prompt, image, mediaType, maxTokens) {
   const parts = [];
   if (image) parts.push({ inline_data: { mime_type: mediaType || 'image/jpeg', data: image } });
   parts.push({ text: prompt });
-  const body = JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', maxOutputTokens: maxTokens || 2000, temperature: 0.1 } });
-  const models = geminiModel ? [geminiModel] : GEMINI_MODELS;
-  let lastErr;
-  for (const m of models) {
-    const r = await fetch((process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com') + '/v1beta/models/' + m + ':generateContent', {
-      method: 'POST', headers: { 'x-goog-api-key': GEMINI_KEY, 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(60000)
-    });
-    const j = await r.json().catch(() => ({}));
-    if (r.status === 404 || r.status === 400 && /model/i.test((j.error && j.error.message) || '')) { lastErr = new Error('model ' + m + ' not available'); continue; }
-    if (!r.ok) throw new Error((j.error && j.error.message) || ('Gemini ' + r.status));
-    geminiModel = m;
-    const text = (((j.candidates || [])[0] || {}).content || {}).parts || [];
-    return extractJson(text.map(p => p.text || '').join(''));
+  // අලුත් models "හිතන්න" tokens පාවිච්චි කරන නිසා උත්තර සීමාව ලොකුවට
+  const body = JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', maxOutputTokens: Math.max(8192, maxTokens || 0), temperature: 0.1 } });
+  let models = geminiModel ? [geminiModel] : GEMINI_MODELS.slice();
+  let discovered = false, lastErr = null;
+  for (let k = 0; k < models.length; k++) {
+    const m = models[k];
+    let res = await geminiOnce(m, body);
+    const msg = (res.j.error && res.j.error.message) || '';
+    if (res.status === 404 || (res.status === 400 && /model/i.test(msg) && !/key/i.test(msg))) {
+      lastErr = new Error('model ' + m + ' නැහැ');
+      if (geminiModel === m) geminiModel = null;
+      if (!discovered && k === models.length - 1) { discovered = true; const more = (await discoverGeminiModels()).filter(x => !models.includes(x)); models = models.concat(more); }
+      continue;
+    }
+    if (!res.ok) throw new Error(res.status === 429 ? 'Gemini සීමාව ඉක්මවලා (quota) — ටික වෙලාවකින් ආයේ උත්සාහ කරන්න' : res.status === 400 || res.status === 403 ? 'Gemini key එකේ ප්‍රශ්නයක්: ' + msg.slice(0, 120) : 'Gemini ' + res.status + ': ' + msg.slice(0, 120));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const cand = (res.j.candidates || [])[0] || {};
+      const text = ((cand.content || {}).parts || []).map(p => p.text || '').join('');
+      try { const out = extractJson(text); geminiModel = m; lastModel = m; lastError = ''; return out; }
+      catch (e) {
+        lastErr = new Error('Gemini උත්තරය හිස් / කියවන්න බැහැ (' + (cand.finishReason || (res.j.promptFeedback && res.j.promptFeedback.blockReason) || 'no text') + ')');
+        if (attempt === 0) res = await geminiOnce(m, body); // එක පාරක් ආයේ
+      }
+    }
   }
-  throw lastErr || new Error('no Gemini model');
+  throw lastErr || new Error('Gemini model එකක් නැහැ');
 }
 
 // prompt + (optional) image → JSON — Gemini හෝ Claude
@@ -198,4 +235,9 @@ Reply with JSON only: {"ideas": [ ... ]}`;
   };
 }
 
-module.exports = { enabled: !!PROVIDER, provider: PROVIDER, allow, readReceipt, parseVoice, identifyItem, cookIdeas };
+async function selfTest() {
+  try { const out = await callAI('Reply with JSON only: {"ok": true, "word": "ආයුබෝවන්"}', null, null, 100); return { ok: !!out.ok, provider: PROVIDER, model: lastModel || geminiModel || MODEL, reply: out }; }
+  catch (e) { return { ok: false, provider: PROVIDER, model: geminiModel || '', error: e.message, available: PROVIDER === 'gemini' ? await discoverGeminiModels() : undefined }; }
+}
+
+module.exports = { selfTest, enabled: !!PROVIDER, provider: PROVIDER, allow, readReceipt, parseVoice, identifyItem, cookIdeas };

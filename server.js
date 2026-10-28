@@ -164,6 +164,12 @@ const server = http.createServer(async (req, res) => {
         const al = core.alerts(state, t).filter(a => a.kind !== 'requests').map(a => a.text);
         return send(res, 200, { low: low.slice(0, 6), lowCount: low.length, shop, alerts: al.slice(0, 2) });
       }
+      if (p === '/api/ai/test' && req.method === 'GET') {
+        // AI එක වැඩද කියලා බලන්න (දවසේ සීමාවට ගණන් වෙනවා)
+        if (!ai.enabled) return send(res, 200, { ok: false, error: 'AI key එකක් නැහැ' });
+        if (!ai.allow(today())) return send(res, 429, { ok: false, error: 'අද දවසේ සීමාව ඉවරයි' });
+        return send(res, 200, await ai.selfTest());
+      }
       if (p.startsWith('/api/ai/') && req.method === 'POST') {
         if (!ai.enabled) return send(res, 501, { error: 'ai off' });
         const body = await readBody(req);
@@ -185,7 +191,7 @@ const server = http.createServer(async (req, res) => {
             if (img.length < 1000) return send(res, 400, { error: 'no image' });
             return send(res, 200, await ai.identifyItem(state, img, body.mediaType));
           }
-        } catch (e) { console.error('AI error', e.message); return send(res, 502, { error: 'AI එකට සම්බන්ධ වෙන්න බැරි වුණා' }); }
+        } catch (e) { console.error('AI error', e.message); return send(res, 502, { error: String(e.message || 'AI එකට සම්බන්ධ වෙන්න බැරි වුණා').replace(/key=[^&\s]+/g, 'key=…').slice(0, 200) }); }
         return send(res, 404, { error: 'not found' });
       }
       if (p === '/api/alerts' && req.method === 'GET') {
