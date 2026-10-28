@@ -48,6 +48,8 @@
     { rid: 'rc-roti', name: 'රොටී', icon: '🥙', items: [{ id: 'wheat-flour', qty: 0.3 }, { id: 'salt', qty: 0.003 }] },
     { rid: 'rc-tea', name: 'කිරි තේ (4ට)', icon: '🍵', items: [{ id: 'tea', qty: 8 }, { id: 'milk-powder', qty: 30 }, { id: 'sugar', qty: 0.04 }] }
   ];
+  // සුපර්මාර්කට් එකක සාමාන්‍ය පිළිවෙළ (දොරෙන් ඇතුළු වුණාම)
+  var DEFAULT_AISLE = ['එළවළු', 'කොළ වර්ග', 'පළතුරු', 'මස් මාලු බිත්තර', 'කිරි නිෂ්පාදන', 'බිස්කට් සහ කෑම', 'බීම වර්ග', 'කුස්සියේ බඩු', 'ධාන්‍ය වර්ග', 'කුළුබඩු', 'පිරිසිදු කරන ද්‍රව්‍ය', 'පුද්ගලික සනීපාරක්ෂක', 'ළදරු', 'බෙහෙත්', 'වෙනත්'];
   var BILL_SUGGEST = [
     { name: 'කරන්ට් බිල', icon: '⚡', day: 10 }, { name: 'වතුර බිල', icon: '💧', day: 15 },
     { name: 'ඉන්ටර්නෙට් / ෆෝන්', icon: '📶', day: 5 }, { name: 'ගෙවල් කුලිය', icon: '🏠', day: 1 }, { name: 'පාසල් ගාස්තු', icon: '🎒', day: 5 }
@@ -87,6 +89,11 @@
     Object.keys(p).slice(0, 12).forEach(function (k) { var v = p[k] || {}; var pr = Math.max(0, r2(num(v.price, 0))); if (pr) out[str(k, 30)] = { price: pr, date: validDate(v.date) ? v.date : '' }; });
     return out;
   }
+  function cleanRepeat(r) {
+    if (!r || typeof r !== 'object') return null;
+    var days = Math.round(num(r.days, 0)); if (days < 1 || days > 120) return null;
+    return { days: days, qty: Math.max(0, r2(num(r.qty, 1))) || 1 };
+  }
   function cleanDoses(d) {
     return (Array.isArray(d) ? d : []).map(function (x) {
       var t = str(x && x.time, 5); if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) return null;
@@ -113,7 +120,9 @@
       barcode: str(it.barcode, 40),
       icon: str(it.icon, 8),
       prices: cleanPrices(it.prices),                    // කඩෙන් කඩට මිල {කඩේ: {price, date}}
-      doses: cleanDoses(it.doses)                        // බෙහෙත් වෙලාවල් [{time:'08:00', qty:1, who:'අම්මා'}]
+      doses: cleanDoses(it.doses),                       // බෙහෙත් වෙලාවල් [{time:'08:00', qty:1, who:'අම්මා'}]
+      repeat: cleanRepeat(it.repeat),                    // 🔄 පුරුද්දට ගන්නවා {days: 7, qty: 1} — නැත්නම් null
+      lastBuy: validDate(str(it.lastBuy, 10)) ? str(it.lastBuy, 10) : ''
     };
   }
 
@@ -164,6 +173,7 @@
       recipes: Array.isArray(s.recipes) ? s.recipes.map(cleanRecipe) : null,
       bills: Array.isArray(s.bills) ? s.bills.map(cleanBill) : [],
       gas: { history: s.gas && Array.isArray(s.gas.history) ? s.gas.history.filter(validDate).slice(-12) : [], days: s.gas ? Math.max(0, Math.round(num(s.gas.days, 0))) : 0, spend: s.gas && s.gas.spend && typeof s.gas.spend === 'object' ? s.gas.spend : {} },
+      aisles: s.aisles && typeof s.aisles === 'object' ? s.aisles : {},       // 🗺️ කඩේ ඇතුළේ කාණ්ඩ පිළිවෙළ {කඩේ: [cat…]}
       plan: s.plan && typeof s.plan === 'object' ? s.plan : {},               // සතියේ කෑම {'2026-10-28': ['rc-dal']}
       doseLog: s.doseLog && typeof s.doseLog === 'object' ? s.doseLog : {},  // {'2026-10-28': {'paracetamol@08:00': {by, ts}}}
       budget: { total: s.budget ? Math.max(0, r2(num(s.budget.total, 0))) : 0, cats: s.budget && s.budget.cats && typeof s.budget.cats === 'object' ? s.budget.cats : {} },
@@ -260,6 +270,7 @@
           spent += p;
           changes.push({ id: x.id, delta: q });
           delete state.ticks[x.id];
+          x.lastBuy = op.date;
         });
         (Array.isArray(op.requests) ? op.requests : []).forEach(function (rid) {
           state.requests.forEach(function (r) { if (r.rid === rid && !r.done) { r.done = true; r.doneTs = op.ts || Date.now(); r.doneBy = op.by; } });
@@ -284,12 +295,14 @@
         if (!it) {
           state.items.push(clean);
           if (state.monthStart[clean.id] === undefined) state.monthStart[clean.id] = clean.qty;
+          if (clean.repeat && !clean.lastBuy) clean.lastBuy = op.date;
           addLog(state, op, clean, clean.qty, 'new');
         } else {
           var qtyBefore = it.qty;
-          ['name', 'cat', 'unit', 'monthly', 'daily', 'low', 'shop', 'place', 'expiry', 'barcode', 'icon', 'doses'].forEach(function (k) {
+          ['name', 'cat', 'unit', 'monthly', 'daily', 'low', 'shop', 'place', 'expiry', 'barcode', 'icon', 'doses', 'repeat'].forEach(function (k) {
             if (op.item[k] !== undefined) it[k] = clean[k];
           });
+          if (it.repeat && !it.lastBuy) it.lastBuy = op.date;   // පුරුද්ද අද ඉඳන් ගණන් කරනවා
           if (op.item.price !== undefined && clean.price !== it.price) { if (it.price) it.prevPrice = it.price; it.price = clean.price; }
           if (op.item.qty !== undefined && op.item.qty !== null && op.item.qty !== '') {
             it.qty = clean.qty;
@@ -401,6 +414,11 @@
           delete dl[dk]; var b1 = it.qty; it.qty = r2(it.qty + dz.qty); addLog(state, op, it, r2(it.qty - b1), 'undo:use');
         }
         break;
+      case 'aisles':
+        var shopName = str(op.shop, 30); if (!shopName) return { ok: false, err: 'no shop' };
+        var order = (Array.isArray(op.order) ? op.order : []).filter(function (c) { return CATS.indexOf(c) >= 0; });
+        if (order.length) state.aisles[shopName] = order; else delete state.aisles[shopName];
+        break;
       case 'settings':
         if (op.shopDay !== undefined) state.shopDay = Math.min(28, Math.max(1, Math.round(num(op.shopDay, 25))));
         break;
@@ -479,9 +497,16 @@
     });
     return need;
   }
-  function shopNeeded(it, planNeed) {
+  // 🔄 පුරුදු බඩුව ආයේ ගන්න දවස ආවද
+  function repeatDue(it, today) {
+    if (!it.repeat || !today) return false;
+    if (!it.lastBuy) return true;
+    return today >= addDays(it.lastBuy, it.repeat.days);
+  }
+  function shopNeeded(it, planNeed, today) {
     var base = shopNeededBase(it);
-    if (planNeed && planNeed > it.qty) return Math.max(base, r2(planNeed - it.qty));
+    if (planNeed && planNeed > it.qty) base = Math.max(base, r2(planNeed - it.qty));
+    if (repeatDue(it, today)) base = Math.max(base, it.repeat.qty);
     return base;
   }
   // බෙහෙත් වෙලාවල් — අද
@@ -573,7 +598,7 @@
       billList: state.bills.filter(function (b) { return b.paid[mk]; }).map(function (b) { return { name: b.name, amount: b.paid[mk].amount }; }),
       unpaid: state.bills.filter(function (b) { return !b.paid[mk]; }).map(function (b) { return b.name; }),
       gasChanges: state.gas.history.filter(function (d) { return d.slice(0, 7) === mk; }).length,
-      toBuy: (function () { var pn = planNeeds(state, today); return state.items.filter(function (it) { return shopNeeded(it, pn[it.id]) > 0; }).map(function (it) { return it.name; }); })()
+      toBuy: (function () { var pn = planNeeds(state, today); return state.items.filter(function (it) { return shopNeeded(it, pn[it.id], today) > 0; }).map(function (it) { return it.name; }); })()
     };
   }
 
@@ -620,7 +645,7 @@
     // මාසේ අන්තිම දවස් 2 — සාරාංශය යවන්න
     if (Number(today.slice(8)) >= lastDayOf(mkB) - 1) out.push({ kind: 'summary', text: '📊 මාසේ ඉවර වෙනවා — "මාසය" ටැබ් එකෙන් සාරාංශය ගෙදර group එකට යවන්න' });
     var day = Number(today.slice(8)), sd = state.shopDay || 25;
-    var need = state.items.filter(function (it) { return shopNeeded(it, pn[it.id]) > 0; }).length + open.length;
+    var need = state.items.filter(function (it) { return shopNeeded(it, pn[it.id], today) > 0; }).length + open.length;
     if (day === sd) out.push({ kind: 'shopday', text: '🛒 අද සාප්පු යන දවස! ගන්න බඩු ' + need + 'ක් තියෙනවා.' });
     else if (day === sd - 1) out.push({ kind: 'shopday', text: '🛒 හෙට සාප්පු යන දවස — ගන්න බඩු ' + need + 'ක් තියෙනවා.' });
     return out;
@@ -646,6 +671,7 @@
       gas: state.gas,
       budget: state.budget,
       plan: state.plan,
+      aisles: state.aisles,
       doseLog: state.doseLog,
       summary: monthSummary(state),
       rates: rates,
@@ -660,6 +686,6 @@
     normalize: normalize, rollover: rollover, pruneLog: pruneLog, apply: apply, applyOnce: applyOnce, monthSummary: monthSummary,
     usageRates: usageRates, isLow: isLow, expiryStatus: expiryStatus, shopNeeded: shopNeeded, stepFor: stepFor, alerts: alerts,
     publicView: publicView, cleanItem: cleanItem, iconFor: iconFor, gasStatus: gasStatus, spendByCat: spendByCat, monthTotal: monthTotal,
-    billsStatus: billsStatus, billsTotal: billsTotal, planNeeds: planNeeds, dosesToday: dosesToday, nowHM: nowHM, monthReport: monthReport, prevMonth: prevMonth, BILL_SUGGEST: BILL_SUGGEST
+    billsStatus: billsStatus, billsTotal: billsTotal, planNeeds: planNeeds, repeatDue: repeatDue, DEFAULT_AISLE: DEFAULT_AISLE, dosesToday: dosesToday, nowHM: nowHM, monthReport: monthReport, prevMonth: prevMonth, BILL_SUGGEST: BILL_SUGGEST
   };
 });

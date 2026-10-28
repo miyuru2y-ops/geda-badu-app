@@ -172,4 +172,30 @@ Reply with JSON only:
   };
 }
 
-module.exports = { enabled: !!PROVIDER, provider: PROVIDER, allow, readReceipt, parseVoice, identifyItem };
+// 🍳 ගෙදර තියෙන බඩු වලින් අද උයන්න පුළුවන් කෑම (කල් ඉකුත් වෙන්න ළඟ ඒවා මුලින්)
+async function cookIdeas(state, today, soon) {
+  const have = state.items.filter(i => i.qty > 0).map(i => `${i.id} | ${i.name} | ${i.qty} ${i.unit || ''}${soon[i.id] ? ' | EXPIRES SOON' : ''}`).join('\n');
+  const recipes = (state.recipes || []).map(r => `${r.rid} | ${r.name} | ${r.items.map(x => x.id + ':' + x.qty).join(', ')}`).join('\n');
+  const prompt = `You help a Sri Lankan family decide what to cook today using what they already have at home.
+Items at home (id | Sinhala name | amount | note):
+${have}
+
+Their saved recipes (id | name | ingredient id:qty …):
+${recipes || '(none)'}
+
+Suggest 4 Sri Lankan home dishes (rice & curry style, breakfast/dinner items like roti, pittu, string hoppers, kola kanda etc. are welcome) they can make mostly from these items. Prefer dishes that use items marked EXPIRES SOON. Use a saved recipe id when it matches.
+For each: "name" (Sinhala), "icon" (one common emoji), "why" (one short Sinhala sentence), "recipeId" (or null), "items": [{"id": item id from the list, "qty": amount in that item's unit for a family of 4}], "missing": [Sinhala names of important ingredients they don't have, max 3].
+Reply with JSON only: {"ideas": [ ... ]}`;
+  const out = await callAI(prompt, null, null, 1500);
+  const ids = new Set(state.items.map(i => i.id)), rids = new Set((state.recipes || []).map(r => r.rid));
+  return {
+    ideas: (Array.isArray(out.ideas) ? out.ideas : []).slice(0, 6).map(x => ({
+      name: String(x.name || '').slice(0, 60), icon: String(x.icon || '🍛').slice(0, 8), why: String(x.why || '').slice(0, 160),
+      recipeId: rids.has(x.recipeId) ? x.recipeId : null,
+      items: (Array.isArray(x.items) ? x.items : []).filter(i => ids.has(i.id)).map(i => ({ id: i.id, qty: Math.max(0, Number(i.qty) || 0) })).filter(i => i.qty > 0).slice(0, 15),
+      missing: (Array.isArray(x.missing) ? x.missing : []).map(m => String(m).slice(0, 40)).slice(0, 3)
+    })).filter(x => x.name)
+  };
+}
+
+module.exports = { enabled: !!PROVIDER, provider: PROVIDER, allow, readReceipt, parseVoice, identifyItem, cookIdeas };

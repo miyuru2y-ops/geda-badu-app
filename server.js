@@ -160,7 +160,7 @@ const server = http.createServer(async (req, res) => {
         // Home screen widget එකට — පොඩි සාරාංශයක්
         const t = today(), pn = core.planNeeds(state, t);
         const low = state.items.filter(core.isLow).sort((a, b) => a.qty - b.qty).map(i => core.iconFor(i) + ' ' + i.name);
-        const shop = state.items.filter(i => core.shopNeeded(i, pn[i.id]) > 0).length + state.requests.filter(r => !r.done).length;
+        const shop = state.items.filter(i => core.shopNeeded(i, pn[i.id], t) > 0).length + state.requests.filter(r => !r.done).length;
         const al = core.alerts(state, t).filter(a => a.kind !== 'requests').map(a => a.text);
         return send(res, 200, { low: low.slice(0, 6), lowCount: low.length, shop, alerts: al.slice(0, 2) });
       }
@@ -175,6 +175,11 @@ const server = http.createServer(async (req, res) => {
             return send(res, 200, await ai.readReceipt(state, img, body.mediaType));
           }
           if (p === '/api/ai/voice') return send(res, 200, await ai.parseVoice(state, String(body.text || '')));
+          if (p === '/api/ai/cook') {
+            const t = today(), soon = {};
+            state.items.forEach(i => { const e = core.expiryStatus(i, t); if (e && e.level !== 'ok') soon[i.id] = 1; });
+            return send(res, 200, await ai.cookIdeas(state, t, soon));
+          }
           if (p === '/api/ai/identify') {
             const img = String(body.image || '').replace(/^data:[^,]+,/, '');
             if (img.length < 1000) return send(res, 400, { error: 'no image' });

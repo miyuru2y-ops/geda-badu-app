@@ -16,6 +16,8 @@ import androidx.core.content.FileProvider;
 
 import java.io.File;
 import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
+import java.util.Locale;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -46,6 +48,8 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> fileCallback;
     static final int REQ_FILE = 11, REQ_VOICE = 12, REQ_CAMERA = 13;
     private Uri cameraUri;
+    private TextToSpeech tts;
+    private boolean ttsReady = false, ttsWarned = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,6 +176,8 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface public void refreshWidget() { GedaWidget.refresh(MainActivity.this); }
+
+        @JavascriptInterface public void speak(String text) { runOnUiThread(() -> say(text)); }
     }
 
     private void startScan() {
@@ -183,6 +189,27 @@ public class MainActivity extends Activity {
             })
             .addOnFailureListener(e -> Toast.makeText(this, "Scan කරන්න බැරි වුණා — Google Play services update කරලා ආයේ බලන්න", Toast.LENGTH_LONG).show());
     }
+
+    /** 🗣️ සිංහලෙන් කියනවා (Google TTS එකේ සිංහල කටහඬ) */
+    private void say(String text) {
+        if (text == null || text.trim().isEmpty()) return;
+        if (tts == null) {
+            tts = new TextToSpeech(this, status -> {
+                if (status != TextToSpeech.SUCCESS) return;
+                int r = tts.setLanguage(new Locale("si", "LK"));
+                ttsReady = r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED;
+                if (!ttsReady && !ttsWarned) {
+                    ttsWarned = true;
+                    Toast.makeText(this, "සිංහල කටහඬ නැහැ — Settings → Text-to-speech → Google → සිංහල install කරන්න", Toast.LENGTH_LONG).show();
+                }
+                if (ttsReady) tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "geda");
+            });
+            return;
+        }
+        if (ttsReady) tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "geda");
+    }
+
+    @Override protected void onDestroy() { if (tts != null) tts.shutdown(); super.onDestroy(); }
 
     private void startVoice() {
         Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)

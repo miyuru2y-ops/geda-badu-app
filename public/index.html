@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:14 -->
+<!-- APP_VERSION:15 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -98,6 +98,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 .bill:last-child{border-bottom:0} .bill .ico{font-size:26px}
 .cbar{margin:7px 0;font-size:13px} .cbar div:first-child{display:flex;justify-content:space-between;margin-bottom:3px}
 .bar i.over{background:var(--red)} .bar i.near{background:var(--amber)}
+.aisle{background:var(--soft);padding:4px 12px;font-size:12px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)}
 .dose{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)} .dose:last-child{border-bottom:0}
 .dose.taken .ri-name{text-decoration:line-through;opacity:.6}
 .plan-day{padding:8px 0;border-bottom:1px solid var(--line)} .plan-day b{display:block;margin-bottom:4px}
@@ -129,6 +130,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
     <div style="display:flex;justify-content:space-between;align-items:center"><b>🍳 අද උයන්නේ මොනවද?</b><span><button class="btn hide-simple" id="planBtn" style="padding:6px 10px;font-size:13px">📅 සතියට</button> <button class="btn hide-simple" id="recipesBtn" style="padding:6px 10px;font-size:13px">⚙️</button></span></div>
     <p class="muted" style="margin:4px 0 6px">කෑමක් tap කළාම ඒකට යන බඩු ටික තොගයෙන් අඩු වෙනවා.</p>
     <div class="rchips" id="recipeChips"></div>
+    <button class="btn primary" id="ideasBtn" style="width:100%;margin-top:6px">💡 ගෙදර තියෙන දේවල් වලින් මොනවද උයන්නේ?</button>
     <button class="btn" id="cookBtn" style="width:100%;margin-top:6px">🍳 දවසේ සාමාන්‍ය ප්‍රමාණය අඩු කරන්න</button>
     <p class="muted hide-simple" id="cookNote" style="margin:8px 0 0"></p>
   </div>
@@ -156,7 +158,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v14</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v15</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -178,6 +180,9 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
     <div><label for="e-shop">ගන්නේ කොහෙන්ද</label><input id="e-shop" maxlength="30" list="shops" placeholder="පොළ, සුපර්මාර්කට්"></div>
     <div><label for="e-place">ගෙදර තියෙන්නේ</label><input id="e-place" maxlength="30" list="placesList" placeholder="කුස්සිය, ෆ්‍රිජ්"></div>
   </div>
+  <label for="e-repeat">🔄 පුරුද්දට ගන්නවා (ඒ දවසට සාප්පු ලිස්ට් එකට ඉබේම)</label>
+  <div class="grid2"><select id="e-repeat"><option value="0">නැහැ</option><option value="1">හැමදාම</option><option value="2">දවස් 2කට</option><option value="3">දවස් 3කට</option><option value="7">සතියට වරක්</option><option value="14">සති 2කට</option><option value="30">මාසෙට වරක්</option></select>
+  <input id="e-repeatQty" type="number" step="any" min="0" inputmode="decimal" placeholder="ගන්න ප්‍රමාණය"></div>
   <div id="doseBox" style="display:none">
     <label>💊 බොන වෙලාවල් (මතක් කරන්න)</label>
     <div id="e-doses"></div>
@@ -311,6 +316,19 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="row"><button class="btn" id="id-again">📸 ආයේ</button><button class="btn" id="id-gallery">🖼️ ගැලරියෙන්</button><button class="btn" data-close style="flex:1">✖️</button></div>
 </div>
 
+<div class="sheet" id="aisleSheet">
+  <h3 id="aisleTitle">🗺️ කඩේ ඇතුළේ පිළිවෙළ</h3>
+  <p class="muted">කඩේට ඇතුළු වුණාම හමුවෙන පිළිවෙළට කාණ්ඩ හදන්න (↑ ↓). සාප්පු ලිස්ට් එක ඒ පිළිවෙළට පේනවා.</p>
+  <div id="aisleList" class="list"></div>
+  <div class="row"><button class="btn primary" id="aisleSave" style="flex:1">💾 තියාගන්න</button><button class="btn" id="aisleReset">↺ මුල් පිළිවෙළ</button><button class="btn" data-close>✖️</button></div>
+</div>
+
+<div class="sheet" id="ideasSheet">
+  <h3>💡 අද මොනවද උයන්නේ?</h3>
+  <div id="ideasList"></div>
+  <div class="row"><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
+</div>
+
 <div class="sheet" id="setSheet">
   <h3>⚙️ සැකසුම්</h3>
   <label for="s-name">මේ ෆෝන් එක කාගෙද? (ඉතිහාසයේ පේනවා)</label><input id="s-name" maxlength="30" placeholder="උදා: අම්මා, තාත්තා, නංගි">
@@ -318,6 +336,8 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <label for="s-shopday">සාප්පු යන දවස (මාසේ)</label><input id="s-shopday" type="number" min="1" max="28" inputmode="numeric">
   <div class="switch"><span>👵 සරල mode (ලොකු අකුරු, පින්තූර)</span><button class="btn" id="simpleBtn"></button></div>
   <div class="switch"><span>📏 පොඩි අකුරු</span><button class="btn" id="densBtn"></button></div>
+  <div class="switch"><span>🗣️ කටහඬින් කියන්න</span><button class="btn" id="speakBtn"></button></div>
+  <div class="card" style="margin-top:10px;background:var(--soft)"><b>🔐 ගෙදර කෝඩ් එක</b><p class="muted" id="keyStatus" style="margin:4px 0 8px"></p><button class="btn" id="shareKey">📤 ගෙදර අයට ලින්ක් එක යවන්න</button></div>
   <div class="switch"><span>🌙 පාට mode එක</span><select id="modeSel" style="width:auto;margin:0"><option value="auto">ෆෝන් එක වගේ</option><option value="light">☀️ එළිය</option><option value="dark">🌙 අඳුරු</option></select></div>
   <div class="switch" id="notifRow" style="display:none"><span>🔔 Notifications</span><span class="muted" id="notifState"></span></div>
   <label>පාට</label>
@@ -350,7 +370,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 14;
+const APP_VERSION = 15;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -396,7 +416,7 @@ function rebuild(){
   if (!base) { S = null; return; }
   const st = C.normalize(clone(base), today());
   queue.forEach(op => C.apply(st, clone(op)));
-  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay, recipes: st.recipes, bills: st.bills, gas: st.gas, budget: st.budget, log: base.paidLog || [] });
+  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay, recipes: st.recipes, bills: st.bills, gas: st.gas, budget: st.budget, plan: st.plan, doseLog: st.doseLog, aisles: st.aisles, log: base.paidLog || [] });
   // offline වෙනස්කම් එක්ක "තව දවස්" ගණන ආයේ හදනවා
   const rates = {}; Object.keys(base.rates || {}).forEach(id => { const it = S.items.find(i => i.id === id); const r = base.rates[id]; if (it && r.rate > 0) rates[id] = { rate: r.rate, daysLeft: Math.floor(it.qty / r.rate) }; });
   S.items.forEach(it => { if (!rates[it.id] && it.daily > 0) rates[it.id] = { rate: it.daily, daysLeft: Math.floor(it.qty / it.daily) }; });
@@ -473,6 +493,7 @@ function doOp(op){
 let toastTimer = null, toastUndo = null;
 function toast(msg, undoFn){
   $('toastMsg').textContent = msg;
+  try { speak(msg); } catch (e) {}
   toastUndo = undoFn || null;
   $('toastBtn').style.display = undoFn ? 'block' : 'none';
   $('toast').style.display = 'flex';
@@ -486,7 +507,7 @@ function undoable(res, of, extra){
 
 // ---------- helpers ----------
 const item = id => S && S.items.find(i => i.id === id);
-const need = it => C.shopNeeded(it, S && S.planNeeds ? S.planNeeds[it.id] : 0);
+const need = it => C.shopNeeded(it, S && S.planNeeds ? S.planNeeds[it.id] : 0, today());
 var lastDosesJson = ''; // var — rebuild() එක මේකට කලින් call වෙනවා (APK එකේ crash එක)
 function pushDoses(){
   // APK එකට බෙහෙත් වෙලාවල් දෙනවා — alarm දාන්න
@@ -582,6 +603,9 @@ function openEdit(id, opts){
   $('e-barcode').value = it ? it.barcode : (opts.barcode || '');
   $('e-del').style.display = it ? '' : 'none';
   $('e-doses').innerHTML = (it && it.doses ? it.doses : []).map(doseRow).join('');
+  $('e-repeat').value = it && it.repeat ? String(it.repeat.days) : '0';
+  if (!$('e-repeat').value) { $('e-repeat').insertAdjacentHTML('beforeend', `<option value="${it.repeat.days}">දවස් ${it.repeat.days}කට</option>`); $('e-repeat').value = String(it.repeat.days); }
+  $('e-repeatQty').value = it && it.repeat ? fmt(it.repeat.qty) : '';
   showDoseBox();
   openSheet('editSheet');
   if (!it && !opts.name) setTimeout(() => $('e-name').focus(), 50);
@@ -600,6 +624,7 @@ $('e-save').onclick = () => {
     id: isNew ? 'x' + uid() : editingId, name, cat: $('e-cat').value, unit: $('e-unit').value.trim(), icon: $('e-icon').value.trim(),
     monthly: numVal('e-monthly'), daily: numVal('e-daily'), low: numVal('e-low'), price: numVal('e-price'),
     expiry: $('e-expiry').value || '', shop: $('e-shop').value.trim(), place: $('e-place').value.trim(), barcode: $('e-barcode').value.trim(),
+    repeat: Number($('e-repeat').value) > 0 ? { days: Number($('e-repeat').value), qty: numVal('e-repeatQty') || C.stepFor({ unit: $('e-unit').value, daily: 0, monthly: 0 }) || 1 } : null,
     doses: [...document.querySelectorAll('#e-doses .rrow')].map(r => ({ time: r.querySelector('.d-time').value, qty: parseFloat(r.querySelector('.d-qty').value) || 1, who: r.querySelector('.d-who').value.trim() })).filter(d => d.time)
   };
   const q = $('e-qty').value.trim();
@@ -845,7 +870,7 @@ function renderShop(){
     + `<div class="hide-simple"><label for="extraSpent" style="font-weight:400" class="muted">ලිස්ට් එකේ නැති දේවල් වලට ගෙවපු ගණන (රු.)</label><input id="extraSpent" type="number" min="0" inputmode="decimal" placeholder="0"></div>`
     + `<div class="hide-simple"><label for="shopWhere" style="font-weight:400" class="muted">ගත්තේ කොහෙන්ද (මිල සංසන්දනයට)</label><input id="shopWhere" list="shops" maxlength="30" placeholder="පොළ, සුපර්මාර්කට්…"></div>`
     + `<div class="row"><button class="btn primary" data-act="finishShop" style="flex:1">✅ සාප්පු ඉවරයි — තොගයට දාන්න</button></div>`
-    + `<div class="row"><button class="btn" data-act="copyshop">📋 කොපි</button><button class="btn" data-act="wa">💬 WhatsApp</button></div></div>`;
+    + `<div class="row"><button class="btn" data-act="copyshop">📋 කොපි</button><button class="btn" data-act="wa">💬 WhatsApp</button><button class="btn hide-simple" data-act="aisleOpen">🗺️ කඩේ පිළිවෙළ</button></div></div>`;
   if (shops.length > 1 || (shops.length === 1 && shops[0])) {
     h += `<div class="chips"><button class="${shopFilter ? '' : 'on'}" data-act="shopf" data-id="">🏪 ඔක්කොම</button>` + shops.map(s => `<button class="${(s || '-') === shopFilter ? 'on' : ''}" data-act="shopf" data-id="${esc(s || '-')}">${esc(s || 'නොදන්න')}</button>`).join('') + '</div>';
   }
@@ -857,15 +882,16 @@ function renderShop(){
   }
   if (!vis.length && !reqs.length) h += '<div class="card">👍 ගන්න දෙයක් නැහැ — හැමදේම තියෙනවා!</div>';
   else {
-    vis.sort((a, b) => ((!!a.tick) - (!!b.tick)) || (a.it.shop || '').localeCompare(b.it.shop || '') || (CAT_ORDER.indexOf(a.it.cat) - CAT_ORDER.indexOf(b.it.cat)) || a.it.name.localeCompare(b.it.name, 'si'));
-    let cur = null, open = false;
+    vis.sort((a, b) => ((!!a.tick) - (!!b.tick)) || (a.it.shop || '').localeCompare(b.it.shop || '') || (aisleIdx(a.it.shop, a.it.cat) - aisleIdx(b.it.shop, b.it.cat)) || a.it.name.localeCompare(b.it.name, 'si'));
+    let cur = null, open = false, curCat = null;
     vis.forEach(x => {
       const done = !!x.tick;
       const g = done ? '✅ ගත්තා' : '🏪 ' + (x.it.shop || 'කොහෙන්ද කියලා නැහැ');
-      if (g !== cur) { if (open) h += '</div>'; cur = g; h += `<div class="cathead"><span>${esc(g)}</span></div><div class="list">`; open = true; }
+      if (g !== cur) { if (open) h += '</div>'; cur = g; curCat = null; h += `<div class="cathead"><span>${esc(g)}</span></div><div class="list">`; open = true; }
+      if (!done && x.it.cat !== curCat) { curCat = x.it.cat; h += `<div class="aisle">${CAT_EMOJI[curCat] || '📦'} ${esc(curCat)}</div>`; }
       const id = esc(x.it.id);
       h += `<div class="itemrow${done ? ' done' : ''}"><button class="mini" data-act="tick" data-id="${id}" aria-label="ගත්තා">${done ? '☑' : '☐'}</button>`
-        + `<div class="ri-info"><div class="ri-name" data-act="tick" data-id="${id}">${esc(C.iconFor(x.it))} ${esc(x.it.name)}</div><div class="ri-sub">${S.planNeeds[x.it.id] > x.it.qty && !done ? '<span class="tag amber">📅 සැලැස්මට</span>' : ''}දැන් ${fmt(x.it.qty)}${unitTxt(x.it)}${x.it.price && !done ? ' • ~' + rs(x.it.price * x.need) : ''}${done && x.tick.by ? ' • ✓ ' + esc(x.tick.by) : ''}</div>`
+        + `<div class="ri-info"><div class="ri-name" data-act="tick" data-id="${id}">${esc(C.iconFor(x.it))} ${esc(x.it.name)}</div><div class="ri-sub">${S.planNeeds[x.it.id] > x.it.qty && !done ? '<span class="tag amber">📅 සැලැස්මට</span>' : ''}${!done && C.repeatDue(x.it, today()) ? '<span class="tag">🔄 පුරුද්ද</span>' : ''}දැන් ${fmt(x.it.qty)}${unitTxt(x.it)}${x.it.price && !done ? ' • ~' + rs(x.it.price * x.need) : ''}${done && x.tick.by ? ' • ✓ ' + esc(x.tick.by) : ''}</div>`
         + (done ? `<input class="pricein" type="number" min="0" inputmode="decimal" data-price="${id}" placeholder="රු. ගෙවපු" value="${x.tick.price ? fmt(x.tick.price) : ''}">` : '')
         + `</div><input class="shopq" type="number" step="any" min="0" inputmode="decimal" data-id="${id}" value="${fmt(done ? x.tick.qty : x.need)}" aria-label="ප්‍රමාණය"><span class="muted" style="min-width:24px">${esc(x.it.unit)}</span></div>`;
     });
@@ -904,6 +930,14 @@ function renderMonth(){
   const bt = C.billsTotal(S, mk); if (bt) h += `<p class="muted" style="margin:8px 0 0">💡 බිල්පත් වලට තවත් ${rs(bt)} • එකතුව ${rs(thisM + bt)}</p>`;
   if (!thisM) h += '<p class="muted">“ගත්තා” කරනකොට ගෙවපු ගණනත් දැම්මාම වියදම මෙතන පේනවා.</p>';
   h += '</div>';
+  // 📆 අවුරුද්දේ වියදම (මාස 12)
+  const ys = []; { let yy = Number(mk.slice(0, 4)), mm = Number(mk.slice(5, 7)); for (let i = 0; i < 12; i++) { ys.unshift(yy + '-' + String(mm).padStart(2, '0')); mm--; if (!mm) { mm = 12; yy--; } } }
+  const yv = k => C.monthTotal(S, k) + C.billsTotal(S, k), yTot = ys.reduce((a, k) => a + yv(k), 0), yMax = Math.max(1, ...ys.map(yv));
+  const used = ys.filter(k => yv(k) > 0), best = used.slice().sort((a, b) => yv(b) - yv(a))[0];
+  h += `<div class="card"><h3>📆 අවුරුද්දේ වියදම (බඩු + බිල්පත්)</h3><div class="big">${rs(yTot)}</div>`
+    + (used.length ? `<p class="muted" style="margin:0 0 8px">මාසෙකට සාමාන්‍යයෙන් ${rs(yTot / used.length)} • වැඩිම මාසය ${MONTHS_FULL[Number(best.slice(5)) - 1]} (${rs(yv(best))})</p>` : '<p class="muted">ගෙවපු ගණන් දාන්න පටන් ගත්තාම මෙතන මාසෙන් මාසෙට පේනවා.</p>')
+    + ys.map(k => `<div class="mbar"><span>${MONTHS[Number(k.slice(5)) - 1]} ${k.slice(2, 4)}</span><div class="bar"><i style="width:${yv(k) / yMax * 100}%"></i></div><b>${yv(k) ? rs(yv(k)) : '—'}</b></div>`).join('')
+    + (used.length ? '<div class="row"><button class="btn" data-act="yearShare">💬 අවුරුදු සාරාංශය WhatsApp</button></div>' : '') + '</div>';
   const day = Number(today().slice(8));
   h += `<div class="card"><h3>📊 මාසික සාරාංශය</h3><p class="muted">වියදම, කාණ්ඩ, බිල්පත්, ඊළඟට ගන්න ඕන දේවල් — ගෙදර WhatsApp group එකට යවන්න.</p>`
     + `<div class="row"><button class="btn primary" data-act="report" data-id="${mk}" style="flex:1">💬 ${MONTHS_FULL[Number(mk.slice(5)) - 1]} සාරාංශය WhatsApp</button><button class="btn" data-act="reportCopy" data-id="${mk}">📋</button></div>`
@@ -967,7 +1001,7 @@ function planToggle(rid, day){
 let aiOn = false;
 const isWebView = /; wv\)/.test(navigator.userAgent);
 async function checkAI(){
-  try { const r = await api('/api/health'); const j = await r.json(); aiOn = !!j.ai; } catch (e) {}
+  try { const r = await api('/api/health'); const j = await r.json(); aiOn = !!j.ai; keyRequired = !!j.keyRequired; } catch (e) {}
   const camOk = aiOn && (!isWebView || (NATIVE && NATIVE.hasFileChooser));
   $('receiptBtn').style.display = camOk ? '' : 'none';
   $('photoAdd').style.display = camOk ? '' : 'none';
@@ -1128,6 +1162,78 @@ $('vc-apply').onclick = () => {
   });
   if (buys.length) { doOp({ op: 'buy', items: buys }); done += buys.length; }
   closeSheets(); toast(done ? '✅ කළා' : 'කරන්න දෙයක් තේරුණේ නැහැ');
+};
+
+// ---------- 🗺️ කඩේ ඇතුළේ පිළිවෙළ ----------
+function aisleOrder(shop){ const a = S.aisles || {}; return (shop && a[shop]) || a['*'] || C.DEFAULT_AISLE; }
+function aisleIdx(shop, cat){ const o = aisleOrder(shop), i = o.indexOf(cat); return i < 0 ? 99 : i; }
+let aisleKey = '*', aisleDraft = [];
+function openAisle(){
+  aisleKey = shopFilter && shopFilter !== '-' ? shopFilter : '*';
+  const base = aisleOrder(aisleKey === '*' ? '' : aisleKey);
+  aisleDraft = base.concat(C.CATS.filter(c => !base.includes(c)));
+  $('aisleTitle').textContent = '🗺️ ' + (aisleKey === '*' ? 'කඩවල ඇතුළේ පිළිවෙළ (ඔක්කොම කඩ)' : aisleKey + ' ඇතුළේ පිළිවෙළ');
+  renderAisle(); openSheet('aisleSheet');
+}
+function renderAisle(){
+  $('aisleList').innerHTML = aisleDraft.map((c, i) => `<div class="itemrow"><span class="ico">${CAT_EMOJI[c] || '📦'}</span><div class="ri-info"><div class="ri-name" style="font-size:15px">${i + 1}. ${esc(c)}</div></div><button class="mini" data-act="aisleUp" data-id="${i}" ${i === 0 ? 'disabled' : ''}>↑</button><button class="mini" data-act="aisleDown" data-id="${i}" ${i === aisleDraft.length - 1 ? 'disabled' : ''}>↓</button></div>`).join('');
+}
+function aisleMove(i, d){ const j = i + d; if (j < 0 || j >= aisleDraft.length) return; [aisleDraft[i], aisleDraft[j]] = [aisleDraft[j], aisleDraft[i]]; renderAisle(); }
+$('aisleSave').onclick = () => { doOp({ op: 'aisles', shop: aisleKey, order: aisleDraft }); closeSheets(); toast('✅ කඩේ පිළිවෙළ තියාගත්තා'); };
+$('aisleReset').onclick = () => { doOp({ op: 'aisles', shop: aisleKey, order: [] }); closeSheets(); toast('↺ මුල් පිළිවෙළට හැරෙව්වා'); };
+
+// ---------- 💡 ගෙදර තියෙන දේවල් වලින් මොනවද උයන්නේ ----------
+function recipeFit(r){
+  // කොච්චර බඩු ගෙදර තියෙනවද, කල් ඉකුත් වෙන බඩු පාවිච්චි වෙනවද
+  const t = today(); let have = 0, soon = 0; const missing = [];
+  r.items.forEach(x => { const it = item(x.id); if (it && it.qty >= x.qty) { have++; const e = C.expiryStatus(it, t); if (e && e.level !== 'ok') soon++; } else missing.push(it ? it.name : ((CATALOG.find(c => c.id === x.id) || {}).name || '?')); });
+  return { r, have, soon, missing, ok: !missing.length };
+}
+let aiIdeas = [];
+async function openIdeas(){
+  closeSheets();
+  const fits = (S.recipes || []).map(recipeFit).sort((a, b) => (b.ok - a.ok) || (b.soon - a.soon) || (a.missing.length - b.missing.length));
+  const ready = fits.filter(f => f.ok), almost = fits.filter(f => !f.ok && f.missing.length <= 2).slice(0, 5);
+  const row = f => `<div class="itemrow"><span class="ico">${esc(f.r.icon)}</span><div class="ri-info"><div class="ri-name">${esc(f.r.name)}${f.soon ? ' <span class="tag amber">⏰ කල් ඉකුත් වෙන බඩු පාවිච්චි වෙනවා</span>' : ''}</div>${f.missing.length ? `<div class="ri-sub">මදි: ${f.missing.map(esc).join(', ')}</div>` : ''}</div><button class="btn ${f.ok ? 'primary' : ''}" data-act="ideaCook" data-id="${esc(f.r.rid)}">🍳</button></div>`;
+  let h = `<div class="cathead"><span>✅ දැන්ම හදන්න පුළුවන් (${ready.length})</span></div>` + (ready.length ? `<div class="list">${ready.map(row).join('')}</div>` : '<p class="muted">ඔයාගේ වට්ටෝරු වලට ඕන හැම බඩුවක්ම ගෙදර නැහැ.</p>');
+  if (almost.length) h += `<div class="cathead"><span>🟡 එක දෙකක් මදි</span></div><div class="list">${almost.map(row).join('')}</div>`;
+  h += `<div id="aiIdeas">${aiOn ? '<div class="cathead"><span>🤖 AI යෝජනා</span></div><p class="muted">ගෙදර තියෙන බඩු බලලා යෝජනා හදනවා…</p>' : ''}</div>`;
+  $('ideasList').innerHTML = h; openSheet('ideasSheet');
+  if (!aiOn) return;
+  try {
+    const r = await api('/api/ai/cook', { method: 'POST', body: {} }); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'error');
+    aiIdeas = j.ideas || [];
+    $('aiIdeas').innerHTML = '<div class="cathead"><span>🤖 AI යෝජනා</span></div><div class="list">' + aiIdeas.map((x, i) => `<div class="itemrow"><span class="ico">${esc(x.icon)}</span><div class="ri-info"><div class="ri-name">${esc(x.name)}</div><div class="ri-sub">${esc(x.why)}${x.missing.length ? '<br>මදි: ' + x.missing.map(esc).join(', ') : ''}</div></div>`
+      + (x.recipeId ? `<button class="btn primary" data-act="ideaCook" data-id="${esc(x.recipeId)}">🍳</button>` : `<button class="btn" data-act="ideaSave" data-id="${i}">➕</button>`) + '</div>').join('') + '</div><p class="muted">➕ = වට්ටෝරුවක් ලෙස තියාගන්න, 🍳 = ඉව්වා (බඩු අඩු වෙනවා)</p>';
+  } catch (e) { $('aiIdeas').innerHTML = '<p class="muted">🤖 AI යෝජනා දැන් ගන්න බැරි වුණා.</p>'; }
+}
+$('ideasBtn').onclick = openIdeas;
+function ideaSave(i){
+  const x = aiIdeas[i]; if (!x || !x.items.length) return toast('මේකට ඕන බඩු ලිස්ට් එකේ නැහැ');
+  doOp({ op: 'recipeUpsert', recipe: { rid: 'rc' + uid(), name: x.name, icon: x.icon, items: x.items } });
+  toast('✅ ' + x.name + ' වට්ටෝරු වලට දැම්මා — බොත්තම් ලිස්ට් එකේ පේනවා'); openIdeas();
+}
+
+// ---------- 🗣️ කටහඬින් කියන්න ----------
+let speakOn = LS.get('geda2_speak', false);
+function speak(text){
+  if (!speakOn) return;
+  const t = String(text || '').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}•✓☑☐↩️]/gu, ' ').replace(/\s+/g, ' ').trim();
+  if (!t) return;
+  try {
+    if (NATIVE && NATIVE.speak) return NATIVE.speak(t);
+    if (window.speechSynthesis) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'si-LK'; const v = speechSynthesis.getVoices().find(x => /^si/i.test(x.lang)); if (v) u.voice = v; speechSynthesis.speak(u); }
+  } catch (e) {}
+}
+$('speakBtn').onclick = () => { speakOn = !speakOn; LS.set('geda2_speak', speakOn); $('speakBtn').textContent = speakOn ? 'ON' : 'OFF'; if (speakOn) speak('ගෙදර බඩු කටහඬින් කියනවා'); };
+
+// ---------- 🔐 ගෙදර කෝඩ් එක බෙදාගන්න ----------
+let keyRequired = false;
+$('shareKey').onclick = async () => {
+  if (!key) return toast(keyRequired ? 'මුලින්ම ඔයාගේ ෆෝන් එකේ කෝඩ් එක දාන්න' : 'Server එකේ ගෙදර කෝඩ් එක දාලා නැහැ — Coolify එකේ HOUSEHOLD_KEY දාන්න');
+  const link = location.origin + '/#key=' + encodeURIComponent(key);
+  const txt = '🏠 ගෙදර බඩු app එක\n' + link + '\n\nAPK app එකේ නම් ⚙️ සැකසුම් → ගෙදර කෝඩ් එකට මේක දාන්න: ' + key;
+  await copyText(txt); location.href = 'https://wa.me/?text=' + encodeURIComponent(txt);
 };
 
 // ---------- 🍳 වට්ටෝරු ----------
@@ -1305,6 +1411,17 @@ function reportText(mk){
   if (r.toBuy.length) t += '\n🛒 ඊළඟට ගන්න ඕන (' + r.toBuy.length + '): ' + r.toBuy.slice(0, 15).join(', ') + (r.toBuy.length > 15 ? '…' : '') + '\n';
   return t;
 }
+async function shareYear(){
+  const mk = today().slice(0, 7); const ys = []; let yy = Number(mk.slice(0, 4)), mm = Number(mk.slice(5, 7));
+  for (let i = 0; i < 12; i++) { ys.unshift(yy + '-' + String(mm).padStart(2, '0')); mm--; if (!mm) { mm = 12; yy--; } }
+  const yv = k => C.monthTotal(S, k) + C.billsTotal(S, k), used = ys.filter(k => yv(k) > 0), tot = used.reduce((a, k) => a + yv(k), 0);
+  let t = '📆 ගෙදර බඩු — අන්තිම මාස 12\n\n💰 මුළු වියදම (බඩු + බිල්පත්): ' + rs(tot) + '\n';
+  if (used.length) t += '📊 මාසෙකට සාමාන්‍යයෙන්: ' + rs(tot / used.length) + '\n\n';
+  used.forEach(k => t += '• ' + MONTHS_FULL[Number(k.slice(5)) - 1] + ' ' + k.slice(0, 4) + ': ' + rs(yv(k)) + '\n');
+  const up = S.items.filter(it => it.price && it.prevPrice && it.price > it.prevPrice);
+  if (up.length) { t += '\n📈 මිල වැඩි වුණ බඩු:\n'; up.slice(0, 10).forEach(it => t += '• ' + it.name + ': ' + rs(it.prevPrice) + ' → ' + rs(it.price) + '\n'); }
+  await copyText(t); location.href = 'https://wa.me/?text=' + encodeURIComponent(t);
+}
 async function sendReport(mk, how){
   const t = reportText(mk);
   if (how === 'copy') return toast(await copyText(t) ? '📋 සාරාංශය කොපි කළා' : 'කොපි කරන්න බැරි වුණා');
@@ -1345,6 +1462,12 @@ document.addEventListener('click', async e => {
   else if (act === 'addcat') addCatalog(id);
   else if (act === 'addnamed') openEdit(null, { name: searchText });
   else if (act === 'cookr') cookRecipe(id);
+  else if (act === 'aisleOpen') openAisle();
+  else if (act === 'aisleUp') aisleMove(Number(id), -1);
+  else if (act === 'aisleDown') aisleMove(Number(id), 1);
+  else if (act === 'ideaCook') { closeSheets(); cookRecipe(id); }
+  else if (act === 'ideaSave') ideaSave(Number(id));
+  else if (act === 'yearShare') shareYear();
   else if (act === 'idAlt') $('id-name').value = id;
   else if (act === 'idOpen') { const mid = idData.matchId; closeSheets(); openEdit(mid); }
   else if (act === 'idBuy') { const m = item(idData.matchId); if (m) { const q = idData.qty || 1; const res = doOp({ op: 'buy', items: [{ id: m.id, qty: q, price: 0 }] }); closeSheets(); toast('✅ ' + m.name + ' +' + fmt(q), undoable(res, 'buy')); } }
@@ -1411,6 +1534,8 @@ $('setBtn').onclick = () => {
   $('s-name').value = myName; $('s-key').value = key; $('s-shopday').value = S ? S.shopDay || 25 : 25; $('impBox').style.display = 'none';
   $('diag').textContent = 'App v' + APP_VERSION + (NATIVE ? ' • APK ' + (NATIVE.version ? NATIVE.version() : '') : '') + ' • දත්ත version ' + (base ? base.version : '—') + ' • යවන්න ඉතිරි ' + queue.length;
   if (NATIVE && NATIVE.notifStatus) { $('notifRow').style.display = 'flex'; $('notifState').textContent = NATIVE.notifStatus(); }
+  $('speakBtn').textContent = speakOn ? 'ON' : 'OFF';
+  $('keyStatus').textContent = keyRequired ? '✅ ON — ලිස්ට් එක ආරක්ෂිතයි. අලුත් ෆෝන් එකකට පහළ බොත්තමෙන් ලින්ක් එක යවන්න.' : '⚠️ OFF — ලින්ක් එක දන්න ඕනම කෙනෙක්ට ලිස්ට් එක බලන්න පුළුවන්. Coolify → Environment Variables → HOUSEHOLD_KEY දාලා Redeploy කරන්න.';
   openSheet('setSheet');
 };
 $('s-save').onclick = () => {
