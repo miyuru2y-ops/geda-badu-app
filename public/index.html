@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:15 -->
+<!-- APP_VERSION:16 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -158,7 +158,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v15</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v16</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -347,6 +347,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
     <div class="row" style="margin:0"><button class="btn" id="expBtn">📤 Backup කොපි කරන්න</button><button class="btn" id="impOpen">📥 Restore</button></div>
     <div id="impBox" style="display:none"><textarea id="impText" rows="4" placeholder="Backup කෝඩ් එක මෙතන paste කරන්න"></textarea><button class="btn danger" id="impBtn">⚠️ මේ backup එක දාන්න (දැන් තියෙන ලිස්ට් එක වෙනුවට)</button></div>
   </div>
+  <button class="btn" id="updBtn" style="width:100%;margin-top:10px;display:none">🔄 App update තියෙනවද බලන්න</button>
   <p class="muted" id="diag"></p>
   <div class="row"><button class="btn primary" id="s-save" style="flex:1">💾 තියාගන්න</button><button class="btn" data-close>✖️ වහන්න</button></div>
 </div>
@@ -370,7 +371,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 15;
+const APP_VERSION = 16;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -1225,6 +1226,7 @@ function speak(text){
     if (window.speechSynthesis) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'si-LK'; const v = speechSynthesis.getVoices().find(x => /^si/i.test(x.lang)); if (v) u.voice = v; speechSynthesis.speak(u); }
   } catch (e) {}
 }
+$('updBtn').onclick = () => { try { NATIVE.checkUpdate(); toast('🔄 බලනවා…'); } catch (e) {} };
 $('speakBtn').onclick = () => { speakOn = !speakOn; LS.set('geda2_speak', speakOn); $('speakBtn').textContent = speakOn ? 'ON' : 'OFF'; if (speakOn) speak('ගෙදර බඩු කටහඬින් කියනවා'); };
 
 // ---------- 🔐 ගෙදර කෝඩ් එක බෙදාගන්න ----------
@@ -1535,6 +1537,7 @@ $('setBtn').onclick = () => {
   $('diag').textContent = 'App v' + APP_VERSION + (NATIVE ? ' • APK ' + (NATIVE.version ? NATIVE.version() : '') : '') + ' • දත්ත version ' + (base ? base.version : '—') + ' • යවන්න ඉතිරි ' + queue.length;
   if (NATIVE && NATIVE.notifStatus) { $('notifRow').style.display = 'flex'; $('notifState').textContent = NATIVE.notifStatus(); }
   $('speakBtn').textContent = speakOn ? 'ON' : 'OFF';
+  $('updBtn').style.display = NATIVE && NATIVE.checkUpdate ? '' : 'none';
   $('keyStatus').textContent = keyRequired ? '✅ ON — ලිස්ට් එක ආරක්ෂිතයි. අලුත් ෆෝන් එකකට පහළ බොත්තමෙන් ලින්ක් එක යවන්න.' : '⚠️ OFF — ලින්ක් එක දන්න ඕනම කෙනෙක්ට ලිස්ට් එක බලන්න පුළුවන්. Coolify → Environment Variables → HOUSEHOLD_KEY දාලා Redeploy කරන්න.';
   openSheet('setSheet');
 };

@@ -178,6 +178,8 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void refreshWidget() { GedaWidget.refresh(MainActivity.this); }
 
         @JavascriptInterface public void speak(String text) { runOnUiThread(() -> say(text)); }
+
+        @JavascriptInterface public void checkUpdate() { runOnUiThread(() -> UpdateChecker.check(MainActivity.this, true)); }
     }
 
     private void startScan() {

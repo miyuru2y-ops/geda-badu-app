@@ -44,8 +44,9 @@ public class UpdateChecker {
             int code = j.optInt("versionCode", 0);
             if (code <= BuildConfig.VERSION_CODE) return;
             SharedPreferences p = ctx.getSharedPreferences(AlertScheduler.PREFS, Context.MODE_PRIVATE);
-            if (p.getInt("updNotified", 0) == code) return;
-            p.edit().putInt("updNotified", code).apply();
+            // එකම update එක ගැන දවසකට වරක් ආයේ මතක් කරනවා (update කරනකම්)
+            if (p.getInt("updNotified", 0) == code && System.currentTimeMillis() - p.getLong("updNotifiedAt", 0) < 24 * 3600 * 1000L) return;
+            p.edit().putInt("updNotified", code).putLong("updNotifiedAt", System.currentTimeMillis()).apply();
             String notes = j.optString("notes", "");
             AlertReceiver.showUpdate(ctx, "🆕 ගෙදර බඩු " + j.optString("versionName", "") + " update එකක් තියෙනවා",
                 (notes.isEmpty() ? "" : notes + "\n") + "මෙතන tap කරලා Update ඔබන්න.");
@@ -61,7 +62,10 @@ public class UpdateChecker {
             try {
                 JSONObject j = fetchVersion(); if (j == null) return;
                 int code = j.optInt("versionCode", 0);
-                if (code <= BuildConfig.VERSION_CODE) return;
+                if (code <= BuildConfig.VERSION_CODE) {
+                    if (force) act.runOnUiThread(() -> android.widget.Toast.makeText(act, "✅ ඔයා ළඟ තියෙන්නේ අලුත්ම version එක (" + BuildConfig.VERSION_NAME + ")", android.widget.Toast.LENGTH_LONG).show());
+                    return;
+                }
                 String name = j.optString("versionName", ""), notes = j.optString("notes", "");
                 act.runOnUiThread(() -> {
                     if (act.isFinishing()) return;
