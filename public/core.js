@@ -496,22 +496,12 @@
   }
 
   // ඇත්ත පාවිච්චියෙන් දවසකට යන ප්‍රමාණය ඉගෙනගන්නවා → "තව දවස් කීයද"
+  // "තව දවස් කීයද" ඇස්තමේන්තුව අයින් කළා (පාවිච්චිය අනියමයි). බෙහෙත් වලට විතරක් — බොන වෙලාවල් ඇති නිසා හරියටම දන්නවා.
   function usageRates(state, today) {
-    var from = addDays(today, -RATE_DAYS), used = {}, first = today;
-    state.log.forEach(function (l) {
-      if (!l.d || l.d < from || l.d > today) return;
-      if (l.d < first) first = l.d;
-      var w = baseWhy(l.why);
-      if (w === 'use' || w === 'cook') used[l.id] = (used[l.id] || 0) - l.delta;
-    });
-    var days = Math.max(1, dayNum(today) - dayNum(first) + 1);
     var out = {};
     state.items.forEach(function (it) {
-      var u = Math.max(0, used[it.id] || 0), rate = 0;
-      if (days >= 7 && u > 0) rate = u / days;              // සතියකට වඩා history තියෙනවා නම් ඇත්ත පාවිච්චිය
-      else if (it.daily > 0) rate = it.daily;              // නැත්නම් "දවසට උයන" ප්‍රමාණය
-      else if (u > 0) rate = u / Math.max(days, 7);
-      if (rate > 0) out[it.id] = { rate: Math.round(rate * 1000) / 1000, daysLeft: Math.floor(it.qty / rate) };
+      var perDay = (it.doses || []).reduce(function (a, d) { return a + d.qty; }, 0);
+      if (perDay > 0) out[it.id] = { rate: Math.round(perDay * 1000) / 1000, daysLeft: Math.floor(it.qty / perDay) };
     });
     return out;
   }

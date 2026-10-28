@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:20 -->
+<!-- APP_VERSION:21 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -160,7 +160,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v20</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v21</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -394,7 +394,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 20;
+const APP_VERSION = 21;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -443,7 +443,7 @@ function rebuild(){
   S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay, recipes: st.recipes, bills: st.bills, gas: st.gas, budget: st.budget, plan: st.plan, doseLog: st.doseLog, aisles: st.aisles, waste: st.waste, log: base.paidLog || [] });
   // offline වෙනස්කම් එක්ක "තව දවස්" ගණන ආයේ හදනවා
   const rates = {}; Object.keys(base.rates || {}).forEach(id => { const it = S.items.find(i => i.id === id); const r = base.rates[id]; if (it && r.rate > 0) rates[id] = { rate: r.rate, daysLeft: Math.floor(it.qty / r.rate) }; });
-  S.items.forEach(it => { if (!rates[it.id] && it.daily > 0) rates[it.id] = { rate: it.daily, daysLeft: Math.floor(it.qty / it.daily) }; });
+  S.items.forEach(it => { const pd = (it.doses || []).reduce((x, d) => x + d.qty, 0); if (pd > 0) rates[it.id] = { rate: pd, daysLeft: Math.floor(it.qty / pd) }; });
   S.rates = rates;
   S.planNeeds = C.planNeeds(S, today());
   try { pushDoses(); } catch (e) {}
