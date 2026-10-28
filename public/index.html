@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:18 -->
+<!-- APP_VERSION:19 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -160,7 +160,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v18</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v19</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -182,6 +182,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
     <div><label for="e-shop">ගන්නේ කොහෙන්ද</label><input id="e-shop" maxlength="30" list="shops" placeholder="පොළ, සුපර්මාර්කට්"></div>
     <div><label for="e-place">ගෙදර තියෙන්නේ</label><input id="e-place" maxlength="30" list="placesList" placeholder="කුස්සිය, ෆ්‍රිජ්"></div>
   </div>
+  <label style="display:flex;align-items:center;gap:10px;font-weight:600"><input type="checkbox" id="e-onlyOut" style="width:22px;height:22px"> 🚫 ඉවර උනාම විතරයි ගන්නේ <span class="muted" style="font-weight:400">(ටයිල් ක්ලීනර් වගේ — මාසෙට වරක් ගන්නේ නැති බඩු)</span></label>
   <label for="e-repeat">🔄 පුරුද්දට ගන්නවා (ඒ දවසට සාප්පු ලිස්ට් එකට ඉබේම)</label>
   <div class="grid2"><select id="e-repeat"><option value="0">නැහැ</option><option value="1">හැමදාම</option><option value="2">දවස් 2කට</option><option value="3">දවස් 3කට</option><option value="7">සතියට වරක්</option><option value="14">සති 2කට</option><option value="30">මාසෙට වරක්</option></select>
   <input id="e-repeatQty" type="number" step="any" min="0" inputmode="decimal" placeholder="ගන්න ප්‍රමාණය"></div>
@@ -393,7 +394,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 18;
+const APP_VERSION = 19;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -639,6 +640,7 @@ function openEdit(id, opts){
   $('e-repeat').value = it && it.repeat ? String(it.repeat.days) : '0';
   if (!$('e-repeat').value) { $('e-repeat').insertAdjacentHTML('beforeend', `<option value="${it.repeat.days}">දවස් ${it.repeat.days}කට</option>`); $('e-repeat').value = String(it.repeat.days); }
   $('e-repeatQty').value = it && it.repeat ? fmt(it.repeat.qty) : '';
+  $('e-onlyOut').checked = !!(it && it.onlyOut);
   showDoseBox();
   openSheet('editSheet');
   if (!it && !opts.name) setTimeout(() => $('e-name').focus(), 50);
@@ -655,7 +657,7 @@ $('e-save').onclick = () => {
   const isNew = editingId === 'new';
   const it = {
     id: isNew ? 'x' + uid() : editingId, name, cat: $('e-cat').value, unit: $('e-unit').value.trim(), icon: $('e-icon').value.trim(),
-    monthly: numVal('e-monthly'), daily: numVal('e-daily'), low: numVal('e-low'), price: numVal('e-price'),
+    onlyOut: $('e-onlyOut').checked, monthly: numVal('e-monthly'), daily: numVal('e-daily'), low: numVal('e-low'), price: numVal('e-price'),
     expiry: $('e-expiry').value || '', shop: $('e-shop').value.trim(), place: $('e-place').value.trim(), barcode: $('e-barcode').value.trim(),
     repeat: Number($('e-repeat').value) > 0 ? { days: Number($('e-repeat').value), qty: numVal('e-repeatQty') || C.stepFor({ unit: $('e-unit').value, daily: 0, monthly: 0 }) || 1 } : null,
     doses: [...document.querySelectorAll('#e-doses .rrow')].map(r => ({ time: r.querySelector('.d-time').value, qty: parseFloat(r.querySelector('.d-qty').value) || 1, who: r.querySelector('.d-who').value.trim() })).filter(d => d.time)

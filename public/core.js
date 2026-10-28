@@ -15,7 +15,7 @@
   var RATE_DAYS = 30;       // "තව දවස් කීයද" ගණන් හදන්න අන්තිම දවස් 30ක පාවිච්චිය
   var EXPIRY_WARN_DAYS = 7;
 
-  var CATS = ['එළවළු', 'කොළ වර්ග', 'පළතුරු', 'ධාන්‍ය වර්ග', 'කුළුබඩු', 'මස් මාලු බිත්තර', 'කිරි නිෂ්පාදන', 'කුස්සියේ බඩු', 'බීම වර්ග', 'බිස්කට් සහ කෑම', 'පිරිසිදු කරන ද්‍රව්‍ය', 'පුද්ගලික සනීපාරක්ෂක', 'ළදරු', 'බෙහෙත්', 'වෙනත්'];
+  var CATS = ['ධාන්‍ය වර්ග', 'කුළුබඩු', 'මස් මාලු බිත්තර', 'කිරි නිෂ්පාදන', 'කුස්සියේ බඩු', 'බීම වර්ග', 'බිස්කට් සහ කෑම', 'පිරිසිදු කරන ද්‍රව්‍ය', 'පුද්ගලික සනීපාරක්ෂක', 'ළදරු', 'බෙහෙත්', 'වෙනත්'];
   var SHOPS = ['සුපර්මාර්කට්', 'පොළ', 'ළඟ කඩේ', 'ෆාමසිය'];
   var PLACES = ['කුස්සිය', 'ෆ්‍රිජ්', 'ස්ටෝර් රූම්', 'නාන කාමරේ', 'බෙහෙත් පෙට්ටිය'];
 
@@ -31,7 +31,7 @@
     fish: '🐟', paracetamol: '💊', plaster: '🩹', antiseptic: '🧴', 'baby-soap': '🧼', 'adult-soap': '🧼', comfort: '🧴',
     'vim-soap': '🧽', 'vim-liquid': '🧴', dash: '🧴', toilet: '🚽', air: '🌸', shampoo: '🧴', conditioner: '🧴'
   };
-  var CAT_ICON = {'එළවළු': '🥦', 'කොළ වර්ග': '🥬', 'පළතුරු': '🍎', 'ධාන්‍ය වර්ග': '🌾', 'කුළුබඩු': '🌶️', 'මස් මාලු බිත්තර': '🥚', 'කිරි නිෂ්පාදන': '🥛', 'කුස්සියේ බඩු': '🥫', 'බීම වර්ග': '🥤', 'බිස්කට් සහ කෑම': '🍪', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'පුද්ගලික සනීපාරක්ෂක': '🧴', 'ළදරු': '🍼', 'බෙහෙත්': '💊', 'වෙනත්': '📦'};
+  var CAT_ICON = {'ධාන්‍ය වර්ග': '🌾', 'කුළුබඩු': '🌶️', 'මස් මාලු බිත්තර': '🥚', 'කිරි නිෂ්පාදන': '🥛', 'කුස්සියේ බඩු': '🥫', 'බීම වර්ග': '🥤', 'බිස්කට් සහ කෑම': '🍪', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'පුද්ගලික සනීපාරක්ෂක': '🧴', 'ළදරු': '🍼', 'බෙහෙත්': '💊', 'වෙනත්': '📦'};
   // අලුත් emoji (Unicode 14+) පරණ ෆෝන්වල කොටුවක් විදිහට පේන නිසා පරණ ඒවට මාරු කරනවා
   var SAFE_EMOJI = { '\uD83E\uDED8': '🍲', '\uD83E\uDED3': '🥙', '\uD83E\uDEDB': '🥬', '\uD83E\uDEDA': '🌿' };
   function safeIcon(e) { return SAFE_EMOJI[e] || e; }
@@ -49,7 +49,7 @@
     { rid: 'rc-tea', name: 'කිරි තේ (4ට)', icon: '🍵', items: [{ id: 'tea', qty: 8 }, { id: 'milk-powder', qty: 30 }, { id: 'sugar', qty: 0.04 }] }
   ];
   // සුපර්මාර්කට් එකක සාමාන්‍ය පිළිවෙළ (දොරෙන් ඇතුළු වුණාම)
-  var DEFAULT_AISLE = ['එළවළු', 'කොළ වර්ග', 'පළතුරු', 'මස් මාලු බිත්තර', 'කිරි නිෂ්පාදන', 'බිස්කට් සහ කෑම', 'බීම වර්ග', 'කුස්සියේ බඩු', 'ධාන්‍ය වර්ග', 'කුළුබඩු', 'පිරිසිදු කරන ද්‍රව්‍ය', 'පුද්ගලික සනීපාරක්ෂක', 'ළදරු', 'බෙහෙත්', 'වෙනත්'];
+  var DEFAULT_AISLE = ['මස් මාලු බිත්තර', 'කිරි නිෂ්පාදන', 'බිස්කට් සහ කෑම', 'බීම වර්ග', 'කුස්සියේ බඩු', 'ධාන්‍ය වර්ග', 'කුළුබඩු', 'පිරිසිදු කරන ද්‍රව්‍ය', 'පුද්ගලික සනීපාරක්ෂක', 'ළදරු', 'බෙහෙත්', 'වෙනත්'];
   var BILL_SUGGEST = [
     { name: 'කරන්ට් බිල', icon: '⚡', day: 10 }, { name: 'වතුර බිල', icon: '💧', day: 15 },
     { name: 'ඉන්ටර්නෙට් / ෆෝන්', icon: '📶', day: 5 }, { name: 'ගෙවල් කුලිය', icon: '🏠', day: 1 }, { name: 'පාසල් ගාස්තු', icon: '🎒', day: 5 }
@@ -76,7 +76,13 @@
 
   // පරණ app එකේ කාණ්ඩ නම් (කෑම, පිරිසිදු, එළවළු / කිරි) අලුත් ඒවට — v8 එකේ CAT_MAP එකමයි
   var OLD_CAT = {"baby-soap": "පිරිසිදු කරන ද්‍රව්‍ය", "adult-soap": "පිරිසිදු කරන ද්‍රව්‍ය", "comfort": "පිරිසිදු කරන ද්‍රව්‍ය", "vim-soap": "පිරිසිදු කරන ද්‍රව්‍ය", "vim-liquid": "පිරිසිදු කරන ද්‍රව්‍ය", "dash": "පිරිසිදු කරන ද්‍රව්‍ය", "toilet": "පිරිසිදු කරන ද්‍රව්‍ය", "air": "පිරිසිදු කරන ද්‍රව්‍ය", "shampoo": "පිරිසිදු කරන ද්‍රව්‍ය", "conditioner": "පිරිසිදු කරන ද්‍රව්‍ය", "potato": "එළවළු", "big-onion": "එළවළු", "red-onion": "එළවළු", "veg": "එළවළු", "tomato": "එළවළු", "carrot": "එළවළු", "beetroot": "එළවළු", "cabbage": "එළවළු", "beans": "එළවළු", "brinjal": "එළවළු", "bitter-gourd": "එළවළු", "leeks": "එළවළු", "cucumber": "එළවළු", "greens": "එළවළු", "banana": "පළතුරු", "lime": "පළතුරු", "salt": "කුළුබඩු", "chili-powder": "කුළුබඩු", "curry-powder": "කුළුබඩු", "turmeric": "කුළුබඩු", "pepper": "කුළුබඩු", "cinnamon": "කුළුබඩු", "cloves": "කුළුබඩු", "cardamom": "කුළුබඩු", "mustard": "කුළුබඩු", "fenugreek": "කුළුබඩු", "cumin": "කුළුබඩු", "coriander": "කුළුබඩු", "garlic": "කුළුබඩු", "ginger": "කුළුබඩු", "rice": "ධාන්‍ය වර්ග", "dal": "ධාන්‍ය වර්ග", "atta": "ධාන්‍ය වර්ග", "wheat-flour": "ධාන්‍ය වර්ග", "chickpea": "ධාන්‍ය වර්ග", "mung": "ධාන්‍ය වර්ග", "cowpea": "ධාන්‍ය වර්ග", "noodles": "ධාන්‍ය වර්ග", "pasta": "ධාන්‍ය වර්ග", "eggs": "මස් මාලු බිත්තර", "canned-fish": "මස් මාලු බිත්තර"};
+  // එළවළු / කොළ / පළතුරු කාණ්ඩ අයින් කළා — අල සහ ළූණු විතරක් (කෑම වට්ටෝරු වලට) කුළුබඩු වලට මාරු කරනවා
+  var RETIRED_CATS = ['එළවළු', 'කොළ වර්ග', 'පළතුරු'];
+  var KEEP_MOVED = { potato: 1, 'big-onion': 1, 'red-onion': 1 };
+  function isRetired(it) { return RETIRED_CATS.indexOf(it.cat) >= 0 || (CATS.indexOf(it.cat) < 0 && RETIRED_CATS.indexOf(OLD_CAT[it.id]) >= 0); }
+
   function catFor(it) {
+    if (KEEP_MOVED[it.id] && isRetired(it)) return 'කුළුබඩු';
     if (CATS.indexOf(it.cat) >= 0) return it.cat;
     if (OLD_CAT[it.id]) return OLD_CAT[it.id];
     if (it.cat === 'පිරිසිදු') return 'පිරිසිදු කරන ද්‍රව්‍ය';
@@ -131,6 +137,7 @@
       doses: cleanDoses(it.doses),                       // බෙහෙත් වෙලාවල් [{time:'08:00', qty:1, who:'අම්මා'}]
       repeat: cleanRepeat(it.repeat),                    // 🔄 පුරුද්දට ගන්නවා {days: 7, qty: 1} — නැත්නම් null
       lastBuy: validDate(str(it.lastBuy, 10)) ? str(it.lastBuy, 10) : '',
+      onlyOut: !!it.onlyOut,                              // 🚫 ඉවර උනාම විතරයි ගන්නේ (මාසික ගණන් වලට අයිති නැහැ)
       hist: cleanHist(it.hist)                           // 📊 මිල ඉතිහාසය [{d:'2026-10-28', p:450}] (ඒකකයකට)
     };
   }
@@ -163,7 +170,12 @@
   // පරණ app එකේ state එකක් (v1-v8, v2) අලුත් හැඩයට හරවනවා
   function normalize(s, today) {
     s = s && typeof s === 'object' ? s : {};
-    var items = Array.isArray(s.items) ? s.items.filter(function (i) { return i && i.id != null; }).map(cleanItem) : [];
+    var retiredIds = {};
+    var items = Array.isArray(s.items) ? s.items.filter(function (i) {
+      if (!i || i.id == null) return false;
+      if (isRetired(i) && !KEEP_MOVED[i.id]) { retiredIds[i.id] = 1; return false; }
+      return true;
+    }).map(cleanItem) : [];
     var seen = {};
     items = items.filter(function (i) { if (seen[i.id]) return false; seen[i.id] = 1; return true; });
     var log = Array.isArray(s.log) ? s.log.filter(Boolean).map(function (l) {
@@ -183,7 +195,9 @@
       spend: s.spend && typeof s.spend === 'object' ? s.spend : {},     // {'2026-10': 38500}
       requests: Array.isArray(s.requests) ? s.requests.filter(Boolean).slice(-80) : [],
       ticks: s.ticks && typeof s.ticks === 'object' ? s.ticks : {},     // සාප්පු ලිස්ට් එකේ ✓ — ෆෝන් ඔක්කොටම එකයි
-      recipes: Array.isArray(s.recipes) ? s.recipes.map(cleanRecipe) : null,
+      recipes: Array.isArray(s.recipes) ? s.recipes.filter(function (r) { return !(r && r.items && r.items[0] && retiredIds[r.items[0].id]); }).map(function (r) {
+        var c = cleanRecipe(r); c.items = c.items.filter(function (x) { return !retiredIds[x.id]; }); return c;
+      }).filter(function (r) { return r.items.length; }) : null,
       bills: Array.isArray(s.bills) ? s.bills.map(cleanBill) : [],
       gas: { history: s.gas && Array.isArray(s.gas.history) ? s.gas.history.filter(validDate).slice(-12) : [], days: s.gas ? Math.max(0, Math.round(num(s.gas.days, 0))) : 0, spend: s.gas && s.gas.spend && typeof s.gas.spend === 'object' ? s.gas.spend : {} },
       aisles: s.aisles && typeof s.aisles === 'object' ? s.aisles : {},       // 🗺️ කඩේ ඇතුළේ කාණ්ඩ පිළිවෙළ {කඩේ: [cat…]}
@@ -503,6 +517,7 @@
   }
 
   function isLow(it) {
+    if (it.onlyOut) return it.qty <= 0;
     if (it.low > 0 && it.qty <= it.low) return true;
     if (it.monthly > 0 && it.qty <= it.monthly * 0.25) return true;
     return it.qty <= 0;
@@ -553,6 +568,7 @@
   function hmMin(t) { return Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5)); }
 
   function shopNeededBase(it) {
+    if (it.onlyOut) return it.qty <= 0 ? 1 : 0;
     // මාසෙට ඕන ප්‍රමාණයෙන් බාගයක්වත් ඉවර වෙලා නම් හෝ අඩු නම් විතරයි ලිස්ට් එකට එන්නේ (0.03L වගේ පොඩි ඒවා නෙවෙයි)
     if (it.monthly > 0) return (isLow(it) || it.qty <= it.monthly * 0.5) ? Math.max(0, r2(it.monthly - it.qty)) : 0;
     if (!isLow(it)) return 0;
@@ -680,7 +696,7 @@
     if (soon.length) out.push({ kind: 'expiry', text: '⏰ ළඟදීම කල් ඉකුත් වෙනවා: ' + soon.join(', ') });
     var ending = state.items.filter(function (it) { var r = rates[it.id]; return r && it.qty > 0 && r.daysLeft <= 3; }).map(function (it) { return it.name; });
     if (ending.length) out.push({ kind: 'ending', text: '⏳ දවස් 3කින් ඉවර වෙනවා: ' + ending.join(', ') });
-    var finished = state.items.filter(function (it) { return it.qty <= 0 && (it.monthly > 0 || it.daily > 0); }).map(function (it) { return it.name; });
+    var finished = state.items.filter(function (it) { return it.qty <= 0 && (it.monthly > 0 || it.daily > 0 || it.onlyOut); }).map(function (it) { return it.name; });
     if (finished.length) out.push({ kind: 'finished', text: '🚫 ඉවරයි: ' + finished.join(', ') });
     var open = state.requests.filter(function (r) { return !r.done; });
     if (open.length) out.push({ kind: 'requests', text: '📝 ගෙදර අයගේ ඉල්ලීම් ' + open.length + 'ක්: ' + open.map(function (r) { return r.text; }).slice(0, 5).join(', ') });
