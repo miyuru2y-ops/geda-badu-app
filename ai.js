@@ -69,6 +69,7 @@ async function callGemini(prompt, image, mediaType, maxTokens) {
       if (!discovered && k === models.length - 1) { discovered = true; const more = (await discoverGeminiModels()).filter(x => !models.includes(x)); models = models.concat(more); }
       continue;
     }
+    if (res.status === 402) throw new Error('Gemini ගිණුමේ credit ඉවරයි — aistudio.google.com එකෙන් credit දාන්න, නැත්නම් free key එකක් දාන්න');
     if (!res.ok) throw new Error(res.status === 429 ? 'Gemini සීමාව ඉක්මවලා (quota) — ටික වෙලාවකින් ආයේ උත්සාහ කරන්න' : res.status === 400 || res.status === 403 ? 'Gemini key එකේ ප්‍රශ්නයක්: ' + msg.slice(0, 120) : 'Gemini ' + res.status + ': ' + msg.slice(0, 120));
     for (let attempt = 0; attempt < 2; attempt++) {
       const cand = (res.j.candidates || [])[0] || {};
