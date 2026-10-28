@@ -71,3 +71,9 @@ AI වියදම පාලනයට: `AI_DAILY_LIMIT` (default දවසට 60
 ## Files
 - `server.js` — Node server (packages නැහැ). `public/core.js` — server සහ app දෙකම පාවිච්චි කරන logic.
 - `public/index.html` — app එක. `public/sw.js` — offline cache. `seed.json` — මුල් බඩු ලිස්ට් එක.
+
+## v3.2 (web v18)
+- 🎉 උත්සව ලිස්ට් (අවුරුද්ද, පෝය, වෙසක්/දන්සල, නත්තල, රමසාන්) — tap එකෙන් සාප්පු ලිස්ට් එකට (ඉල්ලීම් විදිහට; ආයේ දැම්මොත් duplicate වෙන්නේ නැහැ)
+- 📊 බඩුවක මිල ඉතිහාසය (අන්තිම 24 මිල) — බඩුව tap කළාම chart එක
+- 🧮 මිල සංසන්දනය — g/kg/ml/L/ගණන් ගැලපෙන්න කිලෝවකට/ලීටරයකට මිල
+- 🗑️ නාස්ති track (`waste` op, undo කරන්න පුළුවන්) — මාසය tab එකේ සාරාංශයක්

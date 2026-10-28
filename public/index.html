@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:17 -->
+<!-- APP_VERSION:18 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -142,6 +142,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="row" style="margin:0 0 10px"><button class="btn hide-simple" id="sortBtn"></button><button class="btn primary" id="addOpen" style="flex:1">➕ අලුත් බඩුවක්</button><button class="btn primary" id="photoAdd" style="display:none">📸 Photo එකෙන්</button></div>
   <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none"><input type="file" id="photoGallery" accept="image/*" style="display:none">
   <button class="btn hide-simple" id="catOpen" style="width:100%">📚 කැටලොග් එකෙන් එකතු කරන්න</button>
+  <div class="row hide-simple" style="margin-top:8px"><button class="btn" id="festBtn" style="flex:1">🎉 උත්සව ලිස්ට්</button><button class="btn" id="cmpBtn" style="flex:1">🧮 මිල සංසන්දනය</button><button class="btn" id="wasteBtn" style="flex:1">🗑️ නාස්ති</button></div>
 </section>
 
 <section id="view-low" style="display:none"></section>
@@ -159,7 +160,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v17</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v18</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -330,6 +331,26 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="row"><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
 </div>
 
+<div class="sheet" id="festSheet">
+  <h3 id="festTitle">🎉 උත්සව සාප්පු ලිස්ට්</h3>
+  <div id="festBody"></div>
+  <div class="row"><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
+</div>
+
+<div class="sheet" id="cmpSheet">
+  <h3>🧮 මිල සංසන්දනය</h3>
+  <p class="muted">කඩේදී පැකට් දෙකක් තුනක් බලන්න — කොහෙද ලාබ කියලා ගණන් හදලා දෙනවා.</p>
+  <div id="cmpRows"></div>
+  <div id="cmpOut" class="card" style="margin-top:8px"></div>
+  <div class="row"><button class="btn" id="cmpClear">↺ මකන්න</button><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
+</div>
+
+<div class="sheet" id="wasteSheet">
+  <h3>🗑️ නාස්ති වුණ බඩු</h3>
+  <div id="wasteBody"></div>
+  <div class="row"><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
+</div>
+
 <div class="sheet" id="setSheet">
   <h3>⚙️ සැකසුම්</h3>
   <label for="s-name">මේ ෆෝන් එක කාගෙද? (ඉතිහාසයේ පේනවා)</label><input id="s-name" maxlength="30" placeholder="උදා: අම්මා, තාත්තා, නංගි">
@@ -372,14 +393,14 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 17;
+const APP_VERSION = 18;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
 const CAT_ORDER = ['සියල්ල'].concat(C.CATS);
 const CAT_EMOJI = {'සියල්ල': '🏠', 'එළවළු': '🥦', 'කොළ වර්ග': '🥬', 'පළතුරු': '🍎', 'ධාන්‍ය වර්ග': '🌾', 'කුළුබඩු': '🌶️', 'මස් මාලු බිත්තර': '🥚', 'කිරි නිෂ්පාදන': '🥛', 'කුස්සියේ බඩු': '🥫', 'බීම වර්ග': '🥤', 'බිස්කට් සහ කෑම': '🍪', 'පිරිසිදු කරන ද්‍රව්‍ය': '🧹', 'පුද්ගලික සනීපාරක්ෂක': '🧴', 'ළදරු': '🍼', 'බෙහෙත්': '💊', 'වෙනත්': '📦'};
 const THEMES = ['#0e7a4b','#1565c0','#6a1b9a','#b45309','#be123c','#334155'];
-const WHY = {use:'පාවිච්චි',add:'එකතු',cook:'🍳 ඉව්වා',buy:'🛒 ගත්තා',set:'✏️ හැදුවා',new:'➕ අලුත්'};
+const WHY = {waste:'🗑️ විසි කළා',use:'පාවිච්චි',add:'එකතු',cook:'🍳 ඉව්වා',buy:'🛒 ගත්තා',set:'✏️ හැදුවා',new:'➕ අලුත්'};
 const MONTHS = ['ජන','පෙබ','මාර්','අප්‍රේ','මැයි','ජූනි','ජූලි','අගෝ','සැප්','ඔක්','නොවැ','දෙසැ'];
 
 const $ = id => document.getElementById(id);
@@ -418,7 +439,7 @@ function rebuild(){
   if (!base) { S = null; return; }
   const st = C.normalize(clone(base), today());
   queue.forEach(op => C.apply(st, clone(op)));
-  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay, recipes: st.recipes, bills: st.bills, gas: st.gas, budget: st.budget, plan: st.plan, doseLog: st.doseLog, aisles: st.aisles, log: base.paidLog || [] });
+  S = Object.assign({}, base, { items: st.items, lastCookDate: st.lastCookDate, monthStart: st.monthStart, ticks: st.ticks, requests: st.requests, spend: st.spend, shopDay: st.shopDay, recipes: st.recipes, bills: st.bills, gas: st.gas, budget: st.budget, plan: st.plan, doseLog: st.doseLog, aisles: st.aisles, waste: st.waste, log: base.paidLog || [] });
   // offline වෙනස්කම් එක්ක "තව දවස්" ගණන ආයේ හදනවා
   const rates = {}; Object.keys(base.rates || {}).forEach(id => { const it = S.items.find(i => i.id === id); const r = base.rates[id]; if (it && r.rate > 0) rates[id] = { rate: r.rate, daysLeft: Math.floor(it.qty / r.rate) }; });
   S.items.forEach(it => { if (!rates[it.id] && it.daily > 0) rates[it.id] = { rate: it.daily, daysLeft: Math.floor(it.qty / it.daily) }; });
@@ -523,6 +544,16 @@ function priceCompare(it){
   if (ps.length < 2) return '';
   return '<p class="muted" style="margin:0 0 6px">🏪 ' + ps.map((x, i) => `${esc(x.shop)} ${rs(x.price)}${i === 0 ? ' <b style="color:var(--main)">✓ ලාබම</b>' : ''}`).join(' • ') + '</p>';
 }
+function histChart(it){
+  const h = (it.hist || []).filter(x => x.p > 0); if (h.length < 2) return '';
+  const W = 280, H = 56, P = 6, ps = h.map(x => x.p), mn = Math.min(...ps), mx = Math.max(...ps), rng = mx - mn || 1;
+  const pts = h.map((x, i) => [P + i * (W - 2 * P) / (h.length - 1), H - P - (x.p - mn) / rng * (H - 2 * P)]);
+  const first = h[0], last = h[h.length - 1], diff = last.p - first.p;
+  const col = diff > 0 ? 'var(--red)' : 'var(--main)';
+  return `<div class="card" style="padding:8px 10px;margin:0 0 8px"><b style="font-size:13px">📊 මිල ඉතිහාසය</b>
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="මිල ඉතිහාසය"><polyline fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" points="${pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}"/>${pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${col}"/>`).join('')}</svg>
+    <p class="muted" style="margin:2px 0 0">${esc(first.d)} ${rs(first.p)} → ${esc(last.d)} <b>${rs(last.p)}</b> ${diff ? (diff > 0 ? '<span class="low">↑ ' + rs(diff) + '</span>' : '<span style="color:var(--main)">↓ ' + rs(-diff) + '</span>') : ''} • අඩුම ${rs(mn)} • වැඩිම ${rs(mx)}</p></div>`;
+}
 function daysLeftTxt(it){
   const r = S.rates && S.rates[it.id]; if (!r || it.qty <= 0) return '';
   const d = r.daysLeft;
@@ -588,7 +619,7 @@ function openEdit(id, opts){
       <button data-act="plus" data-id="${esc(it.id)}"><b>+</b>${fmt(C.stepFor(it))}</button>
       <button data-act="finish" data-id="${esc(it.id)}"><b>🚫</b>ඉවරයි</button>
       <button data-act="buy1" data-id="${esc(it.id)}"><b>🛒</b>ගත්තා</button></div>
-      <p class="muted" style="margin:0 0 6px">දැන් <b>${fmt(it.qty)}${unitTxt(it)}</b> ${daysLeftTxt(it)} ${expiryTxt(it)} ${it.price ? '• ' + priceTxt(it) : ''}</p>${priceCompare(it)}` : '';
+      <p class="muted" style="margin:0 0 6px">දැන් <b>${fmt(it.qty)}${unitTxt(it)}</b> ${daysLeftTxt(it)} ${expiryTxt(it)} ${it.price ? '• ' + priceTxt(it) : ''}</p>${priceCompare(it)}${histChart(it)}${it.qty > 0 ? `<div class="row"><button class="btn danger" data-act="wasteItem" data-id="${esc(it.id)}" style="flex:1">🗑️ විසි කළා (නරක් වුණා / කල් ඉකුත්)</button></div>` : ''}` : '';
   $('e-icon').value = it ? (it.icon || '') : '';
   $('e-icon').placeholder = it ? C.iconFor(it) : '📦';
   $('e-name').value = it ? it.name : (opts.name || '');
@@ -944,6 +975,7 @@ function renderMonth(){
   h += `<div class="card"><h3>📊 මාසික සාරාංශය</h3><p class="muted">වියදම, කාණ්ඩ, බිල්පත්, ඊළඟට ගන්න ඕන දේවල් — ගෙදර WhatsApp group එකට යවන්න.</p>`
     + `<div class="row"><button class="btn primary" data-act="report" data-id="${mk}" style="flex:1">💬 ${MONTHS_FULL[Number(mk.slice(5)) - 1]} සාරාංශය WhatsApp</button><button class="btn" data-act="reportCopy" data-id="${mk}">📋</button></div>`
     + (day <= 7 ? `<div class="row"><button class="btn" data-act="report" data-id="${C.prevMonth(mk)}" style="flex:1">💬 පහුගිය මාසේ (${MONTHS_FULL[Number(C.prevMonth(mk).slice(5)) - 1]}) සාරාංශය</button></div>` : '') + '</div>';
+  h += `<div class="card"><h3>🗑️ නාස්තිය</h3>${wasteCard(mk)}<div class="row"><button class="btn" data-act="wasteOpen">🗑️ බඩු විසි කළා කියලා සටහන් කරන්න</button></div></div>`;
   const top = S.items.filter(it => sum[it.id] && sum[it.id].spent).sort((a, b) => sum[b.id].spent - sum[a.id].spent).slice(0, 8);
   if (top.length) h += `<div class="card"><h3>🏷️ වැඩියෙන්ම වියදම් වුණ බඩු</h3>${top.map(it => `<div class="hist"><div style="flex:1">${esc(C.iconFor(it))} ${esc(it.name)}</div><b>${rs(sum[it.id].spent)}</b></div>`).join('')}</div>`;
   const cmp = S.items.filter(it => Object.keys(it.prices || {}).length >= 2).map(it => { const ps = Object.keys(it.prices).map(k => ({ k, p: it.prices[k].price })).sort((a, b) => a.p - b.p); return { it, best: ps[0], worst: ps[ps.length - 1] }; }).filter(x => x.worst.p > x.best.p);
@@ -1446,6 +1478,80 @@ function renderCatalog(){
   $('catalogList').innerHTML = shown.length ? h : h + '<div class="card">හොයපු නමින් කැටලොග් බඩු නැහැ. <button class="btn" data-act="addnamedc">➕ “' + esc(catSearchText) + '” එකතු කරන්න</button></div>';
 }
 
+// ---------- 🎉 උත්සව ලිස්ට් ----------
+let festKey = '';
+function openFest(key){
+  festKey = key || '';
+  const F = window.GEDA_FESTIVALS || [];
+  const f = F.find(x => x.key === key);
+  const yr = today().slice(0, 4);
+  if (!f) {
+    $('festTitle').textContent = '🎉 උත්සව සාප්පු ලිස්ට්';
+    $('festBody').innerHTML = '<p class="muted">උත්සවයක් තෝරන්න — ඕන දේවල් ටික සාප්පු ලිස්ට් එකට දාගන්න පුළුවන්.</p><div class="list">' + F.map(x => `<div class="itemrow"><span class="ico">${x.icon}</span><div class="ri-info"><div class="ri-name">${esc(x.name)}</div><div class="ri-sub">${x.items.length} දේවල්</div></div><button class="btn primary" data-act="festOpen" data-id="${x.key}">තෝරන්න</button></div>`).join('') + '</div>';
+  } else {
+    const have = new Set((S.requests || []).map(r => r.rid));
+    $('festTitle').textContent = f.icon + ' ' + f.name;
+    $('festBody').innerHTML = '<p class="muted">ඕන නැති ඒවා untick කරන්න. ලිස්ට් එකට දැම්මාම “ඉල්ලීම්” විදිහට සාප්පු ලිස්ට් එකේ පේනවා.</p><div class="list">' + f.items.map((t, i) => { const rid = 'fest-' + f.key + '-' + i + '-' + yr; const on = have.has(rid); return `<label class="itemrow" style="gap:10px"><input type="checkbox" class="festck" data-i="${i}" ${on ? 'checked disabled' : 'checked'} style="width:22px;height:22px"><div class="ri-info"><div class="ri-name" style="font-size:15px">${esc(t)}${on ? ' <span class="pill">✓ දාලා</span>' : ''}</div></div></label>`; }).join('') + '</div><div class="row"><button class="btn" data-act="festBack">← ආපහු</button><button class="btn primary" data-act="festAdd" style="flex:1">🛒 ලිස්ට් එකට දාන්න</button></div>';
+  }
+  openSheet('festSheet');
+}
+function festAdd(){
+  const f = (window.GEDA_FESTIVALS || []).find(x => x.key === festKey); if (!f) return;
+  const yr = today().slice(0, 4); let n = 0;
+  document.querySelectorAll('#festBody .festck').forEach(c => {
+    if (!c.checked || c.disabled) return;
+    const i = Number(c.dataset.i);
+    doOp({ op: 'request', rid: 'fest-' + f.key + '-' + i + '-' + yr, text: f.icon + ' ' + f.items[i] }); n++;
+  });
+  closeSheets(); toast(n ? '🛒 ' + n + ' දේවල් සාප්පු ලිස්ට් එකට දැම්මා' : 'අලුතින් දාන්න දෙයක් නැහැ');
+}
+$('festBtn').onclick = () => openFest('');
+
+// ---------- 🧮 මිල සංසන්දනය ----------
+const CMP_UNITS = [['g', 'g'], ['kg', 'kg'], ['ml', 'ml'], ['l', 'L'], ['pcs', 'ගණන']];
+let cmpState = null;
+function cmpInit(){ cmpState = [{ qty: '', unit: 'g', price: '' }, { qty: '', unit: 'g', price: '' }, { qty: '', unit: 'g', price: '' }]; }
+function cmpRender(){
+  $('cmpRows').innerHTML = cmpState.map((r, i) => `<div class="rrow" style="grid-template-columns:28px 1fr 78px 1fr"><b>${'ABC'[i]}</b><input type="number" inputmode="decimal" min="0" step="any" data-cmp="${i}" data-f="qty" placeholder="ප්‍රමාණය" value="${esc(r.qty)}"><select data-cmp="${i}" data-f="unit">${CMP_UNITS.map(u => `<option value="${u[0]}" ${r.unit === u[0] ? 'selected' : ''}>${u[1]}</option>`).join('')}</select><input type="number" inputmode="decimal" min="0" step="any" data-cmp="${i}" data-f="price" placeholder="මිල (රු.)" value="${esc(r.price)}"></div>`).join('');
+  cmpResult();
+}
+function cmpResult(){
+  const res = C.comparePrices(cmpState), out = $('cmpOut');
+  const lbl = { kg: 'කිලෝවකට', l: 'ලීටරයකට', pcs: 'එකකට' };
+  const filled = cmpState.filter(r => C.unitPrice(r)).length;
+  if (filled < 2) { out.innerHTML = '<span class="muted">අඩුම තරමින් පැකට් දෙකක ප්‍රමාණය සහ මිල දාන්න.</span>'; return; }
+  if (!res.ok) { out.innerHTML = '<span class="low">⚠️ ඒකක ගැලපෙන්නේ නැහැ (g/kg එක්ක g/kg, ml/L එක්ක ml/L බලන්න).</span>'; return; }
+  out.innerHTML = res.rows.map(x => `<div class="hist"><div style="flex:1">${'ABC'[x.i]} — ${rs(x.price)}</div><b class="${x.i === res.best && !res.tie ? '' : ''}" style="${x.i === res.best && !res.tie ? 'color:var(--main)' : ''}">${rs(Math.round(x.per * 100) / 100)} ${lbl[res.base]}${x.i === res.best && !res.tie ? ' ✓' : ''}</b></div>`).join('')
+    + (res.tie ? '<p style="margin:8px 0 0"><b>එකම මිලයි.</b></p>' : `<p style="margin:8px 0 0"><b style="color:var(--main)">${'ABC'[res.best]} ලාබයි</b> — අනිත් එකට වඩා ${res.savePct}% දක්වා ලාබයි.</p>`);
+}
+$('cmpRows').addEventListener('input', e => { const t = e.target; if (t.dataset.cmp == null) return; cmpState[Number(t.dataset.cmp)][t.dataset.f] = t.value; cmpResult(); });
+$('cmpRows').addEventListener('change', e => { const t = e.target; if (t.dataset.cmp == null) return; cmpState[Number(t.dataset.cmp)][t.dataset.f] = t.value; cmpResult(); });
+$('cmpBtn').onclick = () => { if (!cmpState) cmpInit(); cmpRender(); openSheet('cmpSheet'); };
+$('cmpClear').onclick = () => { cmpInit(); cmpRender(); };
+
+// ---------- 🗑️ නාස්ති ----------
+function wasteCard(mk){
+  const w = C.wasteReport(S, mk);
+  if (!w.count) return '<p class="muted">මේ මාසේ විසි කරපු බඩු නැහැ 👍</p>';
+  return `<p style="margin:0 0 6px">මේ මාසේ විසි කළේ <b>${w.count}ක්</b>${w.total ? ' • නාස්ති වුණේ <b class="low">' + rs(w.total) + '</b>' : ''}</p>` + w.list.slice(0, 6).map(x => `<div class="hist"><div style="flex:1">${esc(x.name)} <span class="muted">${x.times} වතාවක්</span></div><div>${fmt(x.qty)}${x.unit ? ' ' + esc(x.unit) : ''}${x.cost ? ' • ' + rs(x.cost) : ''}</div></div>`).join('');
+}
+function openWaste(){
+  const t = today();
+  const cand = S.items.filter(it => it.qty > 0).map(it => ({ it, e: C.expiryStatus(it, t) })).filter(x => x.e && x.e.level !== 'ok');
+  let h = '<div class="card"><h3 style="margin-top:0">📅 ' + esc(t.slice(0, 7)) + '</h3>' + wasteCard(t.slice(0, 7)) + '</div>';
+  h += '<div class="card"><h3 style="margin-top:0">⏰ කල් ඉකුත් වෙන / වෙච්ච බඩු</h3>' + (cand.length ? cand.map(x => `<div class="itemrow"><span class="ico">${esc(C.iconFor(x.it))}</span><div class="ri-info"><div class="ri-name" style="font-size:15px">${esc(x.it.name)}</div><div class="ri-sub">${fmt(x.it.qty)}${unitTxt(x.it)} ${expiryTxt(x.it)}</div></div><button class="btn danger" data-act="wasteItem" data-id="${esc(x.it.id)}">🗑️ විසි කළා</button></div>`).join('') : '<p class="muted">කල් ඉකුත් වෙන බඩු නැහැ.</p>') + '<p class="muted" style="margin:8px 0 0">වෙනත් බඩුවක් නරක් වුණා නම්, ඒ බඩුවේ නම tap කරලා “🗑️ විසි කළා” ඔබන්න.</p></div>';
+  $('wasteBody').innerHTML = h; openSheet('wasteSheet');
+}
+function wasteItem(id){
+  const it = item(id); if (!it || it.qty <= 0) return;
+  if (!confirm('“' + it.name + '” ' + fmt(it.qty) + unitTxt(it) + ' විසි කළා කියලා සටහන් කරන්නද?')) return;
+  const res = doOp({ op: 'waste', id, qty: it.qty, why: 'expired' });
+  const open = $('wasteSheet').style.display === 'block';
+  closeSheets(); toast('🗑️ ' + it.name + ' විසි කළා කියලා සටහන් කළා', undoable(res, 'waste'));
+  if (open) setTimeout(openWaste, 0);
+}
+$('wasteBtn').onclick = openWaste;
+
 // ---------- events (එක තැනකින් — inline onclick නැහැ) ----------
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
@@ -1466,6 +1572,11 @@ document.addEventListener('click', async e => {
   else if (act === 'addnamed') openEdit(null, { name: searchText });
   else if (act === 'cookr') cookRecipe(id);
   else if (act === 'aisleOpen') openAisle();
+  else if (act === 'festOpen') openFest(id);
+  else if (act === 'festBack') openFest('');
+  else if (act === 'festAdd') festAdd();
+  else if (act === 'wasteItem') wasteItem(id);
+  else if (act === 'wasteOpen') openWaste();
   else if (act === 'aisleUp') aisleMove(Number(id), -1);
   else if (act === 'aisleDown') aisleMove(Number(id), 1);
   else if (act === 'ideaCook') { closeSheets(); cookRecipe(id); }

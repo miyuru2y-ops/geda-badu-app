@@ -101,6 +101,14 @@
     }).filter(Boolean).slice(0, 8).sort(function (a, b) { return a.time < b.time ? -1 : 1; });
   }
 
+  function cleanHist(h) {
+    return (Array.isArray(h) ? h : []).map(function (x) {
+      if (!x || !validDate(str(x.d, 10))) return null;
+      var p = Math.max(0, r2(num(x.p, 0))); if (!p) return null;
+      return { d: str(x.d, 10), p: p };
+    }).filter(Boolean).slice(-24);
+  }
+
   function cleanItem(it) {
     var exp = str(it.expiry, 10);
     return {
@@ -122,8 +130,13 @@
       prices: cleanPrices(it.prices),                    // කඩෙන් කඩට මිල {කඩේ: {price, date}}
       doses: cleanDoses(it.doses),                       // බෙහෙත් වෙලාවල් [{time:'08:00', qty:1, who:'අම්මා'}]
       repeat: cleanRepeat(it.repeat),                    // 🔄 පුරුද්දට ගන්නවා {days: 7, qty: 1} — නැත්නම් null
-      lastBuy: validDate(str(it.lastBuy, 10)) ? str(it.lastBuy, 10) : ''
+      lastBuy: validDate(str(it.lastBuy, 10)) ? str(it.lastBuy, 10) : '',
+      hist: cleanHist(it.hist)                           // 📊 මිල ඉතිහාසය [{d:'2026-10-28', p:450}] (ඒකකයකට)
     };
+  }
+
+  function cleanWaste(w) {
+    return { d: str(w.d, 10), id: str(w.id, 60), n: str(w.n, 80), unit: str(w.unit, 20), qty: Math.max(0, r2(num(w.qty, 0))), cost: Math.max(0, r2(num(w.cost, 0))), why: str(w.why, 20), by: str(w.by, 30) };
   }
 
   function cleanRecipe(r) {
@@ -177,6 +190,7 @@
       plan: s.plan && typeof s.plan === 'object' ? s.plan : {},               // සතියේ කෑම {'2026-10-28': ['rc-dal']}
       doseLog: s.doseLog && typeof s.doseLog === 'object' ? s.doseLog : {},  // {'2026-10-28': {'paracetamol@08:00': {by, ts}}}
       budget: { total: s.budget ? Math.max(0, r2(num(s.budget.total, 0))) : 0, cats: s.budget && s.budget.cats && typeof s.budget.cats === 'object' ? s.budget.cats : {} },
+      waste: Array.isArray(s.waste) ? s.waste.filter(function (w) { return w && validDate(str(w.d, 10)); }).map(cleanWaste).slice(-200) : [],  // 🗑️ විසි කළ බඩු
       seenOps: Array.isArray(s.seenOps) ? s.seenOps.slice(-SEEN_MAX) : []
     };
     out.items.forEach(function (i) { if (out.monthStart[i.id] === undefined) out.monthStart[i.id] = i.qty; });
@@ -264,6 +278,9 @@
           x.qty = r2(x.qty + q);
           if (p && q) {
             var unit = r2(p / q); if (unit !== x.price) { if (x.price) x.prevPrice = x.price; x.price = unit; }
+            var hl = x.hist[x.hist.length - 1];
+            if (hl && hl.d === op.date) hl.p = unit; else x.hist.push({ d: op.date, p: unit });
+            if (x.hist.length > 24) x.hist = x.hist.slice(-24);
             var shop = str(b.shop || op.shop, 30); if (shop) x.prices[shop] = { price: unit, date: op.date };
           }
           addLog(state, op, x, q, 'buy', p);
@@ -285,6 +302,7 @@
           var b = x.qty; x.qty = Math.max(0, r2(x.qty - num(c.delta, 0)));
           addLog(state, op, x, r2(x.qty - b), 'undo:' + str(op.of, 12));
         });
+        if (op.of === 'waste') { for (var wi = state.waste.length - 1; wi >= 0; wi--) { if ((op.changes || []).some(function (c) { return c.id === state.waste[wi].id; })) { state.waste.splice(wi, 1); break; } } }
         if (op.of === 'cook' && op.prevCookDate !== undefined) state.lastCookDate = str(op.prevCookDate, 10);
         if (op.of === 'buy' && op.spent) { var m2 = monthOf(op.date); state.spend[m2] = Math.max(0, r2((state.spend[m2] || 0) - num(op.spent, 0))); }
         break;
@@ -311,6 +329,17 @@
         }
         // එකම barcode එක බඩු දෙකක තියෙන්න බැහැ
         if (clean.barcode) state.items.forEach(function (x) { if (x.id !== clean.id && x.barcode === clean.barcode) x.barcode = ''; });
+        break;
+      case 'waste':
+        // 🗑️ කල් ඉකුත් වෙලා / නරක් වෙලා විසි කළා — තොගයෙන් අඩු කරලා නාස්තිය සටහන් කරනවා
+        it = find(state, op.id); if (!it) return { ok: false, err: 'no item' };
+        var wq = Math.min(it.qty, Math.max(0, r2(num(op.qty, it.qty))));
+        if (wq <= 0) return { ok: true, changes: [] };
+        it.qty = r2(it.qty - wq);
+        state.waste.push(cleanWaste({ d: op.date, id: it.id, n: it.name, unit: it.unit, qty: wq, cost: it.price ? r2(it.price * wq) : 0, why: op.why || 'expired', by: op.by }));
+        if (state.waste.length > 200) state.waste = state.waste.slice(-200);
+        addLog(state, op, it, -wq, 'waste');
+        changes.push({ id: it.id, delta: -wq });
         break;
       case 'delete':
         var idx = -1;
@@ -579,6 +608,34 @@
   function billsTotal(state, mk) { var t = 0; state.bills.forEach(function (b) { if (b.paid[mk]) t += b.paid[mk].amount || 0; }); return r2(t); }
 
   // මාසේ සාරාංශය (WhatsApp එකට යවන්න)
+  // 🗑️ මාසයක නාස්තිය: මුළු වටිනාකම + වැඩියෙන්ම විසි වුණ බඩු
+  function wasteReport(state, mk) {
+    var by = {}, total = 0, count = 0;
+    (state.waste || []).forEach(function (w) {
+      if (w.d.slice(0, 7) !== mk) return;
+      var o = by[w.id] || (by[w.id] = { name: w.n, unit: w.unit, qty: 0, cost: 0, times: 0 });
+      o.qty = r2(o.qty + w.qty); o.cost = r2(o.cost + w.cost); o.times++;
+      total = r2(total + w.cost); count++;
+    });
+    var list = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return (b.cost - a.cost) || (b.times - a.times); });
+    return { month: mk, total: total, count: count, list: list };
+  }
+
+  // 🧮 කඩේදී මිල සංසන්දනය: {qty, unit:'g'|'kg'|'ml'|'l'|'pcs', price} ගණනක් → කිලෝවකට/ලීටරයකට/ඒකකයකට මිල
+  var UNIT_BASE = { g: ['kg', 0.001], kg: ['kg', 1], ml: ['l', 0.001], l: ['l', 1], pcs: ['pcs', 1] };
+  function unitPrice(o) {
+    var u = UNIT_BASE[o && o.unit], q = num(o && o.qty, 0), p = num(o && o.price, 0);
+    if (!u || q <= 0 || p <= 0) return null;
+    return { base: u[0], per: p / (q * u[1]) };
+  }
+  function comparePrices(list) {
+    var r = (list || []).map(function (o, i) { var u = unitPrice(o); return u ? { i: i, base: u.base, per: u.per, price: num(o.price, 0) } : null; }).filter(Boolean);
+    if (r.length < 2 || r.some(function (x) { return x.base !== r[0].base; })) return { ok: false, rows: r };
+    var best = r.reduce(function (a, b) { return b.per < a.per ? b : a; });
+    var worst = r.reduce(function (a, b) { return b.per > a.per ? b : a; });
+    return { ok: true, rows: r, best: best.i, base: best.base, tie: worst.per === best.per, savePct: worst.per > 0 ? Math.round((1 - best.per / worst.per) * 100) : 0 };
+  }
+
   function monthReport(state, mk, today) {
     var sum = {}, names = {};
     state.items.forEach(function (i) { names[i.id] = i; });
@@ -672,6 +729,7 @@
       budget: state.budget,
       plan: state.plan,
       aisles: state.aisles,
+      waste: state.waste,
       doseLog: state.doseLog,
       summary: monthSummary(state),
       rates: rates,
@@ -686,6 +744,6 @@
     normalize: normalize, rollover: rollover, pruneLog: pruneLog, apply: apply, applyOnce: applyOnce, monthSummary: monthSummary,
     usageRates: usageRates, isLow: isLow, expiryStatus: expiryStatus, shopNeeded: shopNeeded, stepFor: stepFor, alerts: alerts,
     publicView: publicView, cleanItem: cleanItem, iconFor: iconFor, gasStatus: gasStatus, spendByCat: spendByCat, monthTotal: monthTotal,
-    billsStatus: billsStatus, billsTotal: billsTotal, planNeeds: planNeeds, repeatDue: repeatDue, DEFAULT_AISLE: DEFAULT_AISLE, dosesToday: dosesToday, nowHM: nowHM, monthReport: monthReport, prevMonth: prevMonth, BILL_SUGGEST: BILL_SUGGEST
+    billsStatus: billsStatus, billsTotal: billsTotal, planNeeds: planNeeds, repeatDue: repeatDue, DEFAULT_AISLE: DEFAULT_AISLE, dosesToday: dosesToday, nowHM: nowHM, monthReport: monthReport, wasteReport: wasteReport, comparePrices: comparePrices, unitPrice: unitPrice, prevMonth: prevMonth, BILL_SUGGEST: BILL_SUGGEST
   };
 });
