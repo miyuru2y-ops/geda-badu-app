@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:16 -->
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- APP_VERSION:17 -->
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.png">
@@ -11,6 +11,7 @@
 :root[data-mode=dark]{--bg:#101613;--card:#1a221e;--ink:#e6efe9;--muted:#93a69b;--line:#2a352f;--soft:#222c27;--edge:#34433b;--red:#ff8a80;--amber:#ffb74d;--input:#141b17;--chip:#25312b;--alert:#3a3215;--alertline:#6b5a1c;--redbg:#3d1f1c;--redline:#6e2f29;--amberbg:#3a2a14;--barbg:#2c3832;--toast:#e6efe9;color-scheme:dark}
 @media (prefers-color-scheme: dark){:root[data-mode=auto]{--bg:#101613;--card:#1a221e;--ink:#e6efe9;--muted:#93a69b;--line:#2a352f;--soft:#222c27;--edge:#34433b;--red:#ff8a80;--amber:#ffb74d;--input:#141b17;--chip:#25312b;--alert:#3a3215;--alertline:#6b5a1c;--redbg:#3d1f1c;--redline:#6e2f29;--amberbg:#3a2a14;--barbg:#2c3832;--toast:#e6efe9;color-scheme:dark}}
 *{box-sizing:border-box} html{scroll-behavior:smooth}
+html,body{touch-action:manipulation}
 body{margin:0;font-family:system-ui,-apple-system,'Noto Sans Sinhala',sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
 header{background:var(--main);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 12px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px}
 header h1{margin:0;font-size:21px} #syncLine{margin:3px 0 0;opacity:.92;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -158,7 +159,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v16</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v17</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -371,7 +372,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 16;
+const APP_VERSION = 17;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -1586,6 +1587,9 @@ window.addEventListener('online', () => sync());
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js').catch(() => {}); }
 
+// ඇඟිලි 2කින් zoom වෙන එක නවත්තනවා (අකුරු ලොකු කරන්න ⚙️ → සරල mode)
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
 applyLook(); pushNative(); render(); sync(); checkAI();
 })();
 </script>
