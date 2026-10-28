@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:13 -->
+<!-- APP_VERSION:14 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -110,7 +110,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 <body>
 <header>
   <div style="min-width:0"><h1>🏠 ගෙදර බඩු</h1><p id="syncLine">පූරණය වෙනවා…</p></div>
-  <div style="display:flex;gap:6px;flex-shrink:0"><button class="hbtn" id="voiceBtn" aria-label="කතා කරන්න" style="display:none">🎤</button><button class="hbtn" id="receiptBtn" aria-label="බිල් photo" style="display:none">🧾</button><input type="file" id="receiptFile" accept="image/*" capture="environment" style="display:none"><button class="hbtn" id="scanBtn" aria-label="Barcode scan" style="display:none">📷</button><button class="hbtn" id="syncBtn" aria-label="Sync">🔄</button><button class="hbtn" id="setBtn" aria-label="සැකසුම්">⚙️</button></div>
+  <div style="display:flex;gap:6px;flex-shrink:0"><button class="hbtn" id="voiceBtn" aria-label="කතා කරන්න" style="display:none">🎤</button><button class="hbtn" id="receiptBtn" aria-label="බිල් photo" style="display:none">🧾</button><input type="file" id="receiptFile" accept="image/*" capture="environment" style="display:none"><input type="file" id="receiptGallery" accept="image/*" style="display:none"><button class="hbtn" id="scanBtn" aria-label="Barcode scan" style="display:none">📷</button><button class="hbtn" id="syncBtn" aria-label="Sync">🔄</button><button class="hbtn" id="setBtn" aria-label="සැකසුම්">⚙️</button></div>
 </header>
 <main>
 <div id="alerts"></div>
@@ -137,7 +137,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="chips hide-simple" id="places"></div>
   <div id="items"></div>
   <div class="row" style="margin:0 0 10px"><button class="btn hide-simple" id="sortBtn"></button><button class="btn primary" id="addOpen" style="flex:1">➕ අලුත් බඩුවක්</button><button class="btn primary" id="photoAdd" style="display:none">📸 Photo එකෙන්</button></div>
-  <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none"><input type="file" id="photoGallery" accept="image/*" style="display:none">
   <button class="btn hide-simple" id="catOpen" style="width:100%">📚 කැටලොග් එකෙන් එකතු කරන්න</button>
 </section>
 
@@ -156,7 +156,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v13</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v14</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -269,6 +269,13 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <div class="row"><button class="btn primary" data-close style="flex:1">✅ හරි</button></div>
 </div>
 
+<div class="sheet" id="receiptPick">
+  <h3>🧾 සාප්පු බිල</h3>
+  <p class="muted">බිලේ photo එකක් ගත්තාම ගත්ත බඩු සහ මිල ඉබේම තොගයට දාන්න පුළුවන්.</p>
+  <div class="row"><button class="btn primary" id="rcCam" style="flex:1">📷 Photo එකක් ගන්න</button><button class="btn" id="rcGal" style="flex:1">🖼️ ගැලරියෙන්</button></div>
+  <div class="row"><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
+</div>
+
 <div class="sheet" id="receiptSheet">
   <h3>🧾 බිලේ තියෙන බඩු</h3>
   <p class="muted" id="rcMsg"></p>
@@ -301,7 +308,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
     </div>
     <div class="row"><button class="btn primary" id="id-save" style="flex:1">➕ ලිස්ට් එකට එකතු කරන්න</button></div>
   </div>
-  <div class="row"><button class="btn" id="id-again">📸 ආයේ</button><button class="btn" data-close style="flex:1">✖️ වහන්න</button></div>
+  <div class="row"><button class="btn" id="id-again">📸 ආයේ</button><button class="btn" id="id-gallery">🖼️ ගැලරියෙන්</button><button class="btn" data-close style="flex:1">✖️</button></div>
 </div>
 
 <div class="sheet" id="setSheet">
@@ -343,7 +350,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 13;
+const APP_VERSION = 14;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි
@@ -965,7 +972,9 @@ async function checkAI(){
   $('receiptBtn').style.display = camOk ? '' : 'none';
   $('photoAdd').style.display = camOk ? '' : 'none';
 }
-$('receiptBtn').onclick = () => $('receiptFile').click();
+$('receiptBtn').onclick = () => { closeSheets(); openSheet('receiptPick'); };
+$('rcCam').onclick = () => { closeSheets(); $('receiptFile').click(); };
+$('rcGal').onclick = () => { closeSheets(); $('receiptGallery').click(); };
 function shrinkImage(file){
   return new Promise((resolve, reject) => {
     const img = new Image(); const url = URL.createObjectURL(file);
@@ -975,6 +984,7 @@ function shrinkImage(file){
   });
 }
 let rcData = null;
+$('receiptGallery').onchange = e => $('receiptFile').onchange(e);
 $('receiptFile').onchange = async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   toast('🧾 බිල කියවනවා… (තත්පර 10-20ක් යයි)');
@@ -1008,6 +1018,8 @@ $('rc-save').onclick = () => {
 let idData = null;
 $('photoAdd').onclick = () => $('photoFile').click();
 $('id-again').onclick = () => { closeSheets(); $('photoFile').click(); };
+$('id-gallery').onclick = () => { closeSheets(); $('photoGallery').click(); };
+$('photoGallery').onchange = e => $('photoFile').onchange(e);
 $('id-cat').innerHTML = C.CATS.map(c => `<option>${esc(c)}</option>`).join('');
 $('photoFile').onchange = async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;

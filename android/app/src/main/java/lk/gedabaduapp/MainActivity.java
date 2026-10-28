@@ -10,6 +10,11 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+
+import androidx.core.content.FileProvider;
+
+import java.io.File;
 import android.speech.RecognizerIntent;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -39,7 +44,8 @@ public class MainActivity extends Activity {
     static final String LOCAL = "file:///android_asset/index.html";
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
-    static final int REQ_FILE = 11, REQ_VOICE = 12;
+    static final int REQ_FILE = 11, REQ_VOICE = 12, REQ_CAMERA = 13;
+    private Uri cameraUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +86,8 @@ public class MainActivity extends Activity {
             public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
                 fileCallback = cb;
+                // <input capture> නම් කෙලින්ම camera එක, නැත්නම් gallery / files
+                if (params.isCaptureEnabled() && startCamera()) return true;
                 try { startActivityForResult(params.createIntent(), REQ_FILE); }
                 catch (Exception e) { fileCallback = null; return false; }
                 return true;
@@ -105,10 +113,30 @@ public class MainActivity extends Activity {
         if (intent != null && intent.getBooleanExtra("checkUpdate", false)) UpdateChecker.check(this, true);
     }
 
+    /** Camera app එක අරිනවා — photo එක app එකේ cache එකේ (gallery එකට යන්නේ නැහැ) */
+    private boolean startCamera() {
+        try {
+            File dir = new File(getCacheDir(), "photos");
+            if (!dir.exists()) dir.mkdirs();
+            File[] old = dir.listFiles();   // පරණ photo අයින් (දවසකට වඩා පරණ)
+            if (old != null) for (File f : old) if (System.currentTimeMillis() - f.lastModified() > 86400000L) f.delete();
+            File f = new File(dir, "p" + System.currentTimeMillis() + ".jpg");
+            cameraUri = FileProvider.getUriForFile(this, getPackageName() + ".files", f);
+            Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                .putExtra(MediaStore.EXTRA_OUTPUT, cameraUri)
+                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivityForResult(i, REQ_CAMERA);
+            return true;
+        } catch (Exception e) { cameraUri = null; return false; }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQ_FILE && fileCallback != null) {
+        if (requestCode == REQ_CAMERA && fileCallback != null) {
+            fileCallback.onReceiveValue(resultCode == RESULT_OK && cameraUri != null ? new Uri[]{cameraUri} : null);
+            fileCallback = null;
+        } else if (requestCode == REQ_FILE && fileCallback != null) {
             fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
             fileCallback = null;
         } else if (requestCode == REQ_VOICE && resultCode == RESULT_OK && data != null) {
