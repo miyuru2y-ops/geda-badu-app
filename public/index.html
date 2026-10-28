@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si" data-mode="auto"><head>
-<!-- APP_VERSION:19 -->
+<!-- APP_VERSION:20 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0e7a4b">
 <link rel="manifest" href="manifest.json">
@@ -127,7 +127,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 
 <section id="view-list">
   <div class="card" id="doseCard" style="display:none"></div>
-  <div class="card" style="padding:12px 14px">
+  <div class="card" style="padding:12px 14px;display:none">
     <div style="display:flex;justify-content:space-between;align-items:center"><b>🍳 අද උයන්නේ මොනවද?</b><span><button class="btn hide-simple" id="planBtn" style="padding:6px 10px;font-size:13px">📅 සතියට</button> <button class="btn hide-simple" id="recipesBtn" style="padding:6px 10px;font-size:13px">⚙️</button></span></div>
     <p class="muted" style="margin:4px 0 6px">කෑමක් tap කළාම ඒකට යන බඩු ටික තොගයෙන් අඩු වෙනවා.</p>
     <div class="rchips" id="recipeChips"></div>
@@ -160,7 +160,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
   <input id="catSearchBox" type="search" placeholder="🔍 කැටලොග් එකේ හොයන්න… (උදා: ගොටුකොළ)" autocomplete="off">
   <div id="catalogList"></div>
 </section>
-<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v19</span></footer>
+<footer>බඩුවක නම tap කළාම ඉවරයි, ගත්තා, මිල, කල් ඉකුත් දිනය ඔක්කොම එතනින්.<br><span id="appVer">v20</span></footer>
 </main>
 
 <div id="sheetBack"></div>
@@ -175,7 +175,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
     <div><label for="e-unit">ඒකකය</label><input id="e-unit" maxlength="20" placeholder="kg, L, g, පැකට්" list="units"></div>
     <div><label for="e-qty">දැන් තියෙන්නේ</label><input id="e-qty" type="number" step="any" min="0" inputmode="decimal"></div>
     <div><label for="e-monthly">මාසෙට ඕන</label><input id="e-monthly" type="number" step="any" min="0" inputmode="decimal" placeholder="නොදන්නවා නම් හිස්"></div>
-    <div><label for="e-daily">දවසට උයන්න</label><input id="e-daily" type="number" step="any" min="0" inputmode="decimal" placeholder="නැත්නම් හිස්"></div>
+    <div style="display:none"><label for="e-daily">දවසට උයන්න</label><input id="e-daily" type="number" step="any" min="0" inputmode="decimal" placeholder="නැත්නම් හිස්"></div>
     <div><label for="e-low">අඩුයි කියන්නේ (≤)</label><input id="e-low" type="number" step="any" min="0" inputmode="decimal" placeholder="උදා: 1"></div>
     <div><label for="e-price">මිල (ඒකකයට, රු.)</label><input id="e-price" type="number" step="any" min="0" inputmode="decimal"></div>
     <div><label for="e-expiry">කල් ඉකුත් වෙන දිනය</label><input id="e-expiry" type="date"></div>
@@ -394,7 +394,7 @@ body.simple .tabs button{font-size:16px;padding:12px 2px} body.simple .tabs .ic{
 (function(){
 const C = window.GedaCore;
 const CATALOG = window.GEDA_CATALOG || [];
-const APP_VERSION = 19;
+const APP_VERSION = 20;
 // APK එකේ file:// fallback එකෙන් ඇරියොත් server එකට කෙලින්ම යනවා. වෙබ් එකෙන් ඇරියොත් same origin.
 const SERVER = location.protocol.startsWith('http') ? '' : 'https://yfhbfdy513gg47ewhnjetul4.sportantics.com';
 const NATIVE = window.GedaNative || null; // අලුත් APK (v2.1+) එකේ විතරයි

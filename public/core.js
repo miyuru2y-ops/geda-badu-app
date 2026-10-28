@@ -124,7 +124,7 @@
       unit: str(it.unit, 20),
       qty: Math.max(0, r2(num(it.qty, 0))),
       monthly: Math.max(0, r2(num(it.monthly, 0))),
-      daily: Math.max(0, r2(num(it.daily, 0))),
+      daily: 0,                                          // දවස ගානෙ ඉබේ අඩු කිරීම අයින් කළා (v3.4) — ඇත්ත පාවිච්චියෙන් විතරයි
       low: Math.max(0, r2(num(it.low, 0))),
       price: Math.max(0, r2(num(it.price, 0))),        // අන්තිමට ගත්ත මිල (ඒකකයකට)
       prevPrice: Math.max(0, r2(num(it.prevPrice, 0))), // ඊට කලින් මිල
