@@ -55,7 +55,7 @@ public class UpdateChecker {
     static void check(Activity act, boolean force) {
         SharedPreferences p = act.getSharedPreferences(AlertScheduler.PREFS, Context.MODE_PRIVATE);
         long last = p.getLong("updCheck", 0);
-        if (!force && System.currentTimeMillis() - last < 3600 * 1000L) return;   // පැයකට වරක්
+        if (!force && System.currentTimeMillis() - last < 15 * 60 * 1000L) return;   // විනාඩි 15කට වරක්
         p.edit().putLong("updCheck", System.currentTimeMillis()).apply();
         new Thread(() -> {
             try {

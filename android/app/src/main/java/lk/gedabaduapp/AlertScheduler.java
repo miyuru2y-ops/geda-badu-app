@@ -29,6 +29,8 @@ public class AlertScheduler {
     /** අලුත් APK update එකක් තියෙනවද — පැයෙන් පැය (app එක වහලා තිබුණත්) */
     static void scheduleUpdateCheck(Context ctx, AlarmManager am) {
         Intent i = new Intent(ctx, AlertReceiver.class).setAction(AlertReceiver.ACTION_UPDATE);
+        // දැනටමත් දාලා නම් ආයේ දාන්නේ නැහැ (app එක අරින හැම පාරම පැය ගණන මුල ඉඳන් පටන් ගන්න එක නවත්තනවා)
+        if (PendingIntent.getBroadcast(ctx, 2, i, PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE) != null) return;
         PendingIntent pi = PendingIntent.getBroadcast(ctx, 2, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         long every = AlarmManager.INTERVAL_HOUR;   // පැයෙන් පැය
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + every, every, pi);

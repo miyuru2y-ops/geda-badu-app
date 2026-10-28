@@ -7,8 +7,8 @@ android {
         applicationId 'lk.gedabaduapp'   // දැනට install කරලා තියෙන app එකේ නමමයි — එතකොට උඩින් update වෙනවා
         minSdk 24
         targetSdk 35
-        versionCode 17
-        versionName '2.9'
+        versionCode 18
+        versionName '3.0'
     }
     signingConfigs {
         release {
