@@ -43,7 +43,14 @@ jobs:
           GEDA_KEYSTORE_PASSWORD: ${{ secrets.GEDA_KEYSTORE_PASSWORD }}
           GEDA_KEY_ALIAS: ${{ secrets.GEDA_KEY_ALIAS }}
           GEDA_KEY_PASSWORD: ${{ secrets.GEDA_KEY_PASSWORD }}
-        run: gradle --no-daemon assembleRelease
+        run: |
+          set -o pipefail
+          gradle --no-daemon assembleRelease 2>&1 | tee "$RUNNER_TEMP/build.log"
+      - name: Show build errors
+        if: failure()
+        run: |
+          # errors → annotations (API එකෙන් කියවන්න පුළුවන්)
+          grep -E "error:|What went wrong|Duplicate class|> .*failed|Could not|e: |AAPT" -A3 "$RUNNER_TEMP/build.log" | head -40 | while IFS= read -r l; do echo "::error::$l"; done
       - name: Rename
         run: cp android/app/build/outputs/apk/release/app-release.apk "Geda-Badu-App-v2.1-$(date +%Y%m%d).apk"
       - uses: actions/upload-artifact@v4
